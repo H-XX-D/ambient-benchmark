@@ -152,7 +152,10 @@ async function firewallClassify(base, turn, store) {
   // related is dug up OR the turn itself looks orderable/enumerable (cheap heuristic gate).
   const orderable = /\b(higher|older|before|after|outrank|reports? to|greater|precede|first|then|next)\b/i.test(turn);
   if (!cands.length && !orderable) return { edges: [], orderings: [], collections: [] };
-  const list = cands.length ? cands.map((c, i) => `(${i + 1}) ${c.body.slice(0, 160)}`).join("\n") : "(none)";
+  // 160 chars silently cut real values off real conversational turns (e.g. a personal-best time
+  // mentioned after a "thanks, by the way..." preamble never reached the classifier at all). These
+  // are single turns, not documents, so a generous window costs little and avoids that failure mode.
+  const list = cands.length ? cands.map((c, i) => `(${i + 1}) ${c.body.slice(0, 400)}`).join("\n") : "(none)";
   let out = "";
   try {
     out = await askClassifier({ system: FIREWALL_SYS, user: `NEW turn: ${turn}\n\nEXISTING related memory:\n${list}\n\nRelation:`, maxTokens: 48 });
