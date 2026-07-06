@@ -68,13 +68,16 @@ function loadEvents(conversationId) {
 }
 
 // Budget the served context so the prompt fits the reader window: trim each item, then
-// keep items until the char budget is spent.
+// keep items until the char budget is spent. A `continue` (not `break`) on overflow matters:
+// otherwise one oversized item wholesale drops every item after it, even smaller ones that
+// would have fit, the exact "retrieval found it, budget dropped it" failure mode this guards
+// against (see ver_c0a9, the same class of bug found in the classifier's own truncation).
 function budgetContext(served) {
   const kept = [];
   let total = 0;
   for (const s of served) {
     const item = s.length > PER_ITEM_CHARS ? s.slice(0, PER_ITEM_CHARS) + "…" : s;
-    if (total + item.length > MAX_CTX_CHARS) break;
+    if (total + item.length > MAX_CTX_CHARS) continue;
     kept.push(item);
     total += item.length;
   }

@@ -182,7 +182,12 @@ const routes = {
         }
       }
     }
-    const merged = [...new Set([...cycleNotes, ...conflictNotes, ...concernNotes, ...collMembers, ...support])];
+    // Order matters once the runner's char budget kicks in: a hard cutoff drops whatever comes
+    // after it, so put the primary evidence (support) ahead of collMembers, which can be a large
+    // full-list dump for enumeration questions and would otherwise crowd support out first. The
+    // short interpretive notes (cycle/conflict/concern) go first: they are few and cheap, and
+    // dropping them defeats their whole purpose of telling the reader how to read what follows.
+    const merged = [...new Set([...cycleNotes, ...conflictNotes, ...concernNotes, ...support, ...collMembers])];
     return {
       support: merged,
       injectionFlags: flags,
