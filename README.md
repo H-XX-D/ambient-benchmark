@@ -53,6 +53,30 @@ A bare model with no memory of its own runs the auto tiers (T2 and T3) through a
 reference auto-memory harness that AMBIENT supplies, identical for every entrant, so
 lever-less systems can still be placed on the ladder. See [RULES.md](RULES.md).
 
+## Where the questions come from
+
+AMBIENT does not invent a new corpus to make its point. Most of the question content
+is absorbed from established, licensed long-term-memory benchmarks, reconstructed
+from their official releases at run time (`corpora/reconstruct.py`), never
+redistributed: **BEAM** (arXiv:2510.27246, CC BY-SA 4.0, scales 100K to 10M tokens)
+and **LongMemEval** (arXiv:2410.10813, MIT, carries its own answer-session
+provenance). LoCoMo was evaluated and excluded: its CC BY-NC license blocks
+commercial or monetized-leaderboard use, and LongMemEval already covers the same
+small-tier pull-plus-attribution role under MIT. See
+[corpora/LICENSES.md](corpora/LICENSES.md) and
+[corpora/sources.json](corpora/sources.json) for the full attribution.
+
+A smaller, purpose-authored 92-segment / 15-ability corpus (`corpora/areas.mjs`)
+supplements this for structural abilities the absorbed corpora don't target directly:
+supersession lineage, holonomy (cyclic ordering), reactivity, and calibration.
+
+What's actually novel here isn't the question content, it's the harness: the entry
+bar is loosened to Rule 1 (any system exposing one traceable store call, substrate-
+neutral) rather than requiring a specific mechanism, and the scoring is different
+from how these corpora are normally graded, reader held constant across four
+ablation tiers, correct/wrong/gullible instead of a single accuracy number, so the
+result is attributable to the memory system rather than the reader.
+
 ## The capability suite
 
 The capability axis, what memory can do: L1 unprompted value-flip, L2 entailed
