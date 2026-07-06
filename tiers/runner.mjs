@@ -313,7 +313,7 @@ async function main() {
     seen.add(r.ability);
     const t4 = transcript.find((x) => x.segId === r.segId && x.tier === "T4");
     console.log(`\n  [${r.ability}] Q: ${r.question.slice(0, 80)}`);
-    console.log(`    gold: ${(r.gold || "").slice(0, 80)}`);
+    console.log(`    gold: ${String(r.gold ?? "").slice(0, 80)}`);
     console.log(`    T1 (no mem): ${r.answer.slice(0, 90).replace(/\n/g, " ")}`);
     console.log(`    T4 (served ${t4.servedCount}): ${t4.answer.slice(0, 90).replace(/\n/g, " ")}`);
   }
