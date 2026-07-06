@@ -19,26 +19,59 @@
 import { mkdtempSync, rmSync } from "node:fs";
 import os from "node:os";
 import { join } from "node:path";
-import { SQLiteRecallStore, admitWriteProposal, analyzeMemory } from "../dist/src/index.js";
+import { SqliteStore, admit, addHyperedge, addDagOverlay, runProgramCell, analyzeMemory } from "./_recall.mjs";
 
+// Flat proposal matching the current admit() schema. The old nested
+// recall.write.v1 shape doesn't exist in the vendored build. contradicts
+// (prior cell keys) becomes real `edges: [{relation:"contradicts",target}]`,
+// admit()-validated (a dangling target is rejected, not silently dropped).
 function proposal(title, attr, value, contradicts) {
   const body = `${attr}=${value}`;
   return {
-    schema_version: "recall.write.v1",
-    actor: { kind: "llm", id: "sentinel", display: "Sentinel" },
-    intent: { kind: "observation", operation: "create" },
-    content: { title, body, summary: body },
-    scope: { project: "sentinel", path: ".", tenant: "local" },
-    tags: {
-      category: ["memory"], type: ["observation"], subject: ["fact"], project: ["sentinel"], idea: ["stream"],
-      timestamp: ["2023-01-01"], topics: ["fact", attr], entities: [attr], identities: ["agent:stream"],
-      rings: ["adapter"], lifecycle: ["active"], quality: ["source-grounded"], sensitivity: ["public"], permission: ["read"]
-    },
-    evidence: { source_refs: [], depends_on: [], supports: [], contradicts: contradicts || [], concerns: [] },
-    confidence: { value: 0.8, uncertainty: 0.1, concern: 0.05, source_quality: "high", stability: "stable" },
-    provenance: { created_at: new Date("2023-01-01").toISOString(), origin: "llm", produced_by: "sentinel", verification: "checked", signature_status: "unsigned" },
-    policy: { sensitivity: "public", allow_background_use: true, requires_review: false, expires_at: null, reverify_after: null }
+    kind: "obs",
+    title,
+    body,
+    confidence: 0.8,
+    project: "sentinel",
+    tenant: "local",
+    topics: ["fact", attr],
+    entities: [attr],
+    ...(contradicts && contradicts.length ? { edges: contradicts.map((target) => ({ relation: "contradicts", target })) } : {}),
   };
+}
+
+// admit() reports rejection via the return value, not a throw; this is the
+// single write path every sub-benchmark below goes through.
+function W(prop, store) {
+  const result = admit(prop, { store });
+  if (!result || result.accepted !== true || !result.cell) {
+    throw new Error(`write not admitted: ${prop.title} -> ${JSON.stringify(result?.issues ?? result)}`);
+  }
+  return result.cell;
+}
+
+// A "standing program" is a prg-kind cell whose props.program carries the
+// spec (schemaVersion/operation/target/params) — there is no separate
+// attach-program call; admitting the cell IS attaching it. target.hyperedge
+// references the bundle to watch; runProgramCell ticks it and returns
+// {run:{output:{tripped,...}}}.
+function watchProgram(store, title, hyperedgeId, delta) {
+  return W({
+    kind: "prg",
+    title,
+    body: `watch program: ${title}`,
+    confidence: 0.9,
+    project: "sentinel",
+    tenant: "local",
+    topics: ["program"],
+    entities: [],
+    props: { program: { schemaVersion: "recall.program.v1", operation: "watch", target: { hyperedge: hyperedgeId }, params: { delta } } },
+  }, store);
+}
+function tick(store, programKey) {
+  // runProgramCell wants an ISO string for `now` (stored verbatim as run.createdAt,
+  // an sqlite text column) — unlike analyzeMemory below, which wants a Date object.
+  return runProgramCell(store, programKey, new Date().toISOString()).run.output;
 }
 
 // Deterministic stream generator (no RNG). Each "contradiction" stream contains
@@ -70,24 +103,24 @@ export function runSentinel(streamCount = 24, delta = 0.1) {
     // Isolated store per stream: each scenario is independent, and a shared
     // producer's calibration factor must not couple unrelated streams.
     const tmp = mkdtempSync(join(os.tmpdir(), "sentinel-"));
-    const store = new SQLiteRecallStore(join(tmp, "d.sqlite3"));
+    const store = new SqliteStore(join(tmp, "d.sqlite3"));
     try {
-      const anchor = admitWriteProposal(proposal(`belief:${stream.attr}`, stream.attr, stream.anchorValue), store).node;
+      const anchor = W(proposal(`belief:${stream.attr}`, stream.attr, stream.anchorValue), store);
       beliefs += 1;
-      const edge = store.addHyperedge({ kind: "evidence-bundle", title: `watch:${stream.attr}`, members: [{ nodeId: anchor.id, role: "claim" }] });
-      const program = store.attachProgram(edge.id, { schemaVersion: "recall.program.v1", operation: "watch", params: { delta } });
-      store.runProgram(program.id); // baseline tick (never trips)
+      const edge = addHyperedge(store, { kind: "evidence-bundle", title: `watch:${stream.attr}`, members: [{ key: anchor.key, role: "claim" }] });
+      const program = watchProgram(store, `watch:${stream.attr}`, edge.id, delta);
+      tick(store, program.key); // baseline tick (never trips)
 
       let knownValue = stream.anchorValue;
-      let beliefCellId = anchor.id;
+      let beliefCellId = anchor.key;
       let contradictorTick = -1, trippedTick = -1;
 
       stream.events.forEach((event, idx) => {
         const isContradiction = event.attr === stream.attr && event.value !== knownValue;
         const contradicts = isContradiction ? [beliefCellId] : [];
-        const cell = admitWriteProposal(proposal(`event:${event.attr}=${event.value}`, event.attr, event.value, contradicts), store).node;
-        if (isContradiction) { knownValue = event.value; beliefCellId = cell.id; if (contradictorTick < 0) contradictorTick = idx; }
-        const out = store.runProgram(program.id).output; // unprompted tick
+        const cell = W(proposal(`event:${event.attr}=${event.value}`, event.attr, event.value, contradicts), store);
+        if (isContradiction) { knownValue = event.value; beliefCellId = cell.key; if (contradictorTick < 0) contradictorTick = idx; }
+        const out = tick(store, program.key); // unprompted tick
         totalTicks += 1;
         if (out.tripped === true && trippedTick < 0) trippedTick = idx;
         if (event.kind === "contradictor") trueContradictions += 1;
@@ -144,30 +177,33 @@ export function runL3(tripleCount = 24) {
   let inconsistentTotal = 0, detected = 0, falseFlags = 0, admits = 0;
   for (const triple of makeTriples(tripleCount)) {
     const tmp = mkdtempSync(join(os.tmpdir(), "sentinel-l3-"));
-    const store = new SQLiteRecallStore(join(tmp, "d.sqlite3"));
+    const store = new SqliteStore(join(tmp, "d.sqlite3"));
     try {
       const ent = {
-        A: admitWriteProposal(proposal("entity A", "ent", "A"), store).node.id,
-        B: admitWriteProposal(proposal("entity B", "ent", "B"), store).node.id,
-        C: admitWriteProposal(proposal("entity C", "ent", "C"), store).node.id
+        A: W(proposal("entity A", "ent", "A"), store).key,
+        B: W(proposal("entity B", "ent", "B"), store).key,
+        C: W(proposal("entity C", "ent", "C"), store).key
       };
       if (triple.inconsistent) inconsistentTotal += 1;
       const edges = [];
       let detectedTick = -1;
       triple.orderings.forEach(([from, to], idx) => {
-        admitWriteProposal(proposal(`${from} > ${to}`, "ord", `${from}${to}`), store);
-        edges.push({ from: ent[from], to: ent[to] });
+        W(proposal(`${from} > ${to}`, "ord", `${from}${to}`), store);
+        edges.push({ source: ent[from], target: ent[to] });
         admits += 1;
         try {
-          store.addDagOverlay({ title: `ordering@${idx}`, nodeIds: [ent.A, ent.B, ent.C], edges: edges.slice(), metadata: {} });
+          addDagOverlay(store, { title: `ordering@${idx}`, nodeIds: [ent.A, ent.B, ent.C], edges: edges.slice(), metadata: {} });
         } catch (err) {
-          if (/cycle/i.test(String(err && err.message)) && detectedTick < 0) detectedTick = idx;
+          // The vendored build's message is "dag overlay is cyclic: ...", not
+          // "...has a cycle..." — /cycle/i doesn't match "cyclic" (diverges at
+          // the 5th letter). /cycl/i covers both word forms.
+          if (/cycl/i.test(String(err && err.message)) && detectedTick < 0) detectedTick = idx;
         }
       });
       if (triple.inconsistent) { if (detectedTick >= 0) detected += 1; }
       else if (detectedTick >= 0) falseFlags += 1;
     } finally {
-      store.close?.();
+      store.close();
       rmSync(tmp, { recursive: true, force: true });
     }
   }
@@ -230,17 +266,17 @@ function l2Surfacing() {
   let surfaced = 0, total = 0, falseTrips = 0;
   for (const c of L2_CASES) {
     const tmp = mkdtempSync(join(os.tmpdir(), "sentinel-l2-"));
-    const store = new SQLiteRecallStore(join(tmp, "d.sqlite3"));
+    const store = new SqliteStore(join(tmp, "d.sqlite3"));
     try {
-      const anchor = admitWriteProposal(proposal(`belief:${c.b.text}`, "belief", "1"), store).node;
-      const edge = store.addHyperedge({ kind: "evidence-bundle", title: "belief", members: [{ nodeId: anchor.id, role: "claim" }] });
-      const program = store.attachProgram(edge.id, { schemaVersion: "recall.program.v1", operation: "watch", params: { delta: 0.1 } });
-      store.runProgram(program.id);
+      const anchor = W(proposal(`belief:${c.b.text}`, "belief", "1"), store);
+      const edge = addHyperedge(store, { kind: "evidence-bundle", title: "belief", members: [{ key: anchor.key, role: "claim" }] });
+      const program = watchProgram(store, "belief", edge.id, 0.1);
+      tick(store, program.key);
       const isContra = l2Entail(c.b, c.f);
-      admitWriteProposal(proposal(`fact:${c.f.text}`, "fact", "1", isContra ? [anchor.id] : []), store);
-      const tripped = store.runProgram(program.id).output.tripped === true;
+      W(proposal(`fact:${c.f.text}`, "fact", "1", isContra ? [anchor.key] : []), store);
+      const tripped = tick(store, program.key).tripped === true;
       if (c.gold) { total++; if (tripped) surfaced++; } else if (tripped) falseTrips++;
-    } finally { store.close?.(); rmSync(tmp, { recursive: true, force: true }); }
+    } finally { store.close(); rmSync(tmp, { recursive: true, force: true }); }
   }
   return { recall: total ? surfaced / total : 1, falseTrips, total };
 }
@@ -280,34 +316,39 @@ function extractExpiry(text) {
   for (const [month, end] of Object.entries(MONTH_END)) if (t.includes(month)) return `${year}-${end}T23:59:59.000Z`;
   return null;
 }
-function l4Proposal(title, expiresAt, createdAt) {
-  return { schema_version: "recall.write.v1", actor: { kind: "llm", id: "l4", display: "l4" },
-    intent: { kind: "observation", operation: "create" }, content: { title, body: title, summary: title },
-    scope: { project: "l4", path: ".", tenant: "local" },
-    tags: { category: ["memory"], type: ["observation"], subject: ["belief"], project: ["l4"], idea: ["expiry"],
-      timestamp: [createdAt], topics: ["belief"], entities: ["x"], identities: ["a"], rings: ["adapter"],
-      lifecycle: ["active"], quality: ["source-grounded"], sensitivity: ["public"], permission: ["read"] },
-    evidence: { source_refs: [], depends_on: [], supports: [], contradicts: [], concerns: [] },
-    confidence: { value: 0.8, uncertainty: 0.1, concern: 0.05, source_quality: "high", stability: "stable" },
-    provenance: { created_at: new Date(createdAt).toISOString(), origin: "llm", produced_by: "l4", verification: "checked", signature_status: "unsigned" },
-    policy: { sensitivity: "public", allow_background_use: true, requires_review: false, expires_at: expiresAt, reverify_after: null } };
+function l4Proposal(title, expiresAt) {
+  return {
+    kind: "obs",
+    title,
+    body: title,
+    confidence: 0.8,
+    project: "l4",
+    tenant: "local",
+    topics: ["belief"],
+    entities: ["x"],
+    expiresAt,
+  };
 }
 function runL4() {
   const tmp = mkdtempSync(join(os.tmpdir(), "sentinel-l4-"));
-  const store = new SQLiteRecallStore(join(tmp, "d.sqlite3"));
+  const store = new SqliteStore(join(tmp, "d.sqlite3"));
   const idToCase = new Map();
   try {
-    for (const c of L4_CASES) idToCase.set(admitWriteProposal(l4Proposal(c.text, extractExpiry(c.text), c.createdAt), store).node.id, c);
-    const expiredIds = new Set(analyzeMemory(store, L4_NOW).stale.filter((s) => s.reason === "expired").map((s) => s.nodeId));
+    for (const c of L4_CASES) {
+      const result = admit(l4Proposal(c.text, extractExpiry(c.text)), { store, now: new Date(c.createdAt).toISOString() });
+      if (!result.accepted) throw new Error(`L4 write not admitted: ${c.text} -> ${JSON.stringify(result.issues)}`);
+      idToCase.set(result.cell.key, c);
+    }
+    const expiredIds = new Set(analyzeMemory(store, L4_NOW).stale.filter((s) => s.reason === "expired").map((s) => s.key));
     let exp = { tp: 0, fp: 0, fn: 0 }, age = { tp: 0, fp: 0, fn: 0 };
-    for (const [id, c] of idToCase) {
-      const sExp = expiredIds.has(id);
+    for (const [key, c] of idToCase) {
+      const sExp = expiredIds.has(key);
       const sAge = (L4_NOW.getTime() - new Date(c.createdAt).getTime()) / 86_400_000 > 30;
       for (const [d, s] of [[exp, sExp], [age, sAge]]) { if (s && c.gold) d.tp++; else if (s) d.fp++; else if (c.gold) d.fn++; }
     }
     const sc = (d) => ({ recall: d.tp + d.fn ? d.tp / (d.tp + d.fn) : 1, precision: d.tp + d.fp ? d.tp / (d.tp + d.fp) : 1 });
     return { exp: sc(exp), age: sc(age), trueN: L4_CASES.filter((c) => c.gold).length };
-  } finally { store.close?.(); rmSync(tmp, { recursive: true, force: true }); }
+  } finally { store.close(); rmSync(tmp, { recursive: true, force: true }); }
 }
 const l4 = runL4();
 console.log("\n==================== AMBIENT L4 — stale-by-implicit-expiry (floor + ceiling) ====================\n");

@@ -7,6 +7,7 @@
 // been run (see reader-independence-1b.py): Llama-3.2-1B-Instruct scored 0/20
 // without the substrate and 20/20 with it, delta 1.00. This in-process mock is the
 // fast CI stand-in; the 1b run is the authoritative grade.
+import { fileURLToPath } from "node:url";
 import { fresh, done, reopen, W } from "./_lib.mjs";
 
 export function runReaderIndependence(n = 25) {
@@ -40,4 +41,4 @@ export function runReaderIndependence(n = 25) {
   } finally { done(s); }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) console.log(runReaderIndependence());
+if (process.argv[1] === fileURLToPath(import.meta.url)) console.log(runReaderIndependence());

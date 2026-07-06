@@ -34,14 +34,14 @@ import { fileURLToPath } from "node:url";
 import {
   registerProject,
   resolveDbForCwd,
-  resolveCwdRouting,
+  whereProject as resolveCwdRouting, // same {scope, dbPath, reason} shape, renamed in the vendored build
   loadRegistry,
   listProjects,
   globalDbPath,
   homeDbPath,
   slugify,
   localGraphPaths,
-} from "../../dist/src/core/routing.js";
+} from "../_recall.mjs";
 
 const NOW = "2026-06-23T00:00:00.000Z";
 // How many times each routing question is re-asked to prove determinism.
@@ -91,8 +91,8 @@ export function runAdoption() {
       mkdirSync(root, { recursive: true });
       const dbPath = join(govDir, `${slugify(`proj-${i}`)}.sqlite3`);
       const rec = registerProject({ root, dbPath }, NOW, tmpGlobalDb);
-      govSet.add(resolve(rec.db_path));
-      projects.push({ root: resolve(root), expected: resolve(rec.db_path), rec });
+      govSet.add(resolve(rec.dbPath));
+      projects.push({ root: resolve(root), expected: resolve(rec.dbPath), rec });
     }
 
     // The registry should now hold exactly N rows, all governed.
@@ -149,11 +149,16 @@ export function runAdoption() {
     // governed local) must change the routing target, and nothing else does.
     const newRoot = join(workDir, "proj-rekeyed");
     mkdirSync(newRoot, { recursive: true });
-    const before = resolve(resolveDbForCwd(newRoot, {}, tmpGlobalDb));
+    // Explicit homeDb=tmpGlobalDb too: resolveDbForCwd's 4th param defaults to
+    // homeDbPath(env), and homeDbPath({}) falls through to the REAL OS home dir
+    // (no RECALL_HOME key present just means "no override", not "isolated") —
+    // so the fallback branch needs an explicit governed homeDb, same as the
+    // registry, or this call genuinely touches the real ~/.recall path.
+    const before = resolve(resolveDbForCwd(newRoot, {}, tmpGlobalDb, tmpGlobalDb));
     const newLocal = join(govDir, "rekeyed.sqlite3");
     const rekeyed = registerProject({ root: newRoot, dbPath: newLocal }, NOW, tmpGlobalDb);
-    govSet.add(resolve(rekeyed.db_path));
-    const after = resolve(resolveDbForCwd(newRoot, {}, tmpGlobalDb));
+    govSet.add(resolve(rekeyed.dbPath));
+    const after = resolve(resolveDbForCwd(newRoot, {}, tmpGlobalDb, tmpGlobalDb));
     record(
       "single-control-changes-target",
       before === resolve(tmpGlobalDb) && after === resolve(newLocal),
@@ -166,11 +171,11 @@ export function runAdoption() {
     const stranger = mkdtempSync(join(tmpdir(), "recall-adoption-stranger-"));
     let strangerOk = false;
     try {
-      const fallback = resolve(resolveDbForCwd(stranger, {}, tmpGlobalDb));
+      const fallback = resolve(resolveDbForCwd(stranger, {}, tmpGlobalDb, tmpGlobalDb));
       // Determinism of the fallback too.
       let fbDet = true;
       for (let r = 0; r < REPEATS; r++) {
-        if (resolve(resolveDbForCwd(stranger, {}, tmpGlobalDb)) !== fallback) fbDet = false;
+        if (resolve(resolveDbForCwd(stranger, {}, tmpGlobalDb, tmpGlobalDb)) !== fallback) fbDet = false;
       }
       strangerOk =
         fallback === resolve(tmpGlobalDb) && isGoverned(fallback, govSet) && fbDet;

@@ -4,6 +4,7 @@
 // append-only consistency between two epochs. Recomputable by any third party from
 // the store contents with commodity sha256, hence INDEPENDENTLY-VERIFIED. (Binding
 // the root to an external chain would lift this to EXTERNALLY-ANCHORED.)
+import { fileURLToPath } from "node:url";
 import { fresh, done, reopen, W } from "./_lib.mjs";
 import { leafHash, mth, inclusionProof, verifyInclusion, prefixConsistent } from "./merkle.mjs";
 
@@ -47,4 +48,4 @@ export function runSetIntegrity(n = 40, appended = 12) {
   } finally { done(s); }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) console.log(runSetIntegrity());
+if (process.argv[1] === fileURLToPath(import.meta.url)) console.log(runSetIntegrity());

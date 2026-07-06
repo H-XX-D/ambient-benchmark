@@ -4,6 +4,7 @@
 // (hypotheticals never returned under an actuals filter), while automatic inference
 // of modality from phrasing ("if ... then") is absent. Automatic modal inference is
 // the open residual.
+import { fileURLToPath } from "node:url";
 import { fresh, done, reopen, W } from "./_lib.mjs";
 
 export function runModality(n = 12) {
@@ -14,7 +15,7 @@ export function runModality(n = 12) {
       W(s.store, { title: `if we ship feature ${i} then traffic rises`, topics: ["modal:hypothetical", "ship"], subject: [`feat${i}`] });
     }
     const reader = reopen(s);
-    const all = reader.listNodes(2000);
+    const all = reader.active();
     const actuals = all.filter((nd) => (nd.tags?.topics || []).includes("modal:actual"));
     const hypos = all.filter((nd) => (nd.tags?.topics || []).includes("modal:hypothetical"));
     const isolationOk = actuals.length === n && hypos.length === n && actuals.every((a) => !(a.tags.topics || []).includes("modal:hypothetical"));
@@ -22,7 +23,8 @@ export function runModality(n = 12) {
     // untagged "if ... then": no modal inference means it is returned as a plain match
     const untagged = W(s.store, { title: `if we deploy on Friday then latency drops`, topics: ["deploy"], subject: ["deployq"] });
     const r2 = reopen(s);
-    const autoInferenceAbsent = r2.search("deploy on Friday", 5).some((h) => h.id === untagged.id);
+    // search() returns hits shaped {cell, score}, not the cell directly.
+    const autoInferenceAbsent = r2.search("deploy on Friday", { limit: 5 }).some((h) => h.cell.key === untagged.id);
 
     return {
       n: n * 2 + 1,
@@ -32,4 +34,4 @@ export function runModality(n = 12) {
   } finally { done(s); }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) console.log(runModality());
+if (process.argv[1] === fileURLToPath(import.meta.url)) console.log(runModality());

@@ -34,32 +34,24 @@ process.on("warning", (w) => {
   console.warn(w?.stack || String(w));
 });
 
-const STORE_MODULE = "../../dist/src/index.js";
+const STORE_MODULE = "../_recall.mjs";
 const SELF = fileURLToPath(import.meta.url);
 
 const K = 4; // concurrent writer processes
 const M = 50; // cells per writer
 
+// Flat proposal matching the current admit() schema (schema.js). The old
+// nested recall.write.v1 shape doesn't exist in the vendored build.
 function mkProposal(title, body = "b") {
   return {
-    schema_version: "recall.write.v1",
-    actor: { kind: "llm", id: "conc", display: "Conc" },
-    intent: { kind: "observation", operation: "create" },
-    content: { title, body, summary: body },
-    scope: { project: "conc", path: ".", tenant: "local" },
-    tags: {
-      category: ["memory"], type: ["observation"], subject: ["fact"], project: ["conc"],
-      idea: ["i"], timestamp: ["2024-01-01"], topics: ["fact"], entities: ["x"],
-      identities: ["a"], rings: ["adapter"], lifecycle: ["active"], quality: ["source-grounded"],
-      sensitivity: ["public"], permission: ["read"]
-    },
-    evidence: { source_refs: [], depends_on: [], supports: [], contradicts: [], concerns: [] },
-    confidence: { value: 0.8, uncertainty: 0.1, concern: 0.05, source_quality: "high", stability: "stable" },
-    provenance: {
-      created_at: new Date("2024-01-01").toISOString(), origin: "llm", produced_by: "conc",
-      verification: "checked", signature_status: "unsigned"
-    },
-    policy: { sensitivity: "public", allow_background_use: true, requires_review: false, expires_at: null, reverify_after: null }
+    kind: "obs",
+    title,
+    body,
+    confidence: 0.8,
+    project: "conc",
+    tenant: "local",
+    topics: ["fact"],
+    entities: ["x"],
   };
 }
 
@@ -69,8 +61,10 @@ function mkProposal(title, body = "b") {
 function writeWithRetry(store, admit, proposal, tries = 50) {
   for (let attempt = 0; attempt < tries; attempt++) {
     try {
-      admit(proposal, store);
-      return true;
+      const result = admit(proposal, { store });
+      // admit() reports rejection via the return value (accepted: false), it
+      // does not throw for that; only a thrown error is lock contention.
+      return !!(result && result.accepted);
     } catch (err) {
       const msg = String(err?.code || err?.message || err);
       if (/SQLITE_BUSY|database is locked|locked/i.test(msg)) {
@@ -98,27 +92,29 @@ async function runWriter() {
   const count = Number(argv[i + 3]);
   const tag = argv[i + 4];
 
-  const { SQLiteRecallStore, admitWriteProposal } = await import(STORE_MODULE);
-  const store = new SQLiteRecallStore(dbPath);
+  const { SqliteStore, admit } = await import(STORE_MODULE);
+  const store = new SqliteStore(dbPath);
   try {
     if (mode === "count") {
       let persisted = 0;
       for (let j = 0; j < count; j++) {
         const title = `conc cell w${tag} n${j} ${process.pid.toString(36)}-${j.toString(36)}`;
-        if (writeWithRetry(store, admitWriteProposal, mkProposal(title))) persisted++;
+        if (writeWithRetry(store, admit, mkProposal(title))) persisted++;
       }
       process.stdout.write(`OK ${persisted}\n`);
     } else if (mode === "skew") {
-      // Read the invariant: at most one PRIMARY cell for subject S.
-      const before = store.search("PRIMARY subject S", 50).filter((nd) => /PRIMARY/.test(nd.title || ""));
+      // Read the invariant: at most one PRIMARY cell for subject S. search()
+      // returns hits shaped {cell, score}, not the cell directly.
+      const before = store.search("PRIMARY subject S", { limit: 50 })
+        .filter((hit) => /PRIMARY/.test(hit.cell?.title || ""));
       const sawBefore = before.length;
       // Each writer, having seen none (the classic write-skew window), writes one.
       const title = `PRIMARY for subject S (writer ${tag})`;
-      writeWithRetry(store, admitWriteProposal, mkProposal(title, "primary record for subject S"));
+      writeWithRetry(store, admit, mkProposal(title, "primary record for subject S"));
       process.stdout.write(`WROTE ${sawBefore}\n`);
     }
   } finally {
-    store.close?.();
+    store.close();
   }
 }
 
@@ -155,13 +151,13 @@ export function runConcurrency() {
 
     // Reopen the shared db in the parent and count what truly persisted.
     return import(STORE_MODULE).then((mod) => {
-      const { SQLiteRecallStore } = mod;
-      const reader = new SQLiteRecallStore(dbPath);
+      const { SqliteStore } = mod;
+      const reader = new SqliteStore(dbPath);
       let persistedCount;
       try {
-        persistedCount = reader.listNodes(K * M * 4).length;
+        persistedCount = reader.active().length;
       } finally {
-        reader.close?.();
+        reader.close();
       }
 
       const target = K * M;
@@ -177,12 +173,12 @@ export function runConcurrency() {
         const w2 = spawnWriter(["skew", skewDb, "0", "B"]);
         const skewWritersOk = w1.status === 0 && w2.status === 0;
 
-        const reader2 = new SQLiteRecallStore(skewDb);
+        const reader2 = new SqliteStore(skewDb);
         try {
-          primaryCount = reader2.search("PRIMARY subject S", 50)
-            .filter((nd) => /PRIMARY/.test(nd.title || "")).length;
+          primaryCount = reader2.search("PRIMARY subject S", { limit: 50 })
+            .filter((hit) => /PRIMARY/.test(hit.cell?.title || "")).length;
         } finally {
-          reader2.close?.();
+          reader2.close();
         }
         // Honest reporting: we report the measured outcome correctly whether or
         // not the store prevented the skew. "Correctly reported" means the writes
@@ -224,8 +220,10 @@ export function runConcurrency() {
   }
 }
 
-// Direct run: print the result.
-if (import.meta.url === `file://${process.argv[1]}` && !process.argv.includes("--writer")) {
+// Direct run: print the result. Compare decoded paths, not raw URL strings —
+// this repo's directory name contains spaces, which import.meta.url percent-
+// encodes but a hand-built `file://${argv[1]}` does not, so they'd never match.
+if (process.argv[1] === fileURLToPath(import.meta.url) && !process.argv.includes("--writer")) {
   Promise.resolve(runConcurrency())
     .then((res) => {
       console.log(JSON.stringify(res, null, 2));

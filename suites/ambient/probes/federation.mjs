@@ -16,29 +16,23 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { SQLiteRecallStore, admitWriteProposal } from "../../dist/src/index.js";
-import { FederatedReadStore } from "../../dist/src/core/federated-store.js";
+import { SqliteStore, admit, FederatedReadStore } from "../_recall.mjs";
 
+// Flat proposal matching the current admit() schema (schema.js): kind must be
+// one of the short KINDS codes, confidence a plain number in (0,1]. The old
+// nested recall.write.v1 shape (actor/intent/content/scope/tags/evidence/
+// provenance/policy) doesn't exist in the vendored build; this is what admit()
+// actually validates.
 function mkProposal(title, body = "b", project = "memA") {
   return {
-    schema_version: "recall.write.v1",
-    actor: { kind: "llm", id: "fed", display: "Fed" },
-    intent: { kind: "observation", operation: "create" },
-    content: { title, body, summary: body },
-    scope: { project, path: ".", tenant: "local" },
-    tags: {
-      category: ["memory"], type: ["observation"], subject: ["fact"], project: [project],
-      idea: ["i"], timestamp: ["2024-01-01"], topics: ["fact"], entities: ["x"],
-      identities: ["a"], rings: ["adapter"], lifecycle: ["active"],
-      quality: ["source-grounded"], sensitivity: ["public"], permission: ["read"],
-    },
-    evidence: { source_refs: [], depends_on: [], supports: [], contradicts: [], concerns: [] },
-    confidence: { value: 0.8, uncertainty: 0.1, concern: 0.05, source_quality: "high", stability: "stable" },
-    provenance: {
-      created_at: new Date("2024-01-01").toISOString(), origin: "llm", produced_by: "fed",
-      verification: "checked", signature_status: "unsigned",
-    },
-    policy: { sensitivity: "public", allow_background_use: true, requires_review: false, expires_at: null, reverify_after: null },
+    kind: "obs",
+    title,
+    body,
+    confidence: 0.8,
+    project,
+    tenant: "local",
+    topics: ["fact"],
+    entities: ["x"],
   };
 }
 
@@ -51,30 +45,32 @@ function graphOf(prefixedId) {
 // Write a batch of titles into a freshly opened local, then close it so the
 // union can re-open the same path cleanly.
 function seedMember(path, project, titles) {
-  const store = new SQLiteRecallStore(path);
+  const store = new SqliteStore(path);
   try {
     for (const title of titles) {
-      const result = admitWriteProposal(mkProposal(title, "b", project), store);
-      if (!result || result.accepted !== true || !result.node) {
+      const result = admit(mkProposal(title, "b", project), { store });
+      if (!result || result.accepted !== true || !result.cell) {
         throw new Error(`write not admitted into ${project}: ${title} -> ${JSON.stringify(result?.issues ?? result)}`);
       }
     }
   } finally {
-    store.close?.();
+    store.close();
   }
 }
 
-// Collect every node id the union exposes, scanning both listNodes (a high
-// limit so nothing is paged out) and a search for the conflicting subject.
+// Collect every cell key the union exposes, scanning both active() (a full
+// scan, so nothing is paged out) and a search for the conflicting subject.
+// active() returns raw cells (.key/.title); search() returns hits shaped
+// {..., cell}, not the cell itself.
 function unionIds(members) {
   const union = new FederatedReadStore(members);
   try {
     const ids = new Set();
-    for (const node of union.listNodes(1000)) ids.add(node.id);
-    for (const hit of union.search("Service S", 1000)) ids.add(hit.id);
+    for (const cell of union.active()) ids.add(cell.key);
+    for (const hit of union.search("Service S", { limit: 1000 })) ids.add(hit.cell.key);
     return ids;
   } finally {
-    union.close?.();
+    union.close();
   }
 }
 
@@ -109,20 +105,20 @@ export function runFederation() {
     const union = new FederatedReadStore(membersAB);
     let nodes, searchHits;
     try {
-      nodes = union.listNodes(1000);
+      nodes = union.active();
       // Search the conflicting subject across the union.
-      searchHits = union.search("Service S", 1000);
+      searchHits = union.search("Service S", { limit: 1000 });
     } finally {
-      union.close?.();
+      union.close();
     }
 
     const allTitles = nodes.map((n) => n.title);
-    const searchTitles = searchHits.map((h) => h.title);
+    const searchTitles = searchHits.map((h) => h.cell.title);
 
     // (1) reads across the union surface cells from BOTH members.
-    const graphsSeen = new Set(nodes.map((n) => graphOf(n.id)).filter(Boolean));
+    const graphsSeen = new Set(nodes.map((n) => graphOf(n.key)).filter(Boolean));
     const bothMembersPresent = graphsSeen.has(graphA) && graphsSeen.has(graphB);
-    const distinctIds = new Set(nodes.map((n) => n.id));
+    const distinctIds = new Set(nodes.map((n) => n.key));
     const countOk = distinctIds.size >= uniqueTotal;
 
     // (2) the cross-store conflict is observable: BOTH "UP" and "DOWN" survive.
@@ -136,10 +132,10 @@ export function runFederation() {
     // from. Confirm the UP cell is attributed to A and the DOWN cell to B.
     const upNode = nodes.find((n) => n.title === "Service S is UP");
     const downNode = nodes.find((n) => n.title === "Service S is DOWN");
-    const upProvOk = !!upNode && graphOf(upNode.id) === graphA;
-    const downProvOk = !!downNode && graphOf(downNode.id) === graphB;
+    const upProvOk = !!upNode && graphOf(upNode.key) === graphA;
+    const downProvOk = !!downNode && graphOf(downNode.key) === graphB;
     // Every surfaced cell carries an attributable graph prefix.
-    const allProvenanced = nodes.every((n) => graphOf(n.id) !== undefined);
+    const allProvenanced = nodes.every((n) => graphOf(n.key) !== undefined);
     const provenanceKept = upProvOk && downProvOk && allProvenanced;
 
     // (4) order-independence: [A,B] vs [B,A] yield the same set of ids.

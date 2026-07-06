@@ -12,8 +12,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { mkdtempSync, rmSync } from "node:fs";
 import os from "node:os";
 import { join } from "node:path";
-import { SQLiteRecallStore, admitWriteProposal, analyzeMemory } from "../dist/src/index.js";
-import { detectAndLinkUnpromptedContradictions } from "../dist/src/core/contradiction-detect.js";
+import { SqliteStore, admit, analyzeMemory, addHyperedge, addDagOverlay, runProgramCell } from "./_recall.mjs";
 import { runSetIntegrity } from "./probes/set-integrity.mjs";
 import { runAnteriority } from "./probes/anteriority.mjs";
 import { runReaderIndependence } from "./probes/reader-independence.mjs";
@@ -22,43 +21,78 @@ import { runFederation } from "./probes/federation.mjs";
 import { runConcurrency } from "./probes/concurrency.mjs";
 import { runAdoption } from "./probes/adoption.mjs";
 
+// detectAndLinkUnpromptedContradictions, cellAddress, and nodesAsOf do not
+// exist anywhere in the vendored build (confirmed against source, not just a
+// grep miss) — capabilities the "Recall-Personal" build these areas were
+// written against apparently had, that the public open-source Recall does
+// not. Per AMBIENT's own stated policy ("areas that need external fixtures
+// are reported UNTESTED with the reason, never silently passed"), the
+// sub-checks that depend on them are marked UNTESTED-BY-GAP below rather than
+// silently dropped or faked. Not yet redesigned around what public Recall
+// actually offers.
+const GAP = (reason) => ({ untested: true, reason });
+
 // ---------- helpers ----------
 function fresh() {
   const dir = mkdtempSync(join(os.tmpdir(), "sentinel-suite-"));
   const path = join(dir, "d.sqlite3");
-  return { store: new SQLiteRecallStore(path), path, dir };
+  return { store: withCompat(new SqliteStore(path)), path, dir };
 }
-function done(s) { try { s.store.close?.(); } finally { rmSync(s.dir, { recursive: true, force: true }); } }
-function reopen(s) { s.store.close?.(); s.store = new SQLiteRecallStore(s.path); return s.store; }
+function done(s) { try { s.store.close(); } finally { rmSync(s.dir, { recursive: true, force: true }); } }
+function reopen(s) { s.store.close(); s.store = withCompat(new SqliteStore(s.path)); return s.store; }
+// getNode(id): probes here were written against a store with this method;
+// real SqliteStore only has get(key)/getByHandle(handle). .id alias matches W().
+function withCompat(store) {
+  store.getNode = (id) => { const c = store.get(id) ?? store.getByHandle(id); return c ? { ...c, id: c.key } : undefined; };
+  return store;
+}
 
+// Flat proposal matching the current admit() schema. o.operation === "supersede"
+// with o.contradicts targets means "supersedes", not "contradicts" — the old
+// schema used an intent.operation flag alongside evidence.contradicts to say
+// which; the real API expresses both as a real edge relation.
 function mkProposal(o = {}) {
-  const createdAt = o.createdAt || "2024-01-01";
+  const rel = o.operation === "supersede" ? "supersedes" : "contradicts";
+  const edges = [
+    ...(o.supports || []).map((target) => ({ relation: "supports", target })),
+    ...(o.contradicts || []).map((target) => ({ relation: rel, target })),
+  ];
   return {
-    schema_version: "recall.write.v1",
-    actor: { kind: "llm", id: "suite", display: "Suite" },
-    intent: { kind: o.kind || "observation", operation: o.operation || "create" },
-    content: { title: o.title, body: o.body ?? o.title, summary: o.summary ?? o.title },
-    scope: { project: "suite", path: ".", tenant: "local" },
-    tags: {
-      category: ["memory"], type: [o.kind || "observation"], subject: o.subject || ["fact"], project: ["suite"],
-      idea: ["suite"], timestamp: [createdAt], topics: o.topics || ["fact"], entities: o.entities || ["x"],
-      identities: ["agent:suite"], rings: ["adapter"], lifecycle: ["active"], quality: ["source-grounded"],
-      sensitivity: ["public"], permission: ["read"]
-    },
-    evidence: { source_refs: [], depends_on: [], supports: o.supports || [], contradicts: o.contradicts || [], concerns: [] },
-    confidence: {
-      value: o.confidence ?? 0.8, uncertainty: 0.1, concern: 0.05,
-      source_quality: o.sourceQuality || "high", stability: "stable"
-    },
-    provenance: {
-      created_at: new Date(createdAt).toISOString(), origin: "llm", produced_by: "suite",
-      verification: o.verification || "checked", signature_status: "unsigned"
-    },
-    policy: { sensitivity: "public", allow_background_use: true, requires_review: false, expires_at: o.expiresAt ?? null, reverify_after: null }
+    kind: o.kind && o.kind !== "observation" ? o.kind : "obs",
+    title: o.title,
+    body: o.body ?? o.title,
+    confidence: o.confidence ?? 0.8,
+    project: "suite",
+    tenant: "local",
+    topics: o.topics || ["fact"],
+    entities: o.entities || ["x"],
+    ...(o.subject ? { subject: o.subject } : {}),
+    ...(o.expiresAt !== undefined ? { expiresAt: o.expiresAt } : {}),
+    ...(edges.length ? { edges } : {}),
+    ...(o.props ? { props: o.props } : {}),
   };
 }
 const pct = (x) => `${Math.round(x * 100)}%`;
-function W(store, o) { return admitWriteProposal(mkProposal(o), store, o.createdAt ? { now: new Date(o.createdAt) } : {}).node; }
+function W(store, o) {
+  const createdAt = o.createdAt || "2024-01-01";
+  const result = admit(mkProposal(o), { store, now: new Date(createdAt).toISOString() });
+  if (!result || result.accepted !== true || !result.cell) {
+    throw new Error(`write not admitted: ${o.title} -> ${JSON.stringify(result?.issues ?? result)}`);
+  }
+  // .id alias (real cells carry .key) and .data.confidence.value alias (real
+  // cells carry .scores.conf — the attenuated stated confidence) for the
+  // calibration/adversarial checks below, which read the old field path.
+  return { ...result.cell, id: result.cell.key, data: { confidence: { value: result.cell.scores.conf } } };
+}
+function watchProgram(store, title, hyperedgeId, delta) {
+  return W(store, {
+    title, body: `watch program: ${title}`, confidence: 0.9, topics: ["program"], entities: [], kind: "prg",
+    props: { program: { schemaVersion: "recall.program.v1", operation: "watch", target: { hyperedge: hyperedgeId }, params: { delta } } },
+  });
+}
+function tick(store, programKey) {
+  return runProgramCell(store, programKey, new Date().toISOString()).run.output;
+}
 
 // ---------- area runners ----------
 
@@ -93,33 +127,22 @@ function authority(n = 25) {
     const reader = reopen(s); let ok = 0;
     for (const id of ids) {
       const node = reader.getNode(id);
-      const hasProv = !!(node && node.provenance && node.provenance.produced_by && node.provenance.origin);
-      const hasAddr = !!(node && typeof node.cellAddress === "string" && node.cellAddress.startsWith("recall://cell/") && node.cellAddress.includes(node.scope.project)); // address encodes serving scope
-      if (hasProv && hasAddr) ok++;
+      const hasProv = !!(node && node.provenance && node.provenance.producedBy && node.provenance.origin);
+      if (hasProv) ok++;
     }
-    return { n, metric: `provenance+store-address present ${ok}/${n}`, grade: ok === n ? "INDEPENDENTLY-VERIFIED" : ok > 0 ? "RESIDUAL(@INDEP)" : "ABSENT" };
+    // cellAddress (a recall://cell/... URI encoding serving scope) does not exist
+    // on real cells — GAP, not silently dropped.
+    return { n, metric: `provenance present ${ok}/${n}; store-address encoding UNTESTED (${GAP("cellAddress not in public Recall").reason})`, grade: ok === n ? "RESIDUAL(@INDEPENDENTLY-VERIFIED)" : ok > 0 ? "RESIDUAL(@INDEP)" : "ABSENT" };
   } finally { done(s); }
 }
 
-// 5 CONTRADICTION, unprompted lexical/polarity detection (the shipped detector),
-// recall over positives, precision over hard negatives.
+// 5 CONTRADICTION, unprompted lexical/polarity detection. GAP: this measured
+// detectAndLinkUnpromptedContradictions, an auto-detection step that does not
+// exist in the public Recall build (only an explicit contradicts relation a
+// writer can declare at admit time — see ROADMAP). Reporting UNTESTED rather
+// than silently passing or faking a detector.
 function contradiction() {
-  const PAIRS = [["up", "down"], ["present", "absent"], ["enabled", "disabled"], ["valid", "invalid"], ["online", "offline"], ["healthy", "unhealthy"], ["active", "inactive"], ["passing", "failing"], ["secure", "vulnerable"], ["true", "false"], ["succeeded", "failed"]];
-  const SUBJ = ["Service Alpha", "The primary database", "Node7"];
-  function fires(a, b) {
-    const store = { listNodes: () => [{ id: "C1", title: a, status: "active", tags: { topics: [] }, kind: "observation" }] };
-    const p = { intent: { operation: "create" }, content: { title: b }, evidence: { contradicts: [] } };
-    detectAndLinkUnpromptedContradictions(p, store, []); return p.evidence.contradicts.length > 0;
-  }
-  let tp = 0, fn = 0, fp = 0, tn = 0;
-  for (const [a, b] of PAIRS) for (const sub of SUBJ) { if (fires(`${sub} is ${a}`, `${sub} is ${b}`)) tp++; else fn++; }
-  // hard negatives
-  for (const sub of SUBJ) {
-    const negs = [[`${sub} is up`, `${sub} is not down`], [`${sub} was valid in 2024`, `${sub} was invalid in 2026`], [`Service Beta is down`, `${sub} is up`], [`${sub} is healthy`, `${sub} is healthy and stable`]];
-    for (const [a, b] of negs) { if (fires(a, b)) fp++; else tn++; }
-  }
-  const recall = tp / (tp + fn), precision = tp / (tp + fp || 1);
-  return { n: tp + fn + fp + tn, metric: `recall ${pct(recall)} precision ${pct(precision)}`, grade: recall >= 0.95 && precision >= 0.98 ? "SELF-VERIFIED" : "RESIDUAL(@SELF-VERIFIED)" };
+  return { n: 0, metric: `UNTESTED: no unprompted lexical/polarity contradiction detector in public Recall (contradiction is writer-declared via edges, not auto-detected)`, grade: "UNTESTED" };
 }
 
 // 7 CALIBRATION, unsupported high confidence must attenuate; restatement must not
@@ -149,16 +172,16 @@ function reactivity(n = 16) {
     try {
       const isContra = i % 2 === 0;
       const anchor = W(s.store, { title: `belief attr_${i}`, body: `attr_${i}=A`, topics: ["fact"], entities: [`attr_${i}`] });
-      const edge = s.store.addHyperedge({ kind: "evidence-bundle", title: `watch_${i}`, members: [{ nodeId: anchor.id, role: "claim" }] });
-      const prog = s.store.attachProgram(edge.id, { schemaVersion: "recall.program.v1", operation: "watch", params: { delta: 0.1 } });
-      s.store.runProgram(prog.id);
+      const edge = addHyperedge(s.store, { kind: "evidence-bundle", title: `watch_${i}`, members: [{ key: anchor.key, role: "claim" }] });
+      const prog = watchProgram(s.store, `watch_${i}`, edge.id, 0.1);
+      tick(s.store, prog.key);
       if (isContra) {
-        W(s.store, { title: `event attr_${i}=B`, body: `attr_${i}=B`, contradicts: [anchor.id], topics: ["fact"], entities: [`attr_${i}`] });
+        W(s.store, { title: `event attr_${i}=B`, body: `attr_${i}=B`, contradicts: [anchor.key], topics: ["fact"], entities: [`attr_${i}`] });
         trueC++;
       } else {
         W(s.store, { title: `event other_${i}=Z`, body: `other_${i}=Z`, topics: ["fact"], entities: [`other_${i}`] });
       }
-      const tripped = s.store.runProgram(prog.id).output.tripped === true;
+      const tripped = tick(s.store, prog.key).tripped === true;
       if (isContra && tripped) trips++; else if (tripped) falseTrips++;
     } finally { done(s); }
   }
@@ -198,9 +221,10 @@ function deepContradiction(n = 20) {
       if (bad) inc++;
       const edges = []; let caught = -1;
       orderings.forEach(([f, t], idx) => {
-        edges.push({ from: ent[f], to: ent[t] });
-        try { s.store.addDagOverlay({ title: `ord@${idx}`, nodeIds: [ent.A, ent.B, ent.C], edges: edges.slice(), metadata: {} }); }
-        catch (err) { if (/cycle/i.test(String(err && err.message)) && caught < 0) caught = idx; }
+        edges.push({ source: ent[f], target: ent[t] });
+        try { addDagOverlay(s.store, { title: `ord@${idx}`, nodeIds: [ent.A, ent.B, ent.C], edges: edges.slice(), metadata: {} }); }
+        // real message is "dag overlay is cyclic", not "...cycle..." — /cycl/i covers both.
+        catch (err) { if (/cycl/i.test(String(err && err.message)) && caught < 0) caught = idx; }
       });
       if (bad) { if (caught >= 0) detected++; } else if (caught >= 0) falseFlags++;
     } finally { done(s); }
@@ -224,29 +248,22 @@ function temporality() {
   const s = fresh(); let stalePass = 0;
   try {
     const idCase = new Map();
-    for (const c of CASES) idCase.set(W(s.store, { title: c.text, createdAt: c.createdAt, expiresAt: c.exp, topics: ["temporal"] }).id, c);
-    const expired = new Set(analyzeMemory(s.store, NOW).stale.filter((x) => x.reason === "expired").map((x) => x.nodeId));
-    for (const [id, c] of idCase) { const flagged = expired.has(id); if (flagged === c.gold) stalePass++; }
+    for (const c of CASES) idCase.set(W(s.store, { title: c.text, createdAt: c.createdAt, expiresAt: c.exp, topics: ["temporal"] }).key, c);
+    const expired = new Set(analyzeMemory(s.store, NOW).stale.filter((x) => x.reason === "expired").map((x) => x.key));
+    for (const [key, c] of idCase) { const flagged = expired.has(key); if (flagged === c.gold) stalePass++; }
   } finally { done(s); }
-  // interval non-contradiction: distinct-year flip must NOT fire
-  const fires = (a, b) => { const st = { listNodes: () => [{ id: "C", title: a, status: "active", tags: { topics: [] }, kind: "observation" }] }; const p = { intent: { operation: "create" }, content: { title: b }, evidence: { contradicts: [] } }; detectAndLinkUnpromptedContradictions(p, st, []); return p.evidence.contradicts.length > 0; };
-  let intervalOk = 0; const iv = [["Policy P valid in 2024", "Policy P invalid in 2026"], ["Region R online in 2023", "Region R offline in 2025"]];
-  for (const [a, b] of iv) if (!fires(a, b)) intervalOk++;
-  // as-of belief reconstruction: belief at T = latest record <= T per subject
-  const s2 = fresh(); let asofPass = 0; const subs = 4;
-  try {
-    for (let i = 0; i < subs; i++) {
-      W(s2.store, { title: `flag ${i} was ON`, body: "on", createdAt: "2022-01-01", subject: [`flag${i}`], topics: ["t"] });
-      W(s2.store, { title: `flag ${i} turned OFF`, body: "off", createdAt: "2025-01-01", subject: [`flag${i}`], topics: ["t"] });
-    }
-    const r2 = reopen(s2);
-    for (let i = 0; i < subs; i++) {
-      const asof = r2.nodesAsOf("2023-06-01T00:00:00.000Z", 5000).filter((nn) => (nn.tags?.subject || []).includes(`flag${i}`));
-      if (asof[0] && asof[0].body === "on") asofPass++; // the 2025 OFF is absent as of 2023
-    }
-  } finally { done(s2); }
-  const ok = stalePass === CASES.length && intervalOk === iv.length && asofPass === subs;
-  return { n: CASES.length + iv.length + subs, metric: `staleness ${stalePass}/${CASES.length}, interval ${intervalOk}/${iv.length}, as-of ${asofPass}/${subs}`, grade: ok ? "SELF-VERIFIED" : "RESIDUAL(@SELF-VERIFIED)" };
+  // interval non-contradiction and as-of belief reconstruction both depend on
+  // capabilities that do not exist in public Recall (no unprompted lexical
+  // contradiction detector; no point-in-time nodesAsOf query) — GAP, not
+  // silently dropped or faked.
+  const iv = [["Policy P valid in 2024", "Policy P invalid in 2026"], ["Region R online in 2023", "Region R offline in 2025"]];
+  const subs = 4;
+  const ok = stalePass === CASES.length;
+  return {
+    n: CASES.length,
+    metric: `staleness ${stalePass}/${CASES.length} (unprompted expiry, analyzeMemory); interval (${iv.length} cases) and as-of reconstruction (${subs} subjects) UNTESTED — no unprompted contradiction detector or point-in-time query in public Recall`,
+    grade: ok ? "RESIDUAL(@SELF-VERIFIED)" : "ASSERTED",
+  };
 }
 
 // 13 RETRIEVAL-FIDELITY, exact item retrieved from a distractor swamp (precision@1),
@@ -263,13 +280,14 @@ function retrieval(n = 20, decoys = 12) {
     }
     const reader = reopen(s);
     for (const t of targets) {
-      const hits = reader.search(t.q, 5);
-      if (hits[0] && hits[0].id === t.id) p1++;
+      // search() returns hits shaped {cell, score}, not the cell directly.
+      const hits = reader.search(t.q, { limit: 5 });
+      if (hits[0] && hits[0].cell.key === t.id) p1++;
       const node = reader.getNode(t.id);
       if (node && node.body === `payload ${t.tok}`) verbatim++;
     }
-    const neg = reader.search("NEVERSTOREDTOKEN-ΩQ7-absent-xyz", 5);
-    negOk = neg.every((h) => !String(h.title).includes("NEVERSTORED")) ? 1 : 0;
+    const neg = reader.search("NEVERSTOREDTOKEN-ΩQ7-absent-xyz", { limit: 5 });
+    negOk = neg.every((h) => !String(h.cell.title).includes("NEVERSTORED")) ? 1 : 0;
     const ok = p1 === n && verbatim === n && negOk === 1;
     return { n: n + 1, metric: `precision@1 ${p1}/${n}, verbatim ${verbatim}/${n}, negative-control ${negOk ? "clean" : "leak"}`, grade: ok ? "SELF-VERIFIED" : p1 > 0 ? "RESIDUAL(@SELF-VERIFIED)" : "ASSERTED" };
   } finally { done(s); }
@@ -293,7 +311,7 @@ function endurance(n = 400) {
   try {
     for (let i = 0; i < n; i++) W(s.store, { title: `burst cell ${i} ${randomBytes(3).toString("hex")}`, topics: ["endur"] });
     const reader = reopen(s);
-    const count = reader.listNodes(n * 3).length;
+    const count = reader.active().length;
     const ok = count === n;
     return { n, metric: `count reconciliation ${count}/${n} (no silent drop=${ok})`, grade: ok ? "SELF-VERIFIED" : "RESIDUAL(@SELF-VERIFIED)" };
   } finally { done(s); }

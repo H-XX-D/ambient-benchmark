@@ -6,6 +6,7 @@
 // anyone who trusts its append-only property. Binding the epoch root to an external
 // chain (Bitcoin/OTS) would lift this to EXTERNALLY-ANCHORED; that anchor is the
 // open residual.
+import { fileURLToPath } from "node:url";
 import { fresh, done, reopen, W } from "./_lib.mjs";
 import { leafHash, mth, inclusionProof, verifyInclusion, prefixConsistent } from "./merkle.mjs";
 
@@ -41,4 +42,4 @@ export function runAnteriority(total = 30, pairs = 10) {
   } finally { done(s); }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) console.log(runAnteriority());
+if (process.argv[1] === fileURLToPath(import.meta.url)) console.log(runAnteriority());
