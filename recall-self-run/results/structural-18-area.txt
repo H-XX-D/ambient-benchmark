@@ -1,0 +1,27 @@
+
+==================== SENTINEL SUITE, full 18-area profile ====================
+
+  0 ADOPTION                 SELF-VERIFIED                      6  governed routing correct 6/6, deterministic, unregistered->governed default; checks 10/10
+  1 ATTRIBUTION              INDEPENDENTLY-VERIFIED            30  recover+hash-match 30/30
+  2 ANTERIORITY              RESIDUAL(@EXTERNALLY-ANCHORED)    30  append-order proof 10/10 (A in epoch-A root, B absent, prefix-consistent); external anchor pending
+  3 AUTHORITY                INDEPENDENTLY-VERIFIED            25  provenance+store-address present 25/25
+  4 READER-INDEPENDENCE      RESIDUAL(@SELF-VERIFIED)          25  mock control arm: with-substrate 100% vs without 0%, delta 1.00; real 1b run pending
+  5 CONTRADICTION            SELF-VERIFIED                     45  recall 100% precision 100%
+  6 SET-INTEGRITY            INDEPENDENTLY-VERIFIED            52  inclusion 40/40 verified, tamper detected, append-only consistent
+  7 CALIBRATION              SELF-VERIFIED                     30  attenuated 20/20, upward-drift 0/10
+  8 REACTIVITY               SELF-VERIFIED                     16  trip recall 100% precision 100%
+  9 CONCURRENCY              SELF-VERIFIED                    200  count K*M=200/200 reconciled; write-skew: 2 PRIMARY survived (not serializable)
+  10 SUPERSESSION-INTEGRITY  SELF-VERIFIED                     20  superseded-still-active 0/20 (resurrection 0%)
+  11 TEMPORALITY             SELF-VERIFIED                     12  staleness 6/6, interval 2/2, as-of 4/4
+  12 DEEP-CONTRADICTION      RESIDUAL(@SELF-VERIFIED)          20  transitive recall 100% precision 100%; paraphrase/entailment untested
+  13 RETRIEVAL-FIDELITY      SELF-VERIFIED                     21  precision@1 20/20, verbatim 20/20, negative-control clean
+  14 ADVERSARIAL-ROBUSTNESS  RESIDUAL(@SELF-VERIFIED)          25  laundering: max stored conf 0.55 over 25 restatements (rise=0); poisoning/sybil/forgery untested
+  15 ENDURANCE               SELF-VERIFIED                    400  count reconciliation 400/400 (no silent drop=true)
+  16 FEDERATION              SELF-VERIFIED                      6  union surfaces both members (2/2 graphs, 6 cells, >= 6 unique=true); cross-store conflict preserved (UP@A + DOWN@B both returned); provenance kept (every cell graph-attributable); order-independent ([A,B]==[B,A] id set)
+  17 MODALITY                RESIDUAL(@SELF-VERIFIED)          25  tag-based modal isolation 12/12; automatic modal inference absent
+
+  total cases run: 988
+  grade tally: SELF-VERIFIED=10  INDEPENDENTLY-VERIFIED=3  RESIDUAL(@EXTERNALLY-ANCHORED)=1  RESIDUAL(@SELF-VERIFIED)=4
+
+  non-decoration: ADVERSARIAL ceiling empty everywhere; profile vector is the result, not an average.
+

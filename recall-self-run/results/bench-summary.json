@@ -1,0 +1,211 @@
+{
+  "model_tiers": [
+    "local-1b",
+    "gpt-4o"
+  ],
+  "questions": 14,
+  "structural": {
+    "cells": 48,
+    "edges": 79,
+    "setIntegrity": "inclusion 48/48, root 178044417d91",
+    "contradictionsDetected": 1
+  },
+  "hooks": {
+    "ran": 1,
+    "tripped": 1,
+    "detail": [
+      {
+        "on": "api-status (log)",
+        "tripped": true
+      }
+    ]
+  },
+  "results": {
+    "local-1b": {
+      "passA_without": "2/14",
+      "passB_with": "8/14",
+      "delta": 6,
+      "controls": "without 2/2, with 2/2 (memory should not change this)",
+      "perQuestion": [
+        {
+          "id": "ds-mean",
+          "without": false,
+          "with": true,
+          "control": false
+        },
+        {
+          "id": "ds-rows",
+          "without": false,
+          "with": false,
+          "control": false
+        },
+        {
+          "id": "ds-col",
+          "without": false,
+          "with": true,
+          "control": false
+        },
+        {
+          "id": "log-port",
+          "without": false,
+          "with": true,
+          "control": false
+        },
+        {
+          "id": "log-err",
+          "without": false,
+          "with": true,
+          "control": false
+        },
+        {
+          "id": "pkg-name",
+          "without": false,
+          "with": true,
+          "control": false
+        },
+        {
+          "id": "pkg-ver",
+          "without": false,
+          "with": true,
+          "control": false
+        },
+        {
+          "id": "pkg-dep",
+          "without": false,
+          "with": false,
+          "control": false
+        },
+        {
+          "id": "code-import",
+          "without": false,
+          "with": false,
+          "control": false
+        },
+        {
+          "id": "arxiv-n",
+          "without": false,
+          "with": false,
+          "control": false
+        },
+        {
+          "id": "pdf-attn",
+          "without": false,
+          "with": false,
+          "control": false
+        },
+        {
+          "id": "contra",
+          "without": false,
+          "with": false,
+          "control": false
+        },
+        {
+          "id": "ck-gold",
+          "without": true,
+          "with": true,
+          "control": true
+        },
+        {
+          "id": "ck-paris",
+          "without": true,
+          "with": true,
+          "control": true
+        }
+      ],
+      "meanLatency_ms": 71
+    },
+    "gpt-4o": {
+      "passA_without": "4/14",
+      "passB_with": "8/14",
+      "delta": 4,
+      "controls": "without 2/2, with 2/2 (memory should not change this)",
+      "perQuestion": [
+        {
+          "id": "ds-mean",
+          "without": false,
+          "with": true,
+          "control": false
+        },
+        {
+          "id": "ds-rows",
+          "without": false,
+          "with": false,
+          "control": false
+        },
+        {
+          "id": "ds-col",
+          "without": true,
+          "with": true,
+          "control": false
+        },
+        {
+          "id": "log-port",
+          "without": false,
+          "with": true,
+          "control": false
+        },
+        {
+          "id": "log-err",
+          "without": false,
+          "with": true,
+          "control": false
+        },
+        {
+          "id": "pkg-name",
+          "without": false,
+          "with": true,
+          "control": false
+        },
+        {
+          "id": "pkg-ver",
+          "without": false,
+          "with": true,
+          "control": false
+        },
+        {
+          "id": "pkg-dep",
+          "without": false,
+          "with": false,
+          "control": false
+        },
+        {
+          "id": "code-import",
+          "without": false,
+          "with": false,
+          "control": false
+        },
+        {
+          "id": "arxiv-n",
+          "without": false,
+          "with": false,
+          "control": false
+        },
+        {
+          "id": "pdf-attn",
+          "without": true,
+          "with": false,
+          "control": false
+        },
+        {
+          "id": "contra",
+          "without": false,
+          "with": false,
+          "control": false
+        },
+        {
+          "id": "ck-gold",
+          "without": true,
+          "with": true,
+          "control": true
+        },
+        {
+          "id": "ck-paris",
+          "without": true,
+          "with": true,
+          "control": true
+        }
+      ],
+      "meanLatency_ms": 793
+    }
+  }
+}

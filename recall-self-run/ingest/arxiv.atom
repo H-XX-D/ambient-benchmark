@@ -1,0 +1,188 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:arxiv="http://arxiv.org/schemas/atom" xmlns="http://www.w3.org/2005/Atom">
+  <id>https://arxiv.org/api/pOwiysN8m3gJHdbheeYdMGP2rQA</id>
+  <title>arXiv Query: search_query=cat:cs.AI&amp;id_list=&amp;start=0&amp;max_results=6</title>
+  <updated>2026-06-23T17:57:30Z</updated>
+  <link href="https://arxiv.org/api/query?search_query=cat:cs.AI&amp;start=0&amp;max_results=6&amp;id_list=" type="application/atom+xml"/>
+  <opensearch:itemsPerPage>6</opensearch:itemsPerPage>
+  <opensearch:totalResults>186009</opensearch:totalResults>
+  <opensearch:startIndex>0</opensearch:startIndex>
+  <entry>
+    <id>http://arxiv.org/abs/2606.23680v1</id>
+    <title>CoorDex: Coordinating Body and Hand Priors for Continuous Dexterous Humanoid Loco-Manipulation</title>
+    <updated>2026-06-22T17:59:20Z</updated>
+    <link href="https://arxiv.org/abs/2606.23680v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2606.23680v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Humanoid loco-manipulation is often simplified into a stop-and-go process: walking to an object, stopping to manipulate it, and then resuming locomotion. It also commonly relies on low degree-of-freedom (DoF) end effectors that behave like an open-close grasp primitive. We introduce CoorDex, a learning pipeline that converts high-dimensional body and dexterous hand control into coordinated latent residual control, enabling high-DoF dexterous loco-manipulation on the move. Starting from simulated whole-body and hand demonstrations, CoorDex trains privileged motion tracking teachers for the humanoid body and dexterous hand, distills them into proprioception-conditioned latent priors, and uses the frozen priors as the action space for downstream residual reinforcement learning. A coordinated latent residual policy composes these priors through shared task context and separate body-hand residual heads, preserving natural whole-body motion while improving finger-level contact reliability. CoorDex enables a Unitree G1 humanoid with a 20-DoF WUJI hand to execute dexterous manipulation while in motion, including non-stop bottle grasping and carrying, fridge door opening on the move, and cube pick-and-turn. Ablations on the walk-grasp-carry task show that joint-space PPO, joint-space hand control, and monolithic latent prediction all fail under the same reward budget, while the latent-prior interface and coordinated residual structure make high-dimensional contact-rich loco-manipulation trainable. Project Page: https://skevinci.github.io/coordex/</summary>
+    <category term="cs.RO" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-06-22T17:59:20Z</published>
+    <arxiv:comment>Project page: https://skevinci.github.io/coordex/</arxiv:comment>
+    <arxiv:primary_category term="cs.RO"/>
+    <author>
+      <name>Sikai Li</name>
+    </author>
+    <author>
+      <name>Shuning Li</name>
+    </author>
+    <author>
+      <name>Zhenyu Wei</name>
+    </author>
+    <author>
+      <name>Yunchao Yao</name>
+    </author>
+    <author>
+      <name>Chenran Li</name>
+    </author>
+    <author>
+      <name>Mingyu Ding</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2606.23679v1</id>
+    <title>Semantic Browsing: Controllable Diversity for Image Generation</title>
+    <updated>2026-06-22T17:59:17Z</updated>
+    <link href="https://arxiv.org/abs/2606.23679v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2606.23679v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Modern text-to-image models excel in visual fidelity and prompt adherence. However, this strict adherence comes at the cost of diversity: generated samples tend to collapse into a single visual interpretation. Existing methods to improve diversity produce outputs driven by incidental variations rather than meaningful design choices. This motivates a new variant of the diversity task where structure is enforced on the generated samples. We introduce a method for controlled diversity that enables Semantic Browsing, where users can navigate structured image galleries and experience creative exploration through a systematic traversal of meaningful, interpretable axes of variation. Achieving this level of semantic control requires a deep understanding of the scene. We exploit the fact that recent text-to-image models are trained on elaborated captions, effectively decoupling semantic decision-making from pixel generation. This enables a paradigm shift: instead of relying on stochastic variation within the text-to-image model, we induce diversity directly at the text level. By leveraging rich textual representations, we allow a Vision Language Model (VLM) to operate on the full scene context. To overcome the generic outputs typical of standard VLMs, we employ an agentic workflow that explicitly enforces structured variation attuned to the original prompt. We demonstrate that our method produces diverse and navigable design spaces where every variation corresponds to a specific, user-understandable semantic decision.</summary>
+    <category term="cs.CV" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.GR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-06-22T17:59:17Z</published>
+    <arxiv:comment>ECCV 2026. Project page: https://saradorfman1.github.io/SemanticBrowsing-webpage/</arxiv:comment>
+    <arxiv:primary_category term="cs.CV"/>
+    <author>
+      <name>Sara Dorfman</name>
+    </author>
+    <author>
+      <name>Maya Vishnevsky</name>
+    </author>
+    <author>
+      <name>Omer Dahary</name>
+    </author>
+    <author>
+      <name>Or Patashnik</name>
+    </author>
+    <author>
+      <name>Daniel Cohen-Or</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2606.23678v1</id>
+    <title>AIR: Adaptive Interleaved Reasoning with Code in MLLMs</title>
+    <updated>2026-06-22T17:58:54Z</updated>
+    <link href="https://arxiv.org/abs/2606.23678v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2606.23678v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Following the paradigm shift initiated by OpenAI o3, interleaved reasoning with code to enhance multimodal large language models (MLLMs) has become a pivotal research frontier. The existing literature focuses primarily on tool-use within vision-perception tasks. However, such approaches typically rely on predefined heuristics for visual manipulation and are inherently incapable of addressing numerical computation problems due to their exclusive focus on visual operations. This paper empowers MLLMs with adaptive interleaved reasoning capabilities through extended reinforcement learning training on code-augmented complex numerical computation tasks. To this end, we propose a comprehensive three-component solution consisting of: a two-stage cold-start data construction pipeline, data filtering strategies for RL dataset curation, and an adaptive tool-invocation strategy leveraging a group-constrained reward function for interleaved reasoning trajectories. Extensive experiments demonstrate that after Reinforcement Learning training with the group-constrained reward function, performance improves by an average of 6.1 percentage points (pp) on evaluation benchmarks. Specifically, the accuracy for interleaved reasoning samples increases by 9.9 pp, and the overall success rate of tool-use exceeds 95%. Our data and code are available at: https://github.com/CongHan0808/AIR.git.</summary>
+    <category term="cs.CV" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-06-22T17:58:54Z</published>
+    <arxiv:comment>19 pages, 4 figures</arxiv:comment>
+    <arxiv:primary_category term="cs.CV"/>
+    <author>
+      <name>Cong Han</name>
+    </author>
+    <author>
+      <name>Xiaohan Lan</name>
+    </author>
+    <author>
+      <name>Haibo Qiu</name>
+    </author>
+    <author>
+      <name>Yujie Zhong</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2606.23676v1</id>
+    <title>Open Problem: Is AdamW Effective Under Heavy-Tailed Noise?</title>
+    <updated>2026-06-22T17:58:52Z</updated>
+    <link href="https://arxiv.org/abs/2606.23676v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2606.23676v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>AdamW is the de facto optimizer for training large language models (LLMs), yet the theory behind it still lives mostly in finite-variance regimes. This is increasingly unsatisfying, as empirical evidence indicates that stochastic gradient noise in LLM pretraining is typically heavy-tailed. Recent work shows that sign-based optimizers such as Lion and Muon achieve sharp heavy-tailed rates, and that AdaGrad can also converge under heavy-tailed noise. However, no rigorous convergence theory for AdamW has yet been established in this regime. Can AdamW converge under the same heavy-tailed assumptions, or does its second-moment accumulator create a genuine obstruction? We formulate this as an open problem, prove a positive weighted-metric benchmark, and give a corridor lower-bound mechanism showing how denominator memory can hide large gradients.</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="math.OC" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="stat.ML" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-06-22T17:58:52Z</published>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Dingzhi Yu</name>
+    </author>
+    <author>
+      <name>Hongyi Tao</name>
+    </author>
+    <author>
+      <name>Yuanyu Wan</name>
+    </author>
+    <author>
+      <name>Luo Luo</name>
+    </author>
+    <author>
+      <name>Lijun Zhang</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2606.23673v1</id>
+    <title>PsyBridge: A Hybrid Intelligent Framework for Multi-Dimensional Mental Health Assessment and Decision Support</title>
+    <updated>2026-06-22T17:57:15Z</updated>
+    <link href="https://arxiv.org/abs/2606.23673v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2606.23673v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Mental health assessment commonly relies on isolated screening instruments or data-driven models that often lack interpretability and multi-dimensional integration. Existing approaches frequently focus on individual indicators such as depression or anxiety while providing limited support for comprehensive and explainable decision-making. To address this limitation, this study proposes PsyBridge, a hybrid intelligent decision-support framework designed for multi-dimensional mental health assessment through the integration of clinically validated screening tools, cognitive evaluation, and personality profiling within a unified architecture. The proposed framework incorporates PHQ-9 and GAD-7 assessments alongside cognitive and behavioural indicators using a modular design and a weighted aggregation mechanism to generate interpretable mental health risk classifications and recommendations. To evaluate the framework, a semi-synthetic dataset consisting of 500 patient profiles representing varying severity levels was constructed based on clinically grounded score distributions. Experimental results demonstrate that PsyBridge achieves an overall accuracy of 0.84, outperforming standalone PHQ-9 and GAD-7 assessments while improving precision, recall, and F1-score. Sensitivity analysis and ablation studies further indicate that integrating cognitive and personality components contributes to more stable classification performance and reduces inconsistencies in moderate-risk prediction. The findings suggest that PsyBridge provides a scalable and interpretable approach for AI-assisted mental health decision support, particularly within digital healthcare and telehealth environments.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-06-22T17:57:15Z</published>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Sunil Wanjari</name>
+    </author>
+    <author>
+      <name>Manish Thakre</name>
+    </author>
+    <author>
+      <name>Aayushi Asole</name>
+    </author>
+    <author>
+      <name>Sharwari Raut</name>
+    </author>
+    <author>
+      <name>Kwabena Adu-Duodu</name>
+    </author>
+    <author>
+      <name>Yinhao Li</name>
+    </author>
+    <author>
+      <name>Stanly Wilson</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2606.23672v1</id>
+    <title>Teaching LLMs String Matching, Backtracking, and Error Recovery to Deduce Bases and Truth Tables for the Combinatorially Exploding Bit Manipulation Puzzles</title>
+    <updated>2026-06-22T17:57:08Z</updated>
+    <link href="https://arxiv.org/abs/2606.23672v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2606.23672v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>This paper presents our algorithmic innovations for the NVIDIA Nemotron Model Reasoning Challenge, focusing on Bit Manipulation Puzzles. In this task, the objective is to discover a hidden logical rule transforming input binary strings to outputs, then apply it to unseen inputs. Large Language Models (LLMs) notoriously struggle here; traditional methods force them to simulate complex boolean logic and arithmetic, leading to hallucinations. Furthermore, the search space of bitwise operations (combinations of shifts, rotations, and logic gates) suffers from a severe combinatorial explosion. To overcome this computational intractability, we present a novel approach that abandons arithmetic logic entirely in favor of string similarity, structured search, and autonomous error recovery.
+  Our core contributions are: 1. Bases and Truth Table Formulation: We reframe logic-gate deduction into a base-selection task, leveraging string similarity (minimal bit flips) to isolate primitive transformations ("bases") and deduce truth tables without complex arithmetic. 2. Backtracking DFS and Error Recovery: We formalize a search process that tests candidate bases, detects logical collisions across examples, and backtracks upon failure to perform robust error recovery. 3. Bit Tokenization and Interactive Reasoning SFT: We force the tokenizer to encode binary strings as individual single-bit tokens. We use dynamic masking to simulate external oracle feedback, training the model to hypothesize, self-evaluate, and backtrack natively.
+  Evaluated on bit manipulation puzzles, our approach achieved over 96% validation accuracy. This represents the highest performance in this category, driving our 7th Place overall finish in the contest.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-06-22T17:57:08Z</published>
+    <arxiv:comment>22 pages, 4 figures, 2 tables. 7th Place Solution for the NVIDIA Nemotron Model Reasoning Challenge (Kaggle)</arxiv:comment>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Prateek Agnihotri</name>
+    </author>
+    <author>
+      <name>Sanchit Jain</name>
+    </author>
+    <author>
+      <name>Prabhat Agnihotri</name>
+    </author>
+    <author>
+      <name>Aditya Prasad</name>
+    </author>
+    <author>
+      <name>Shubham Jain</name>
+    </author>
+  </entry>
+</feed>

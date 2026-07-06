@@ -1,0 +1,18 @@
+==================== SENTINEL BENCHMARK (memory under test, model fixed) ====================
+
+graph: 48 cells, 79 edges
+structural (code-verified): set-integrity inclusion 48/48, root 178044417d91; contradictions detected 1
+hooks: 1 program(s) ran, 1 tripped [{"on":"api-status (log)","tripped":true}]
+
+[local-1b]  Pass A (without memory): 2/14   Pass B (with memory): 8/14   delta: +6
+   controls: without 2/2, with 2/2 (memory should not change this)
+   per question (without -> with): ds-mean:n>Y  ds-rows:n>n  ds-col:n>Y  log-port:n>Y  log-err:n>Y  pkg-name:n>Y  pkg-ver:n>Y  pkg-dep:n>n  code-import:n>n  arxiv-n:n>n  pdf-attn:n>n  contra:n>n  ck-gold*:Y>Y  ck-paris*:Y>Y
+   mean latency: 71ms
+
+[gpt-4o]  Pass A (without memory): 4/14   Pass B (with memory): 8/14   delta: +4
+   controls: without 2/2, with 2/2 (memory should not change this)
+   per question (without -> with): ds-mean:n>Y  ds-rows:n>n  ds-col:Y>Y  log-port:n>Y  log-err:n>Y  pkg-name:n>Y  pkg-ver:n>Y  pkg-dep:n>n  code-import:n>n  arxiv-n:n>n  pdf-attn:Y>n  contra:n>n  ck-gold*:Y>Y  ck-paris*:Y>Y
+   mean latency: 793ms
+
+* = common-knowledge control. delta is the memory system's contribution with the reader held fixed.
+traces: traces/bench.jsonl (56 calls)

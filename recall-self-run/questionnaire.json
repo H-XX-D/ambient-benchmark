@@ -1,0 +1,131 @@
+[
+  {
+    "id": "ds-mean",
+    "q": "What is the mean body mass in grams in the penguins dataset? Reply with only the number.",
+    "gold": [
+      "4177"
+    ],
+    "cq": "penguins dataset mean body_mass_g"
+  },
+  {
+    "id": "ds-rows",
+    "q": "How many penguin records are in the dataset? Reply with only the number.",
+    "gold": [
+      "344"
+    ],
+    "cq": "penguins dataset rows count"
+  },
+  {
+    "id": "ds-col",
+    "q": "Name one column in the penguins dataset. Reply with one word.",
+    "gold": [
+      "species",
+      "island",
+      "bill_length_mm",
+      "bill_depth_mm",
+      "flipper_length_mm",
+      "body_mass_g",
+      "sex"
+    ],
+    "cq": "penguins dataset columns"
+  },
+  {
+    "id": "log-port",
+    "q": "What port did the api service start on? Reply with only the number.",
+    "gold": [
+      "9347"
+    ],
+    "cq": "service api started port"
+  },
+  {
+    "id": "log-err",
+    "q": "What kind of error did the service log? Reply in one or two words.",
+    "gold": [
+      "timeout",
+      "db"
+    ],
+    "cq": "service error log db timeout"
+  },
+  {
+    "id": "pkg-name",
+    "q": "What is the name of the software package in the project config? Reply with only the name.",
+    "gold": [
+      "recall-memory-substrate"
+    ],
+    "cq": "package config name"
+  },
+  {
+    "id": "pkg-ver",
+    "q": "What version is the package? Reply with only the version.",
+    "gold": [
+      "0.3.0"
+    ],
+    "cq": "package config version"
+  },
+  {
+    "id": "pkg-dep",
+    "q": "Name one dependency declared in the package config. Reply with one name.",
+    "gold": [
+      "@types/node"
+    ],
+    "cq": "package config dependencies"
+  },
+  {
+    "id": "code-import",
+    "q": "Name one module that the recall-core admission file imports. Reply with one word.",
+    "gold": [
+      "cells",
+      "firewall",
+      "references",
+      "schema",
+      "contradiction-detect",
+      "types",
+      "store"
+    ],
+    "cq": "recall-core admission imports"
+  },
+  {
+    "id": "arxiv-n",
+    "q": "How many arxiv preprints are recorded? Reply with only the number.",
+    "gold": [
+      "6"
+    ],
+    "cq": "arxiv preprint"
+  },
+  {
+    "id": "pdf-attn",
+    "q": "What single concept is the title of the recorded paper that the BERT work builds on? Reply with one word.",
+    "gold": [
+      "attention"
+    ],
+    "cq": "attention transformer paper title"
+  },
+  {
+    "id": "contra",
+    "q": "List every status that has been recorded for the api service.",
+    "gold": [
+      "healthy",
+      "down"
+    ],
+    "cq": "api service status",
+    "both": true
+  },
+  {
+    "id": "ck-gold",
+    "q": "What is the chemical symbol for gold? Reply with only the symbol.",
+    "gold": [
+      "au"
+    ],
+    "cq": "gold chemical symbol element",
+    "control": true
+  },
+  {
+    "id": "ck-paris",
+    "q": "What is the capital of France? Reply with only the city.",
+    "gold": [
+      "paris"
+    ],
+    "cq": "capital city of France",
+    "control": true
+  }
+]

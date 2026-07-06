@@ -1,0 +1,8 @@
+node_modules/
+/results/
+corpora/data/
+corpora/out/
+*.key
+.env
+.env.local
+.DS_Store

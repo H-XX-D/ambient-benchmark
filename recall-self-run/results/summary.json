@@ -1,0 +1,80 @@
+{
+  "generatedFor": "SENTINEL full run on populated graph",
+  "model": "Llama-3.2-1B-Instruct Q4_K_M (local llama.cpp)",
+  "graph": {
+    "cells": 48,
+    "edges": 21
+  },
+  "structural": {
+    "setIntegrity": {
+      "cells": 48,
+      "inclusionVerified": "48/48",
+      "merkleRoot": "6dbbaacdb90c08cc...",
+      "tamperDetected": true
+    },
+    "contradiction": {
+      "detected": 1,
+      "sample": [
+        "service api is DOWN due to db timeout"
+      ]
+    },
+    "edges": 21
+  },
+  "modelDriven": [
+    {
+      "area": "RECALL dataset-mean",
+      "with": true,
+      "without": false,
+      "ms_with": 634,
+      "ms_without": 49
+    },
+    {
+      "area": "RECALL log-port",
+      "with": true,
+      "without": false,
+      "ms_with": 135,
+      "ms_without": 43
+    },
+    {
+      "area": "RECALL paper-title",
+      "with": true,
+      "without": true,
+      "ms_with": 278,
+      "ms_without": 370
+    },
+    {
+      "area": "RECALL package-name",
+      "with": true,
+      "without": false,
+      "ms_with": 265,
+      "ms_without": 38
+    },
+    {
+      "area": "CODE dependency",
+      "with": false,
+      "without": false,
+      "ms_with": 209,
+      "ms_without": 35
+    },
+    {
+      "area": "CONTRADICTION api-status",
+      "with": false,
+      "without": false,
+      "ms_with": 438,
+      "ms_without": 407
+    },
+    {
+      "area": "ARTICLE knowledge-graph",
+      "with": true,
+      "without": true,
+      "ms_with": 438,
+      "ms_without": 321
+    }
+  ],
+  "withAccuracy": "5/7",
+  "withoutAccuracy": "2/7",
+  "latency_ms": {
+    "mean": 261,
+    "p50_with": 342
+  }
+}

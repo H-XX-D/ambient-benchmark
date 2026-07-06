@@ -1,0 +1,8 @@
+    "bench": "npm run build && node --disable-warning=ExperimentalWarning scripts/bench.mjs",
+    "bench:public": "npm run build && node --disable-warning=ExperimentalWarning scripts/public-bench.mjs",
+    "bench:sentinel": "npm run build && node --disable-warning=ExperimentalWarning scripts/sentinel-bench.mjs",
+    "bench:contradiction": "npm run build && node --disable-warning=ExperimentalWarning scripts/sentinel-contradiction-corpus.mjs --tier full",
+    "bench:contradiction:lite": "npm run build && node --disable-warning=ExperimentalWarning scripts/sentinel-contradiction-corpus.mjs --tier lite",
+    "bench:suite": "npm run build && node --disable-warning=ExperimentalWarning scripts/sentinel-suite.mjs",
+    "bench:suite:1b": "npm run build && node --disable-warning=ExperimentalWarning scripts/sentinel-suite-1b.mjs",
+    "bench:automemory": "npm run build && node --disable-warning=ExperimentalWarning scripts/automemory-bench.mjs",

@@ -1,0 +1,21 @@
+==================== SENTINEL FULL RUN (populated graph + 1b) ====================
+
+graph: 48 active cells, 21 edges, model: Llama-3.2-1B
+
+STRUCTURAL (code-verified over the real graph):
+  set-integrity: inclusion 48/48 verified, tamper detected, root 6dbbaacdb90c08cc...
+  contradiction: 1 detected over the live graph ["service api is DOWN due to db timeout"]
+
+MODEL-DRIVEN (fixed 1b; with = served from the graph, without = bare model):
+  AREA                       with  without  latency(with)
+  RECALL dataset-mean         OK    --     634ms
+  RECALL log-port             OK    --     135ms
+  RECALL paper-title          OK    OK     278ms
+  RECALL package-name         OK    --     265ms
+  CODE dependency            miss   --     209ms
+  CONTRADICTION api-status   miss   --     438ms
+  ARTICLE knowledge-graph     OK    OK     438ms
+
+  with-substrate 5/7, without 2/7, mean latency 261ms
+
+  traces: traces/gauntlet.jsonl (14 model calls), ingest stream: traces/ingest-stream.jsonl

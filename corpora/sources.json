@@ -1,0 +1,37 @@
+{
+  "policy": "Reconstruct from official source; AMBIENT ships reconstruct.py, never a redistributed or merged archive. This keeps each license intact and avoids forcing the strictest license onto a bundle.",
+  "sources": {
+    "beam": {
+      "name": "BEAM: Beyond a Million Tokens",
+      "paper": "arXiv:2510.27246 (Tavakoli et al., ICLR 2026)",
+      "dataset_license": "CC BY-SA 4.0",
+      "code_license": "MIT",
+      "repos": { "Mohammadta/BEAM": ["100K", "500K", "1M"], "Mohammadta/BEAM-10M": ["10M"] },
+      "tier_map": { "small": "100K", "medium": "500K", "large": "1M", "xlarge": "10M" },
+      "provenance_in_answers": false,
+      "question_provenance": "partial: most abilities carry source_chat_ids (verified ~355/400 small-tier segments, 8/10 abilities; abstention has none by design)",
+      "scoring": "correctness always; where source_chat_ids is present it also scores the traced-outside-model half; pair with LongMemEval where absent",
+      "abilities": ["information-extraction", "multi-session-reasoning", "knowledge-update", "temporal-reasoning", "summarization", "preference-following", "abstention", "contradiction-resolution", "event-ordering", "instruction-following"],
+      "sharealike_note": "Do not redistribute a modified BEAM corpus except under CC BY-SA 4.0; reconstruct-from-source avoids this.",
+      "citation": "Tavakoli, M., Salemi, A., Ye, C., Abdalla, M., Zamani, H., Mitchell, J.R. 'Beyond a Million Tokens: Benchmarking and Enhancing Long-Term Memory in LLMs.' arXiv:2510.27246, 2025."
+    },
+    "longmemeval": {
+      "name": "LongMemEval",
+      "paper": "arXiv:2410.10813 (Wu et al., ICLR 2025)",
+      "dataset_license": "MIT",
+      "repo": "xiaowu0162/longmemeval-cleaned",
+      "tier_map": { "small": "longmemeval_oracle.json", "medium": "longmemeval_s_cleaned.json", "large": "longmemeval_m_cleaned.json" },
+      "provenance_in_answers": true,
+      "provenance_field": "answer_session_ids",
+      "scoring": "supports both halves of segment completion: correctness AND support traced to answer_session_ids",
+      "citation": "Wu, D., Wang, H., Yu, W., Zhang, Y., Chang, K-W., Yu, D. 'LongMemEval: Benchmarking Chat Assistants on Long-Term Interactive Memory.' ICLR 2025, arXiv:2410.10813. Copyright (c) 2024 Di Wu (MIT)."
+    },
+    "locomo": {
+      "name": "LoCoMo",
+      "paper": "arXiv:2402.17753 (Maharana et al., ACL 2024, Snap Research)",
+      "dataset_license": "CC BY-NC 4.0",
+      "status": "EXCLUDED",
+      "reason": "NonCommercial clause blocks any commercial or monetized-leaderboard AMBIENT; LongMemEval covers the same small-tier pull + attribution role under MIT. Crawled images carry a second, independent rights caveat."
+    }
+  }
+}

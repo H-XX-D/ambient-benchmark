@@ -1,0 +1,18 @@
+{
+  "name": "ambient-benchmark",
+  "version": "0.1.0",
+  "description": "AMBIENT: Agentic Memory Benchmark. Baseline-Isolated Evaluation, Normalized Tiers. A substrate-neutral benchmark for what a memory system adds to a model.",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "bench": "node --disable-warning=ExperimentalWarning suites/ambient/ambient-bench.mjs",
+    "bench:suite": "node --disable-warning=ExperimentalWarning suites/ambient/ambient-suite.mjs",
+    "bench:contradiction": "node --disable-warning=ExperimentalWarning suites/ambient/ambient-contradiction-corpus.mjs --tier full",
+    "bench:contradiction:lite": "node --disable-warning=ExperimentalWarning suites/ambient/ambient-contradiction-corpus.mjs --tier lite",
+    "bench:suite:1b": "node --disable-warning=ExperimentalWarning suites/ambient/ambient-suite-1b.mjs",
+    "bench:1b-hard": "node --disable-warning=ExperimentalWarning suites/ambient/ambient-1b-hard.mjs"
+  }
+}

@@ -1,0 +1,4 @@
+source_repo: Recall-Personal
+commit: 4c1e232
+vendored_utc: 2026-07-05
+note: pinned build; refresh via refresh-vendor.sh, re-run goldens on change

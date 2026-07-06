@@ -1,0 +1,88 @@
+{
+  "name": "recall-memory-substrate",
+  "version": "0.12.0",
+  "description": "Recall v5 / MAL durable-memory substrate for agent context",
+  "type": "module",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/H-XX-D/recall-memory-substrate.git"
+  },
+  "bugs": {
+    "url": "https://github.com/H-XX-D/recall-memory-substrate/issues"
+  },
+  "homepage": "https://github.com/H-XX-D/recall-memory-substrate#readme",
+  "keywords": [
+    "recall",
+    "memory",
+    "agent-memory",
+    "mal",
+    "sqlite",
+    "context"
+  ],
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "recall": "dist/cli.js",
+    "recall-mcp": "dist/mcp-cli.js",
+    "recall-stop-hook": "dist/stop-hook.js",
+    "recall-prompt-hook": "dist/prompt-hook.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./cli": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js"
+    }
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "!dist/**/*.test.js",
+    "!dist/**/*.test.d.ts",
+    "python/*.py",
+    "integrations/claude/hooks/",
+    "!integrations/claude/hooks/__pycache__",
+    "!integrations/claude/hooks/test_*.py",
+    "integrations/claude/skill/",
+    "!integrations/claude/skill/scripts/__pycache__",
+    "README.md",
+    "CHANGELOG.md",
+    "CITATION.cff",
+    "CODE_OF_CONDUCT.md",
+    "CONTRIBUTING.md",
+    "LICENSE",
+    "NOTICE",
+    "SECURITY.md",
+    "docs/overview.md",
+    "docs/cli.md",
+    "docs/mcp.md",
+    "docs/integrations.md",
+    "docs/import-export.md"
+  ],
+  "scripts": {
+    "test": "node --disable-warning=ExperimentalWarning --import tsx --test \"src/**/*.test.ts\"",
+    "test:python": "npm run build && python3 -m unittest discover -s python/tests",
+    "test:acceptance": "node scripts/release-acceptance.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "build": "rm -rf dist && tsc -p tsconfig.json && chmod +x dist/cli.js dist/mcp-cli.js dist/stop-hook.js dist/prompt-hook.js",
+    "prepare": "npm run build",
+    "release:check": "npm test && npm run typecheck && npm run build && npm run test:python && npm run test:acceptance && npm pack --dry-run",
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run release:check"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "tsx": "^4",
+    "typescript": "^5"
+  }
+}

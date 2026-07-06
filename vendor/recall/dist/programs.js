@@ -1,0 +1,670 @@
+// R3 standing programs: deterministic, no-LLM checks stored as ordinary `prg`
+// cells. A program cell carries its spec in props.program; run history is stored
+// back on props.lastRun so watch/trend/drift have durable baseline state without
+// introducing a second persistence surface.
+import { randomUUID } from "node:crypto";
+import { deriveAdmit, programRunDerivationKey } from "./derivation.js";
+import { selectField } from "./resolve.js";
+export const PROGRAM_SCHEMA_VERSION = "recall.program.v1";
+export const PROGRAM_OPERATIONS = [
+    "score",
+    "emit_witness",
+    "tag_projection",
+    "watch",
+    "drift",
+    "quorum",
+    "trend",
+    "reflex",
+    "allocate",
+];
+export function validateProgramSpec(value) {
+    if (!isRecord(value))
+        throw new Error("program spec must be an object");
+    if (value.schemaVersion !== PROGRAM_SCHEMA_VERSION) {
+        throw new Error(`program spec schemaVersion must be ${PROGRAM_SCHEMA_VERSION}`);
+    }
+    if (!PROGRAM_OPERATIONS.includes(value.operation)) {
+        throw new Error(`program operation must be one of ${PROGRAM_OPERATIONS.join(", ")}`);
+    }
+    const target = value.target === undefined ? undefined : validateTarget(value.target);
+    const params = value.params === undefined ? undefined : assertRecord(value.params, "params");
+    return {
+        schemaVersion: PROGRAM_SCHEMA_VERSION,
+        operation: value.operation,
+        description: typeof value.description === "string" ? value.description : undefined,
+        target,
+        params,
+    };
+}
+export function programSpecFromCell(cell) {
+    if (cell.kind !== "prg")
+        return undefined;
+    const raw = cell.props.program;
+    return raw === undefined ? undefined : validateProgramSpec(raw);
+}
+export function executeProgram(program, members, now, previousRun) {
+    const spec = programSpecFromCell(program);
+    if (!spec)
+        throw new Error(`cell is not a program: ${program.key}`);
+    const output = executeSpec(spec, program, members, previousRun);
+    return {
+        id: randomUUID(),
+        programKey: program.key,
+        operation: spec.operation,
+        createdAt: now,
+        memberKeys: members.map((member) => member.key),
+        output,
+    };
+}
+export function runProgramCell(store, programKeyOrCell, now, opts = {}) {
+    const key = typeof programKeyOrCell === "string" ? programKeyOrCell : programKeyOrCell.key;
+    // The store is the source of truth for a program's own state: its props.lastRun
+    // baseline and runCount. Re-read it here so a caller that reuses a stale
+    // in-memory program object across runs still sees its own prior run; otherwise
+    // watch/drift/trend read a null baseline every time and silently never trip.
+    // Falls back to the passed cell only when the program is not yet persisted.
+    const program = store.get(key) ?? (typeof programKeyOrCell === "string" ? undefined : programKeyOrCell);
+    if (!program)
+        throw new Error(`unknown program: ${key}`);
+    const spec = programSpecFromCell(program);
+    if (!spec)
+        throw new Error(`cell is not a program: ${program.key}`);
+    const members = selectProgramMembers(store, program, spec);
+    const previousRun = previousRunFrom(program);
+    const run = executeProgram(program, members, now, previousRun);
+    persistProgramRun(store, program, run);
+    attachProgramToMembers(store, program.key, members);
+    // lastRun on props stays the watch/drift/trend baseline; program_runs is
+    // separate durable history, SqliteStore-only, feature-detected so this keeps
+    // working against any plain Store implementation.
+    if ("recordProgramRun" in store)
+        store.recordProgramRun(run);
+    const proposal = opts.derive ? programRunToProposal(program, run) : undefined;
+    return {
+        run,
+        derived: proposal ? deriveAdmit(store, proposal, programRunDerivationKey(run), now) : undefined,
+    };
+}
+// HAL thread ordering: functions run in position order within the tick. `position`
+// (a reserved program param) sorts like `addf <func> <thread> [position]`: positive
+// integers order from the start (default 0), negatives count from the end (-1 last).
+// Ties break by insertion order (createdAt), i.e. "the order they are in the file".
+const TICK_END = 1e9;
+function tickPosition(cell) {
+    const raw = cell.props.program?.params?.position;
+    const pos = typeof raw === "number" && Number.isFinite(raw) ? raw : 0;
+    return pos >= 0 ? pos : TICK_END + pos; // -1 -> TICK_END-1 (runs last); -3 earlier in the tail
+}
+export function runStandingPrograms(store, now, opts = {}) {
+    const programs = store
+        .active()
+        .filter((cell) => cell.kind === "prg" && cell.props.program !== undefined)
+        .sort((a, b) => tickPosition(a) - tickPosition(b) || (a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0));
+    const runs = [];
+    const derived = [];
+    for (const program of programs) {
+        const result = runProgramCell(store, program, now, opts);
+        runs.push(result.run);
+        if (result.derived)
+            derived.push(result.derived);
+    }
+    return { runs, derived };
+}
+export function selectProgramMembers(store, program, spec) {
+    const target = spec.target ?? {};
+    const limit = positiveInt(target.limit, 50);
+    const byKey = new Map();
+    for (const key of target.keys ?? []) {
+        const cell = store.get(key) ?? store.getByHandle(key);
+        if (cell && cell.status === "active" && cell.key !== program.key)
+            byKey.set(cell.key, cell);
+    }
+    // Legacy quorum role filtering restored at the selection layer: members are
+    // filtered before execution (the legacy eligibleCount output is deliberately
+    // not ported). Prefix-tolerant via store.getHyperedge, same as hyperedge ids
+    // everywhere else.
+    if (target.hyperedge && "getHyperedge" in store) {
+        const hyperedge = store.getHyperedge(target.hyperedge);
+        if (hyperedge) {
+            for (const member of hyperedge.members) {
+                if (target.role && member.role !== target.role)
+                    continue;
+                const cell = store.get(member.key);
+                if (cell && cell.status === "active" && cell.kind !== "prg" && cell.key !== program.key) {
+                    byKey.set(cell.key, cell);
+                }
+            }
+        }
+    }
+    if (target.query) {
+        for (const hit of store.search(target.query, { limit })) {
+            if (hit.cell.kind !== "prg" && hit.cell.status === "active")
+                byKey.set(hit.cell.key, hit.cell);
+        }
+    }
+    for (const edge of program.edgesOut) {
+        const cell = store.get(edge.target);
+        if (cell && cell.status === "active" && cell.kind !== "prg")
+            byKey.set(cell.key, cell);
+    }
+    const topicSet = new Set(target.topics ?? []);
+    const entitySet = new Set(target.entities ?? []);
+    const kindSet = new Set(target.kinds ?? []);
+    if (topicSet.size > 0 || entitySet.size > 0 || kindSet.size > 0) {
+        for (const cell of store.active()) {
+            if (cell.kind === "prg" || cell.key === program.key)
+                continue;
+            if (kindSet.size > 0 && !kindSet.has(cell.kind))
+                continue;
+            if (topicSet.size > 0 && !cell.tags.topics.some((topic) => topicSet.has(topic)))
+                continue;
+            if (entitySet.size > 0 && !cell.tags.entities.some((entity) => entitySet.has(entity)))
+                continue;
+            byKey.set(cell.key, cell);
+        }
+    }
+    if (byKey.size === 0 &&
+        !target.keys &&
+        !target.query &&
+        !target.topics &&
+        !target.entities &&
+        !target.kinds &&
+        !target.hyperedge) {
+        const programTopics = new Set(program.tags.topics);
+        for (const cell of store.active()) {
+            if (cell.kind === "prg" || cell.key === program.key)
+                continue;
+            if (programTopics.size === 0 || cell.tags.topics.some((topic) => programTopics.has(topic))) {
+                byKey.set(cell.key, cell);
+            }
+        }
+    }
+    return [...byKey.values()].slice(0, limit);
+}
+export function programRunToProposal(program, run) {
+    const witness = run.output.witness;
+    if (!witness)
+        return undefined;
+    const target = typeof run.output.concernTarget === "string" ? run.output.concernTarget : undefined;
+    const edges = [{ relation: "derived_from", target: program.key }];
+    if (target)
+        edges.push({ relation: "concerns", target });
+    return {
+        kind: run.operation === "quorum" ? "ver" : "obs",
+        title: witness.title,
+        summary: witness.summary,
+        body: JSON.stringify({ program: program.handle, run }, null, 2),
+        confidence: 0.72,
+        owner: `program:${program.handle}`,
+        topics: ["program", run.operation, ...program.tags.topics],
+        entities: [program.handle, ...run.memberKeys.slice(0, 8)],
+        sourceRefs: [`recall://cell/${program.key}`, ...run.memberKeys.map((key) => `recall://cell/${key}`)],
+        edges,
+        project: program.scope.project,
+        tenant: program.scope.tenant,
+        verification: "checked",
+        sensitivity: program.policy.sensitivity === "public" ? "private" : program.policy.sensitivity,
+        stability: "volatile",
+    };
+}
+function executeSpec(spec, program, members, previousRun) {
+    if (spec.operation === "watch")
+        return executeWatch(spec, program, members, previousRun);
+    if (spec.operation === "drift")
+        return executeDrift(spec, program, members, previousRun);
+    if (spec.operation === "quorum")
+        return executeQuorum(spec, program, members);
+    if (spec.operation === "trend")
+        return executeTrend(spec, program, members, previousRun);
+    if (spec.operation === "tag_projection")
+        return executeTagProjection(spec, members);
+    if (spec.operation === "emit_witness")
+        return executeEmitWitness(program, members);
+    if (spec.operation === "reflex")
+        return executeReflex(spec, program, members);
+    if (spec.operation === "allocate")
+        return executeAllocate(spec, program, members, previousRun);
+    return executeScore(spec, members);
+}
+// lut5: the configurable boolean op (mal-language.md §5). Behavior is a 32-entry
+// truth table (a uint32 "personality"), NOT a formula: the 5 boolean inputs form a
+// 5-bit index, and the output is that bit of the personality. Deterministic, total,
+// model-free. This is the spec's escape hatch for user-configurable logic without an
+// expression language.
+export function lut5(personality, inputs) {
+    let index = 0;
+    for (let i = 0; i < 5; i += 1)
+        if (inputs[i])
+            index |= 1 << i;
+    return ((toUint32(personality) >>> index) & 1) === 1;
+}
+function toUint32(value) {
+    const n = typeof value === "number" ? value : Number(value); // Number("0xCAFE") parses hex
+    return Number.isFinite(n) ? n >>> 0 : 0;
+}
+// The 5 reflex inputs read from a member cell's state (documented, fixed order):
+//  i0 weak (eff < 0.5)  i1 stale (curr < 0.5)  i2 requiresReview  i3 pinned  i4 annexed
+function reflexInputs(cell) {
+    return [
+        cell.scores.effective < 0.5,
+        cell.scores.currency < 0.5,
+        cell.flags.requiresReview,
+        cell.flags.pinned,
+        cell.flags.annexed,
+    ];
+}
+function executeReflex(spec, program, members) {
+    const personality = toUint32(spec.params?.personality);
+    const fired = members.filter((m) => lut5(personality, reflexInputs(m)));
+    const out = {
+        operation: "reflex",
+        memberCount: members.length,
+        memberReferences: memberReferences(members),
+        personality,
+        firedCount: fired.length,
+        fired: memberReferences(fired),
+    };
+    if (fired.length > 0) {
+        out.witness = {
+            title: `Reflex fired: ${program.title} on ${fired.length}/${members.length} member(s)`,
+            summary: `lut5 personality 0x${(personality >>> 0).toString(16)} fired on ${fired.length} member cell(s).`,
+        };
+    }
+    return out;
+}
+function allocateFactors(cell) {
+    const work = isRecord(cell.props.work) ? cell.props.work : {};
+    const finite = (value) => (typeof value === "number" && Number.isFinite(value) ? value : undefined);
+    return {
+        impact: probability(finite(work.impact) ?? 0.5),
+        uncertainty: probability(finite(work.uncertainty) ?? cell.scores.uncertainty),
+        concern: probability(finite(work.concern) ?? cell.scores.concern),
+        dependencyWeight: probability(finite(work.dependencyWeight) ?? 0.5),
+        reversibility: probability(finite(work.reversibility) ?? 0.5),
+        novelty: probability(finite(work.novelty) ?? 0.3),
+        cost: Math.max(0.05, finite(work.cost) ?? 0.5),
+    };
+}
+function allocateScore(factors) {
+    const { impact, uncertainty, concern, dependencyWeight, reversibility, novelty, cost } = factors;
+    return round((impact * (uncertainty + concern + novelty) * (0.5 + dependencyWeight) * (0.5 + reversibility / 2)) / cost);
+}
+function allocateRationale(factors) {
+    return [
+        `impact=${factors.impact}`,
+        `uncertainty=${factors.uncertainty}`,
+        `concern=${factors.concern}`,
+        `dependencyWeight=${factors.dependencyWeight}`,
+        `reversibility=${factors.reversibility}`,
+        `novelty=${factors.novelty}`,
+        `cost=${factors.cost}`,
+    ];
+}
+// Selected-set fingerprint, ordered: read defensively, same idiom as drift's
+// previousValues read of previousRun.output.memberValues. Anything malformed
+// (missing array, non-record entries, non-string key) counts as "no prior
+// selection", which forces changed=true rather than silently matching.
+function previousSelectedKeys(previousRun) {
+    const selected = previousRun?.output.selected;
+    if (!Array.isArray(selected))
+        return undefined;
+    const keys = [];
+    for (const entry of selected) {
+        if (!isRecord(entry) || typeof entry.key !== "string")
+            return undefined;
+        keys.push(entry.key);
+    }
+    return keys;
+}
+function executeAllocate(spec, program, members, previousRun) {
+    const ranked = members
+        .map((cell) => {
+        const factors = allocateFactors(cell);
+        return {
+            key: cell.key,
+            handle: cell.handle,
+            title: cell.title,
+            score: allocateScore(factors),
+            rationale: allocateRationale(factors),
+        };
+    })
+        .sort((a, b) => b.score - a.score || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
+    const rawLimit = typeof spec.params?.limit === "number" ? spec.params.limit : 8;
+    const limit = Math.max(1, rawLimit);
+    const selected = ranked.slice(0, limit);
+    const programWords = program.title.split(/\s+/).filter(Boolean).slice(0, 8).join(" ");
+    const previousSelected = previousSelectedKeys(previousRun);
+    const changed = previousSelected === undefined || !arraysEqual(previousSelected, selected.map((entry) => entry.key));
+    const out = {
+        operation: "allocate",
+        memberCount: members.length,
+        memberReferences: memberReferences(members),
+        limit,
+        ranked,
+        selected,
+        changed,
+    };
+    if (changed) {
+        out.witness = {
+            title: `Allocation: top ${selected.length} of ${members.length} for ${programWords}`,
+            summary: selected.map((entry) => entry.title).join("; "),
+        };
+    }
+    return out;
+}
+function arraysEqual(a, b) {
+    return a.length === b.length && a.every((value, i) => value === b[i]);
+}
+function executeScore(spec, members) {
+    const values = members.map((cell) => cell.scores.effective);
+    const averageEffective = average(values);
+    const maxConcern = members.length === 0 ? 0 : Math.max(...members.map((cell) => cell.scores.concern));
+    return {
+        operation: spec.operation,
+        memberCount: members.length,
+        memberReferences: memberReferences(members),
+        averageConfidence: round(average(members.map((cell) => cell.scores.conf))),
+        averageEffective: round(averageEffective),
+        maxConcern: round(maxConcern),
+        score: round((averageEffective + (1 - maxConcern)) / 2),
+    };
+}
+function executeTagProjection(spec, members) {
+    const family = typeof spec.params?.family === "string" ? spec.params.family : "topics";
+    const values = new Set();
+    for (const member of members) {
+        const raw = selectField(member.tags, family.split("."));
+        if (Array.isArray(raw)) {
+            for (const value of raw) {
+                if (typeof value === "string")
+                    values.add(value);
+            }
+        }
+    }
+    return {
+        operation: spec.operation,
+        memberCount: members.length,
+        memberReferences: memberReferences(members),
+        family,
+        values: [...values].sort(),
+    };
+}
+function executeEmitWitness(program, members) {
+    return {
+        operation: "emit_witness",
+        memberCount: members.length,
+        memberReferences: memberReferences(members),
+        witness: {
+            title: `Program witness: ${program.title}`,
+            summary: `Program observed ${members.length} member cell(s).`,
+        },
+    };
+}
+function executeWatch(spec, program, members, previousRun) {
+    const delta = positiveNumber(spec.params?.delta, 0.15);
+    const measure = typeof spec.params?.measure === "string" ? spec.params.measure : "effective_confidence";
+    const current = round(measuredValue(measure, members));
+    const previous = typeof previousRun?.output.current === "number" ? previousRun.output.current : null;
+    const change = previous === null ? 0 : round(current - previous);
+    const tripped = previous !== null && Math.abs(change) >= delta;
+    const out = {
+        operation: "watch",
+        memberCount: members.length,
+        memberReferences: memberReferences(members),
+        current,
+        previous,
+        change,
+        delta,
+        tripped,
+    };
+    const concernTarget = typeof spec.params?.concernTarget === "string" ? spec.params.concernTarget : undefined;
+    if (concernTarget)
+        out.concernTarget = concernTarget;
+    if (tripped) {
+        const direction = change < 0 ? "fell" : "rose";
+        out.witness = {
+            title: `Watch tripped: ${program.title} ${direction} ${Math.abs(change)} (delta ${delta})`,
+            summary: `Watched value moved ${previous} -> ${current} since the last run across ${members.length} member cell(s).`,
+        };
+    }
+    return out;
+}
+function executeDrift(spec, program, members, previousRun) {
+    const delta = positiveNumber(spec.params?.delta, 0.15);
+    const measure = typeof spec.params?.measure === "string" ? spec.params.measure : "effective_confidence";
+    const memberValues = Object.fromEntries(members.map((cell) => [cell.key, round(measuredValue(measure, [cell]))]));
+    const current = round(measuredValue(measure, members));
+    const previous = typeof previousRun?.output.current === "number" ? previousRun.output.current : null;
+    const previousValues = isRecord(previousRun?.output.memberValues)
+        ? previousRun.output.memberValues
+        : {};
+    const movers = members
+        .map((cell) => {
+        const prior = previousValues[cell.key];
+        if (typeof prior !== "number")
+            return undefined;
+        return {
+            key: cell.key,
+            handle: cell.handle,
+            title: cell.title,
+            previous: prior,
+            current: memberValues[cell.key],
+            change: round(memberValues[cell.key] - prior),
+        };
+    })
+        .filter((entry) => !!entry && entry.change !== 0)
+        .sort((a, b) => Math.abs(b.change) - Math.abs(a.change));
+    const change = previous === null ? 0 : round(current - previous);
+    const tripped = previous !== null && Math.abs(change) >= delta;
+    const out = {
+        operation: "drift",
+        memberCount: members.length,
+        memberReferences: memberReferences(members),
+        current,
+        previous,
+        change,
+        delta,
+        tripped,
+        memberValues,
+        movers: movers.slice(0, 5),
+    };
+    const concernTarget = typeof spec.params?.concernTarget === "string" ? spec.params.concernTarget : undefined;
+    if (concernTarget)
+        out.concernTarget = concernTarget;
+    if (movers[0])
+        out.topMover = movers[0];
+    if (tripped) {
+        const direction = change < 0 ? "fell" : "rose";
+        out.witness = {
+            title: `Drift tripped: ${program.title} ${direction} ${Math.abs(change)} (delta ${delta})`,
+            summary: `Bundle moved ${previous} -> ${current}; top mover ${movers[0]?.title ?? "unknown"}.`,
+        };
+    }
+    return out;
+}
+function executeQuorum(spec, program, members) {
+    const k = Math.max(1, Math.floor(positiveNumber(spec.params?.k, 2)));
+    const minEff = probability(typeof spec.params?.minEff === "number" ? spec.params.minEff : 0.7);
+    const distinctActors = spec.params?.distinctActors !== false;
+    const approving = members
+        .map((cell) => ({
+        key: cell.key,
+        handle: cell.handle,
+        title: cell.title,
+        actor: cell.provenance.producedBy,
+        effective: round(cell.scores.effective),
+    }))
+        .filter((entry) => entry.effective >= minEff);
+    const approverCount = distinctActors ? new Set(approving.map((entry) => entry.actor)).size : approving.length;
+    const passed = approverCount >= k;
+    const shortfall = Math.max(0, k - approverCount);
+    return {
+        operation: "quorum",
+        memberCount: members.length,
+        memberReferences: memberReferences(members),
+        k,
+        minEff,
+        distinctActors,
+        approving,
+        approverCount,
+        passed,
+        shortfall,
+        score: round(Math.min(1, approverCount / k)),
+        witness: {
+            title: passed
+                ? `Quorum passed: ${program.title} (${approverCount}/${k})`
+                : `Quorum short: ${program.title} (${approverCount}/${k}, shortfall ${shortfall})`,
+            summary: `${approving.length} of ${members.length} member cell(s) cleared effective >= ${minEff}.`,
+        },
+    };
+}
+function executeTrend(spec, program, members, previousRun) {
+    const window = Math.max(2, Math.floor(positiveNumber(spec.params?.window, 8)));
+    const delta = positiveNumber(spec.params?.delta, 0.1);
+    const streakThreshold = Math.max(1, Math.floor(positiveNumber(spec.params?.streak, 3)));
+    const measure = typeof spec.params?.measure === "string" ? spec.params.measure : "effective_confidence";
+    const current = round(measuredValue(measure, members));
+    const prior = Array.isArray(previousRun?.output.series)
+        ? previousRun.output.series.filter((value) => typeof value === "number")
+        : [];
+    const series = [...prior, current].slice(-window);
+    const slope = series.length < 2 ? 0 : round((series[series.length - 1] - series[0]) / (series.length - 1));
+    const direction = slope > 0 ? "ascending" : slope < 0 ? "descending" : "stable";
+    const steps = series.slice(1).map((value, i) => round(value - series[i]));
+    const streak = trailingStreak(steps);
+    const tripped = series.length >= 2 && (Math.abs(slope) >= delta || Math.abs(streak) >= streakThreshold);
+    const mid = Math.floor(series.length / 2);
+    const earlyHalf = series.slice(0, mid);
+    const lateHalf = series.slice(mid);
+    const acceleration = round(slopeOfHalf(lateHalf) - slopeOfHalf(earlyHalf));
+    const out = {
+        operation: "trend",
+        memberCount: members.length,
+        memberReferences: memberReferences(members),
+        measure,
+        current,
+        series,
+        slope,
+        direction,
+        streak,
+        streakMagnitude: Math.abs(streak),
+        acceleration,
+        delta,
+        window,
+        streakThreshold,
+        tripped,
+    };
+    if (tripped) {
+        out.witness = {
+            title: `Trend tripped: ${program.title} ${direction} (slope ${slope}, accel ${acceleration})`,
+            summary: `Tracked ${measure} moved ${series[0]} -> ${series[series.length - 1]} over ${series.length} run(s).`,
+        };
+    }
+    return out;
+}
+// slope over a half-series: (last - first) / (len - 1), 0 for len < 2. Feeds
+// trend's acceleration = slope(late half) - slope(early half).
+function slopeOfHalf(half) {
+    if (half.length < 2)
+        return 0;
+    return round((half[half.length - 1] - half[0]) / (half.length - 1));
+}
+function persistProgramRun(store, program, run) {
+    store.put({
+        ...program,
+        props: {
+            ...program.props,
+            lastRun: run,
+            runCount: typeof program.props.runCount === "number" ? program.props.runCount + 1 : 1,
+        },
+    });
+}
+function attachProgramToMembers(store, programKey, members) {
+    for (const member of members) {
+        if (member.programs.includes(programKey))
+            continue;
+        store.put({ ...member, programs: [...member.programs, programKey] });
+    }
+}
+function previousRunFrom(program) {
+    return isProgramRun(program.props.lastRun) ? program.props.lastRun : undefined;
+}
+function isProgramRun(value) {
+    return isRecord(value) && typeof value.id === "string" && typeof value.programKey === "string";
+}
+function validateTarget(value) {
+    const target = assertRecord(value, "target");
+    return {
+        keys: optionalStringArray(target.keys, "target.keys"),
+        query: typeof target.query === "string" ? target.query : undefined,
+        topics: optionalStringArray(target.topics, "target.topics"),
+        entities: optionalStringArray(target.entities, "target.entities"),
+        kinds: optionalStringArray(target.kinds, "target.kinds"),
+        limit: target.limit === undefined ? undefined : positiveInt(target.limit, 50),
+        hyperedge: typeof target.hyperedge === "string" ? target.hyperedge : undefined,
+        role: typeof target.role === "string" ? target.role : undefined,
+    };
+}
+function memberReferences(members) {
+    return members.map((cell) => ({ key: cell.key, handle: cell.handle, title: cell.title }));
+}
+function measuredValue(measure, members) {
+    if (measure === "member_count")
+        return members.length;
+    if (measure === "effective_confidence")
+        return meanEffective(members);
+    const values = members
+        .map((cell) => selectField(cell, measure.split(/[.-]/).filter(Boolean)))
+        .filter((value) => typeof value === "number" && Number.isFinite(value));
+    return average(values);
+}
+function meanEffective(members) {
+    return average(members.map((cell) => cell.scores.effective));
+}
+function average(values) {
+    return values.length === 0 ? 0 : values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+function trailingStreak(steps) {
+    const sign = Math.sign(steps[steps.length - 1] ?? 0);
+    if (sign === 0)
+        return 0;
+    let count = 0;
+    for (let i = steps.length - 1; i >= 0; i--) {
+        if (Math.sign(steps[i]) !== sign)
+            break;
+        count += 1;
+    }
+    return sign * count;
+}
+function assertRecord(value, path) {
+    if (!isRecord(value))
+        throw new Error(`${path} must be an object`);
+    return value;
+}
+function optionalStringArray(value, path) {
+    if (value === undefined)
+        return undefined;
+    if (!Array.isArray(value) || !value.every((item) => typeof item === "string" && item.trim() !== "")) {
+        throw new Error(`${path} must be an array of non-empty strings`);
+    }
+    return value;
+}
+function positiveInt(value, fallback) {
+    if (typeof value !== "number" || !Number.isFinite(value) || value <= 0)
+        return fallback;
+    return Math.floor(value);
+}
+function positiveNumber(value, fallback) {
+    if (typeof value !== "number" || !Number.isFinite(value) || value <= 0)
+        return fallback;
+    return value;
+}
+function probability(value) {
+    return Math.max(0, Math.min(1, value));
+}
+function round(value) {
+    return Math.round(value * 1000) / 1000;
+}
+function isRecord(value) {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}

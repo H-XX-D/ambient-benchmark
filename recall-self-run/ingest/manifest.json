@@ -1,0 +1,24 @@
+{
+  "db": "recall-self-run/graph/sentinel.sqlite3",
+  "cells": 48,
+  "edges": 21,
+  "rejected": 0,
+  "byShape": {
+    "code": 22,
+    "dataset": 8,
+    "web": 4,
+    "arxiv": 6,
+    "pdf": 2,
+    "json": 1,
+    "log": 5
+  },
+  "programs": [
+    {
+      "on": "api-status (log)",
+      "operation": "watch",
+      "id": "292d2adb-7004-4a56-98f5-f7346f616956",
+      "tripped": true
+    }
+  ],
+  "generatedFor": "SENTINEL full run"
+}

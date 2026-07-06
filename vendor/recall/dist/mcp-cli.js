@@ -1,0 +1,70 @@
+#!/usr/bin/env -S node --disable-warning=ExperimentalWarning
+// v5 MCP stdio server entry: JSON-RPC 2.0 over newline-delimited stdin/stdout.
+// Thin glue over handleMcpRequest. DB resolution mirrors the CLI bin: --db,
+// then --project via the registry, then RECALL_DB, then the RECALL_HOME
+// derived home local. The parent directory is created before opening so a
+// cold start on a machine with no store directory works. The server stays
+// single-store; federated reads remain CLI-only.
+import { createInterface } from "node:readline";
+import { stdin, stdout, stderr, env, argv, exit } from "node:process";
+import { mkdirSync } from "node:fs";
+import { dirname } from "node:path";
+import { handleMcpRequest } from "./mcp-server.js";
+import { SqliteStore } from "./store.js";
+import { homeDbPath, registryDbPath, resolveDbForSlug } from "./routing.js";
+function resolveDb(args, environment) {
+    let db;
+    let project;
+    for (let i = 0; i < args.length; i++) {
+        const arg = args[i];
+        if (arg === "--db" || arg === "--project") {
+            const value = args[++i];
+            if (value === undefined) {
+                stderr.write(`recall-mcp: ${arg} requires a value\n`);
+                exit(1);
+            }
+            if (arg === "--db")
+                db = value;
+            else
+                project = value;
+        }
+    }
+    if (db)
+        return db;
+    if (project) {
+        const resolved = resolveDbForSlug(project, registryDbPath(environment));
+        if (!resolved) {
+            stderr.write(`recall-mcp: unknown project: ${project}\n`);
+            exit(1);
+        }
+        return resolved;
+    }
+    const explicit = environment.RECALL_DB?.trim();
+    if (explicit)
+        return explicit;
+    return homeDbPath(environment);
+}
+const dbPath = resolveDb(argv.slice(2), env);
+mkdirSync(dirname(dbPath), { recursive: true });
+const store = new SqliteStore(dbPath);
+const rl = createInterface({ input: stdin });
+rl.on("line", (line) => {
+    const t = line.trim();
+    if (!t)
+        return;
+    let request;
+    try {
+        request = JSON.parse(t);
+    }
+    catch {
+        return; // ignore non-JSON lines
+    }
+    const response = handleMcpRequest(request, store);
+    if (response)
+        stdout.write(JSON.stringify(response) + "\n");
+});
+// stdio server: when the client closes stdin, the server is done.
+rl.on("close", () => {
+    store.close();
+    process.exit(0);
+});

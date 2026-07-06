@@ -1,0 +1,4 @@
+2026-06-23T10:00:01Z INFO service api started port=9347
+2026-06-23T10:00:05Z WARN cache miss key=user:42
+2026-06-23T10:01:12Z ERROR db timeout after 5000ms
+2026-06-23T10:02:00Z INFO service api healthy

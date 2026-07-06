@@ -1,0 +1,48 @@
+{"seq":1,"ts":1782240401222,"shape":"code","kind":"artifact","id":"ce9c6c4b-6d85-401b-aa6a-900516ed456f","title":"recall-core/claude-integration.ts","edges":0}
+{"seq":2,"ts":1782240401224,"shape":"code","kind":"artifact","id":"cec02e1e-3efc-4f17-a865-893c0d3f65f5","title":"recall-core/codex-integration.ts","edges":0}
+{"seq":3,"ts":1782240401225,"shape":"code","kind":"artifact","id":"0cf0d6cc-a40c-4cf0-83a5-e809f689886d","title":"recall-core/cells.ts","edges":0}
+{"seq":4,"ts":1782240401226,"shape":"code","kind":"artifact","id":"4cd7e0ca-5a72-4dbf-a98d-a23f4a6474cf","title":"recall-core/dag.ts","edges":0}
+{"seq":5,"ts":1782240401227,"shape":"code","kind":"artifact","id":"b825fa7b-c29e-4946-969d-a951caa447d2","title":"recall-core/firewall.ts","edges":0}
+{"seq":6,"ts":1782240401228,"shape":"code","kind":"artifact","id":"9f7cd2c3-a1b1-447c-8f3e-00099b0aea64","title":"recall-core/contradiction-detect.ts","edges":0}
+{"seq":7,"ts":1782240401229,"shape":"code","kind":"artifact","id":"9f57f9ae-397f-4789-aff6-a3a2e9bcf951","title":"recall-core/daemon-scheduler.ts","edges":0}
+{"seq":8,"ts":1782240401230,"shape":"code","kind":"artifact","id":"c24f3339-51d0-4728-afc8-d6ed238d63ba","title":"recall-core/derivation.ts","edges":0}
+{"seq":9,"ts":1782240401231,"shape":"code","kind":"artifact","id":"f397c874-059f-4ddc-901d-0c4d5dfb2e15","title":"recall-core/export.ts","edges":0}
+{"seq":10,"ts":1782240401232,"shape":"code","kind":"artifact","id":"577fb60a-c76e-40c1-bcb7-669ffb47649a","title":"recall-core/calibration.ts","edges":0}
+{"seq":11,"ts":1782240401233,"shape":"code","kind":"artifact","id":"ef840638-0675-4785-bf30-9d84687ba9cc","title":"recall-core/cell-context.ts","edges":0}
+{"seq":12,"ts":1782240401234,"shape":"code","kind":"artifact","id":"76ebb73f-0c79-4709-a831-3d240c63223d","title":"recall-core/evidence.ts","edges":1}
+{"seq":13,"ts":1782240401235,"shape":"code","kind":"artifact","id":"f86045d4-1cfd-41ee-a236-b232b0945af2","title":"recall-core/analysis.ts","edges":1}
+{"seq":14,"ts":1782240401237,"shape":"code","kind":"artifact","id":"6fd9803a-f8cc-4f4b-bf41-2f760e757d6a","title":"recall-core/claude-sync.ts","edges":1}
+{"seq":15,"ts":1782240401238,"shape":"code","kind":"artifact","id":"4907122a-953f-46c4-a52f-e58fb5c38e92","title":"recall-core/auto-memory-adapter.ts","edges":1}
+{"seq":16,"ts":1782240401239,"shape":"code","kind":"artifact","id":"c950d0b1-2083-4eee-a9db-4b64d90e8f1c","title":"recall-core/cognitive.ts","edges":1}
+{"seq":17,"ts":1782240401240,"shape":"code","kind":"artifact","id":"04a26ddc-adf6-4bab-8eec-543cc4c34ef7","title":"recall-core/evals.ts","edges":1}
+{"seq":18,"ts":1782240401241,"shape":"code","kind":"artifact","id":"5b8c4e0b-4265-4ccc-ac25-73f4b94e99d9","title":"recall-core/federated-store.ts","edges":1}
+{"seq":19,"ts":1782240401242,"shape":"code","kind":"artifact","id":"b4babe92-d100-4f1e-a117-47473b8b2d92","title":"recall-core/context-compiler.ts","edges":2}
+{"seq":20,"ts":1782240401243,"shape":"code","kind":"artifact","id":"4a2a135c-d7a8-4cff-b522-58607bff2561","title":"recall-core/daemon.ts","edges":3}
+{"seq":21,"ts":1782240401244,"shape":"code","kind":"artifact","id":"981ba174-6455-4d28-a056-93ddc0828292","title":"recall-core/admission.ts","edges":3}
+{"seq":22,"ts":1782240401245,"shape":"code","kind":"artifact","id":"92d940f2-4f04-4f0b-9a86-43c3f4c13ebd","title":"recall-core/acp.ts","edges":5}
+{"seq":23,"ts":1782240401246,"shape":"dataset","kind":"artifact","id":"5ef72c4d-6f87-4fe1-86d8-e460f3c51506","title":"dataset penguins.csv","edges":0}
+{"seq":24,"ts":1782240401249,"shape":"dataset","kind":"observation","id":"a40f634e-de3e-4f01-9b7c-9e86a9247814","title":"penguin row 0: Adelie on Torgersen, mass 3750g","edges":0}
+{"seq":25,"ts":1782240401251,"shape":"dataset","kind":"observation","id":"964265af-4b0c-436d-b583-2ed79c4790b3","title":"penguin row 1: Adelie on Torgersen, mass 3800g","edges":0}
+{"seq":26,"ts":1782240401253,"shape":"dataset","kind":"observation","id":"0a7cf590-097c-4343-aa9c-08be48fdd7c3","title":"penguin row 2: Adelie on Torgersen, mass 3250g","edges":0}
+{"seq":27,"ts":1782240401255,"shape":"dataset","kind":"observation","id":"c57f4380-b02e-48a3-9168-d8f05005cfb0","title":"penguin row 3: Adelie on Torgersen, mass g","edges":0}
+{"seq":28,"ts":1782240401257,"shape":"dataset","kind":"observation","id":"b9145c62-9d41-4612-834f-d978d6b95df0","title":"penguin row 4: Adelie on Torgersen, mass 3450g","edges":0}
+{"seq":29,"ts":1782240401259,"shape":"dataset","kind":"observation","id":"8b34da5d-19cd-4f67-b4b2-a22c4949f87c","title":"penguin row 5: Adelie on Torgersen, mass 3650g","edges":0}
+{"seq":30,"ts":1782240401260,"shape":"dataset","kind":"belief_update","id":"7d9967bf-6322-4186-b004-ea3dfb14f99a","title":"metric mean body_mass_g is 4177","edges":0}
+{"seq":31,"ts":1782240401262,"shape":"web","kind":"source","id":"06e0f953-b398-426a-9c73-615f2c4b8203","title":"article Knowledge graph","edges":0}
+{"seq":32,"ts":1782240401264,"shape":"web","kind":"source","id":"4b6c4479-7ddb-48a8-b59c-84841fb042b0","title":"article Merkle tree","edges":0}
+{"seq":33,"ts":1782240401266,"shape":"web","kind":"source","id":"da12bc94-7ebe-46de-8278-f54c738e88f3","title":"article Retrieval-augmented generation","edges":0}
+{"seq":34,"ts":1782240401267,"shape":"web","kind":"source","id":"95fe47b2-83ac-4140-b36d-bde155fe22d3","title":"article Vector database","edges":0}
+{"seq":35,"ts":1782240401269,"shape":"arxiv","kind":"source","id":"a0f7c8f0-e600-43bb-ac6e-b11533518681","title":"preprint CoorDex: Coordinating Body and Hand Priors for Continuous Dexterous Hum","edges":0}
+{"seq":36,"ts":1782240401272,"shape":"arxiv","kind":"source","id":"edcbe8f8-a5c5-4a13-89ee-c41113ed6023","title":"preprint Semantic Browsing: Controllable Diversity for Image Generation","edges":0}
+{"seq":37,"ts":1782240401276,"shape":"arxiv","kind":"source","id":"db6dafec-deb2-4b2d-a58a-d25c0fbd5606","title":"preprint AIR: Adaptive Interleaved Reasoning with Code in MLLMs","edges":0}
+{"seq":38,"ts":1782240401279,"shape":"arxiv","kind":"source","id":"fb253c1e-52c0-4f10-b9a1-6115051f904c","title":"preprint Open Problem: Is AdamW Effective Under Heavy-Tailed Noise?","edges":0}
+{"seq":39,"ts":1782240401298,"shape":"arxiv","kind":"source","id":"a254f846-1290-46cd-8598-d9bce74776aa","title":"preprint PsyBridge: A Hybrid Intelligent Framework for Multi-Dimensional Mental ","edges":0}
+{"seq":40,"ts":1782240401301,"shape":"arxiv","kind":"source","id":"cbd9679a-2479-40ff-afc9-8797d0a6a2fa","title":"preprint Teaching LLMs String Matching, Backtracking, and Error Recovery to Dedu","edges":0}
+{"seq":41,"ts":1782240401305,"shape":"pdf","kind":"source","id":"7dc1e282-a6b2-4476-8e8f-1bb9a07da44a","title":"paper reproduce the tables and figures in this paper solely for use in journalis","edges":0}
+{"seq":42,"ts":1782240401309,"shape":"pdf","kind":"source","id":"24499a9c-1ed7-4e80-a973-716a3c6c3c73","title":"paper BERT: Pre-training of Deep Bidirectional Transformers for","edges":0}
+{"seq":43,"ts":1782240401311,"shape":"json","kind":"artifact","id":"aaaa9b80-6650-4674-a15d-f0cd9d9901bd","title":"config recall-memory-substrate@0.3.0","edges":0}
+{"seq":44,"ts":1782240401313,"shape":"log","kind":"observation","id":"b6e897a9-6094-4711-b9a4-9db848e40b31","title":"2026-06-23T10:00:01Z INFO service api started port=9347","edges":0}
+{"seq":45,"ts":1782240401314,"shape":"log","kind":"observation","id":"a545bbc8-7509-4230-b4fc-76266d272fe3","title":"2026-06-23T10:00:05Z WARN cache miss key=user:42","edges":0}
+{"seq":46,"ts":1782240401316,"shape":"log","kind":"observation","id":"2c351f8a-749e-45ec-8f4a-9abede034f8f","title":"2026-06-23T10:01:12Z ERROR db timeout after 5000ms","edges":0}
+{"seq":47,"ts":1782240401318,"shape":"log","kind":"observation","id":"d498730d-bc99-4e34-8e60-72fe9364e1d4","title":"2026-06-23T10:02:00Z INFO service api healthy","edges":0}
+{"seq":48,"ts":1782240401323,"shape":"log","kind":"observation","id":"446d340d-52bb-4a16-a9d4-c3394fea26aa","title":"service api is DOWN due to db timeout","edges":1}
