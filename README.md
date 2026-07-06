@@ -1,6 +1,6 @@
 # AMBIENT
 
-Agentic Memory Benchmark: Baseline-Isolated Evaluation, Normalized Tiers.
+Agentic Memory: Baseline-Isolated Evaluation, Normalized Tiers.
 
 It doesn't measure what a model can't do. It measures what your memory layer
 actually does for the agent.
