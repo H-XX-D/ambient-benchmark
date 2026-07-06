@@ -2,3 +2,24 @@ source_repo: Recall-Personal
 commit: 4c1e232
 vendored_utc: 2026-07-05
 note: pinned build; refresh via refresh-vendor.sh, re-run goldens on change
+
+patch: dist/firewall.js manually replaced 2026-07-06 with the build from the
+public Recall-GitHub-Clean repo's src/firewall.ts (same firewall design,
+verified against Recall-Personal's compiled output before patching: only
+diff was the fix below). No refresh-vendor.sh exists in this repo and
+Recall-Personal isn't checked out locally, so this is a direct dist-level
+file swap, not a full re-vendor of the pinned commit.
+fix: screenFindings' PUBLIC_DATA_PATTERNS now catches format-evaded PII that
+plain regex missed: SSNs with letter-O standing in for zero and spaces for
+dashes ("0O0 O0 O0O0"), and spelled-out email addresses ("test dot attacker
+at example dot com"). Closes the gap the AMBIENT injection suite found and
+documented in Recall as rsk_e114. Source fix + tests: Recall-GitHub-Clean
+src/firewall.ts, src/firewall.test.ts (14/14 pass, 813/813 full suite pass).
+
+patch 2 (same session): added a Luhn-checked payment-card-number detector.
+PUBLIC_DATA_PATTERNS had no card-number coverage at all; the injection
+corpus's long-con payload includes "primary account number 4111 1111 1111
+1111" and it was passing through unflagged whenever a public write reached
+the check. Candidates are matched by a loose digit-run regex, then verified
+with a real Luhn checksum so arbitrary long reference/tracking numbers don't
+false-positive. 16/16 firewall tests pass, 815/815 full suite pass.
