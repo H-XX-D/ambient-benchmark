@@ -17,14 +17,28 @@ export const PROGRAM_OPERATIONS = [
     "reflex",
     "allocate",
 ];
+export function baseProgramOperation(operation) {
+    if (typeof operation !== "string")
+        return operation;
+    for (const base of PROGRAM_OPERATIONS) {
+        if (operation.startsWith(base) && /^\d+$/.test(operation.slice(base.length))) {
+            return base;
+        }
+    }
+    const m = /^([a-z_]+)-[a-z0-9][a-z0-9_-]*$/.exec(operation);
+    return m ? m[1] : operation;
+}
+export function isProgramOperation(operation) {
+    return PROGRAM_OPERATIONS.includes(baseProgramOperation(operation));
+}
 export function validateProgramSpec(value) {
     if (!isRecord(value))
         throw new Error("program spec must be an object");
     if (value.schemaVersion !== PROGRAM_SCHEMA_VERSION) {
         throw new Error(`program spec schemaVersion must be ${PROGRAM_SCHEMA_VERSION}`);
     }
-    if (!PROGRAM_OPERATIONS.includes(value.operation)) {
-        throw new Error(`program operation must be one of ${PROGRAM_OPERATIONS.join(", ")}`);
+    if (!isProgramOperation(value.operation)) {
+        throw new Error(`program operation must be one of ${PROGRAM_OPERATIONS.join(", ")} or a named instance like watch0`);
     }
     const target = value.target === undefined ? undefined : validateTarget(value.target);
     const params = value.params === undefined ? undefined : assertRecord(value.params, "params");
@@ -208,23 +222,24 @@ export function programRunToProposal(program, run) {
     };
 }
 function executeSpec(spec, program, members, previousRun) {
-    if (spec.operation === "watch")
+    const operation = baseProgramOperation(spec.operation);
+    if (operation === "watch")
         return executeWatch(spec, program, members, previousRun);
-    if (spec.operation === "drift")
+    if (operation === "drift")
         return executeDrift(spec, program, members, previousRun);
-    if (spec.operation === "quorum")
+    if (operation === "quorum")
         return executeQuorum(spec, program, members);
-    if (spec.operation === "trend")
+    if (operation === "trend")
         return executeTrend(spec, program, members, previousRun);
-    if (spec.operation === "tag_projection")
-        return executeTagProjection(spec, members);
-    if (spec.operation === "emit_witness")
+    if (operation === "tag_projection")
+        return executeTagProjection({ ...spec, operation }, members);
+    if (operation === "emit_witness")
         return executeEmitWitness(program, members);
-    if (spec.operation === "reflex")
+    if (operation === "reflex")
         return executeReflex(spec, program, members);
-    if (spec.operation === "allocate")
+    if (operation === "allocate")
         return executeAllocate(spec, program, members, previousRun);
-    return executeScore(spec, members);
+    return executeScore({ ...spec, operation }, members);
 }
 // lut5: the configurable boolean op (mal-language.md §5). Behavior is a 32-entry
 // truth table (a uint32 "personality"), NOT a formula: the 5 boolean inputs form a

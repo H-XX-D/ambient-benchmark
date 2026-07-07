@@ -12,14 +12,18 @@ abilities) is assembled and the ceiling test (tiers/quality-graph.mjs) confirmed
 memory graph carries full signal for a 32B reader's residual gaps. See README.md
 Status for the current numbers; this file keeps the original phase plan below as a
 record of the order things were built in and what is still open (medium/large
-corpus, a fast ingest-time classifier, a second non-Recall adapter).
+corpus, a fast ingest-time classifier, full cross-adapter capability grading, and
+golden transcript publication).
 
 The deterministic, model-free AMBIENT core runs green in this folder against a
 vendored build of Recall, the first system tested (vendor/recall, commit 4c1e232),
 Node 24, no keys, no network: L1 100/100, L3 100/100, L2 literal 0 vs entailment 100,
 L4 naive 75/50 vs expiry-aware 100/100. The core currently runs on Recall's own
-primitives, so these numbers are Recall demonstrating the capabilities, not yet a
-neutral cross-system field until a second adapter exists (see Risks to hold).
+primitives, so these numbers are Recall demonstrating the capabilities. The adapter
+field now has multiple local/free non-Recall bridges and smokes; the remaining
+cross-system work is to expand from the local ten-adapter matrix smoke into full
+capability grading and publish served-context transcripts/goldens for each adapter
+(see Risks to hold).
 
 ## Dependency strategy
 
@@ -167,9 +171,20 @@ changes, or the numbers drift silently.
    with the reason and exits 0 (not a failure — an honestly-reported gap
    isn't a regression), rather than crashing on the dead import or
    fabricating a stand-in detector.
-5. Fix recall-self-run portability: replace the hardcoded Desktop run path and the
-   absolute imports with repo-relative corpora and the _recall re-export; relocate
-   ingest fixtures under recall-self-run/corpora.
+5. Verified: recall-self-run portability. Checked all five scripts (connect.mjs,
+   gen-questionnaire.mjs, ingest.mjs, run-bench.mjs, run-gauntlet.mjs) for the
+   hardcoded Desktop path and absolute imports this item originally flagged.
+   Neither exists: every script resolves its own directory via
+   dirname(fileURLToPath(import.meta.url)) and there is no /Users or Desktop
+   reference anywhere in the folder. The three scripts that call into Recall's
+   pre-rename API (ingest.mjs, run-bench.mjs, run-gauntlet.mjs) require
+   RECALL_SRC_DIR as an explicit env var and exit(1) with a clear message if
+   unset, rather than silently resolving a stale path. Not done, and not worth
+   doing: relocating ingest/ fixtures under recall-self-run/corpora. That
+   folder is only reachable through this frozen 2026-06-23 snapshot (see
+   _STATUS.md), which cannot be re-run at all without an external
+   RECALL_SRC_DIR checkout of the pre-rename build, so the move would not
+   change what can actually execute here.
 6. Optional model arms: start a local llama-server on port 8089 serving
    Llama-3.2-1B, run bench:suite:1b, bench:1b-hard, and the reader-independence
    python arm.
@@ -189,15 +204,96 @@ P1. Define the adapter contract. docs/ADAPTER_CONTRACT.md and adapters/contract.
 query-with-provenance mandatory, write/surface/setAutoCapture optional. A system can
 say it has no push axis rather than crash. (Contract drafted; wiring next.)
 
-P2. Two real adapters. adapters/recall.mjs (wrap the existing store behind the
-contract) and adapters/baseline-pull.mjs (a plain vector or RAG incumbent).
-Re-express the model-facing probes to read adapter.query output, holding the same
-fixed model for every system, and score by segment completion.
+P2. Two real adapters. Done for the local field: `adapters/recall_adapter.mjs`
+wraps the vendored Recall store behind the HTTP contract, and
+`adapters/baseline-pull-server.mjs` exposes the plain keyword floor through the same
+wire protocol. The four-tier runner can now drive either with `--adapter-url` while
+holding the same fixed model and scoring by segment completion. First underground
+local/free bridge added: `adapters/ai-memory-http-adapter.mjs` maps AMBIENT
+write/query/reset to a separately running alphaonedev/ai-memory-mcp HTTP daemon
+without vendoring it, using per-run namespaces instead of destructive resets.
+Second underground local/free bridge added: `adapters/projectmem-cli-adapter.mjs`
+maps AMBIENT write/query/reset to a local riponcm/projectmem CLI install, creates
+isolated temporary project roots per store, and reads projectmem's append-only event
+log for support/provenance. Third underground local/free bridge added:
+`adapters/simple-memory-cli-adapter.mjs` maps AMBIENT write/query/reset to a local
+chrisribe/simple-memory-mcp CLI install, creating isolated `MEMORY_DB` files per
+store and parsing the CLI's JSON GraphQL shortcut output for support/provenance.
+Fourth underground local/free bridge added:
+`adapters/agent-recall-python-adapter.mjs` maps AMBIENT write/query/reset to
+mnardit/agent-recall's public Python `MemoryStore` API, using isolated SQLite DBs
+per store and returning scoped observation text as support/provenance.
+Fifth underground local/free bridge added:
+`adapters/total-agent-memory-sqlite-adapter.mjs` maps AMBIENT write/query/reset
+to total-agent-memory's local `memory.db` knowledge/FTS schema, covering the same
+SQLite floor used by `tam-lookup` without requiring the heavier Chroma, embedding,
+dashboard, or enrichment runtime.
+Sixth underground local/free bridge added:
+`adapters/claude-memory-mcp-cli-adapter.mjs` maps AMBIENT write/query/reset to
+WhenMoon-afk/claude-memory-mcp's `save`/`search` CLI, using isolated
+`CLAUDE_MEMORY_DB_PATH` continuity databases per store and parsing compact
+continuity rows as support/provenance.
+Seventh underground local/free bridge added:
+`adapters/engram-cli-adapter.mjs` maps AMBIENT write/query/reset to
+Gentleman-Programming/engram's `save`/`search` CLI, using isolated
+`ENGRAM_DATA_DIR` databases per store and a bounded term fallback over Engram's
+strict CLI search for natural AMBIENT questions.
+Eighth underground local/free bridge added:
+`adapters/mcp-local-memory-sqlite-adapter.mjs` maps AMBIENT write/query/reset to
+Beledarian/mcp-local-memory's `MEMORY_DB_PATH` SQLite/FTS schema, covering
+deterministic local memory rows without starting the full MCP semantic embedding
+runtime.
+Ninth underground local/free bridge added:
+`adapters/sqlite-memory-mcp-sqlite-adapter.mjs` maps AMBIENT write/query/reset
+to RMANOV/sqlite-memory-mcp's `SQLITE_MEMORY_DB` core graph/FTS schema, covering
+entities, observations, relations, sessions, tasks, and FTS recall without
+starting the full FastMCP micro-server stack.
+Tenth underground local/free bridge added:
+`adapters/mcp-memory-keeper-sqlite-adapter.mjs` maps AMBIENT write/query/reset
+to mkreyman/mcp-memory-keeper's `DATA_DIR/context.db` context-item schema,
+covering sessions, context items, checkpoint tables, and LIKE-based recall
+without starting the full MCP server.
+Eleventh underground local/free bridge added:
+`adapters/local-memory-mcp-sqlite-adapter.mjs` maps AMBIENT write/query/reset
+to cunicopia-dev/local-memory-mcp's `MCP_DATA_DIR/memory.db` SQLite schema,
+covering the core memories table and text-search fallback without starting
+FastMCP, FAISS, Ollama, or PostgreSQL.
+Twelfth underground local/free bridge added:
+`adapters/mcp-memory-sqlite-adapter.mjs` maps AMBIENT write/query/reset to
+Daichi-Kudo/mcp-memory-sqlite's local SQLite knowledge graph schema, covering
+the `entities`, `observations`, and `relations` tables without starting the MCP
+stdio/HTTP server or requiring the npm package at benchmark time.
+Thirteenth underground local/free bridge added:
+`adapters/agent-memory-sqlite-adapter.mjs` maps AMBIENT write/query/reset to
+baiXfeng/agent-memory's storage-directory `memory.db` schema, covering the
+`memories` table, `memories_fts` table, and FTS/LIKE recall without starting
+the MCP stdio server or requiring the npm package at benchmark time.
+Fourteenth underground local/free bridge added:
+`adapters/agent-memory-mcp-sqlite-adapter.mjs` maps AMBIENT write/query/reset
+to mikeylong/agent-memory-mcp's `AGENT_MEMORY_HOME/memory.db` schema, covering
+scoped memories, idempotency keys, schema migrations, embedding chunk tables,
+and lexical FTS recall without starting the MCP server, importers, automations,
+or Ollama embeddings.
 
 P3. Capability grading across systems. Grade each adapter per rung (pull-correctness,
 supersession, contradiction-surfacing, unprompted-push) and report a profile, never
 one number. A pull system that cannot surface unprompted is ABSENT on that rung, not
 FAIL, and its lower rungs still score.
+Current harness foothold: `npm run verify:adapters:matrix` runs the shared
+four-tier runner against ten local/free adapters with a mock reader/checker and
+validates transcript row counts. `npm run verify:adapters:matrix:artifact`
+re-checks the emitted matrix and transcript JSONL shape afterward. This is a
+wiring matrix, not the final grade, but `npm run judge:adapters:matrix` now
+consolidates the matrix transcripts into `results/cross-adapter-grade-summary.json`
+through the existing judge endpoint, and `npm run judge:adapters:matrix:artifact`
+validates that summary against its verdict/summary files. `npm run verify:adapters:judge`
+smoke-tests the grading wrapper plus artifact checker against a local mock judge.
+`npm run verify:adapters:grade:pipeline` runs the full ten-adapter local/free
+matrix, grades it with a mock judge, and validates the consolidated artifact.
+`npm run verify:adapters:matrix:extended` also tries Recall plus CLI/daemon-backed
+bridges and records missing local prerequisites as skips. `npm run verify:adapters:prereqs`
+reports the install or daemon command needed to move each skipped optional target
+into the matrix.
 
 P4. Independent verifiability. Every result ships with its served context, the model
 transcript, and a recompute script. Use the merkle and set-integrity probes as the
@@ -223,8 +319,9 @@ generalization to lever-less incumbents (P3) is what those levers produce.
   regression can read as an improvement.
 - Model non-determinism: llama.cpp varies by build, quant, and hardware even at
   temperature 0. Goldens must record all three.
-- Not cross-system yet: publishing recall-self-run as cross-system before a second
-  adapter exists would itself break the honesty bar.
+- Not cross-system yet: publishing recall-self-run or adapter smoke results as full
+  cross-system capability grades before served-context transcripts and goldens exist
+  would itself break the honesty bar.
 - Push-axis unfairness: if ABSENT is graded as FAIL, the board becomes a rigged demo.
 - Attribution mislabel: if served context is not captured with external-origin
   provenance, a correct answer cannot be told from model knowledge and credit is

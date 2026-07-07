@@ -19,7 +19,7 @@
 import { parseHandle, parseValue, renderValue, quoteString, unquoteString, parsePath } from "./address.js";
 import { admit } from "./admission.js";
 import { renderMiniIndexLine } from "./render.js";
-import { PROGRAM_OPERATIONS, PROGRAM_SCHEMA_VERSION } from "./programs.js";
+import { baseProgramOperation, isProgramOperation, PROGRAM_SCHEMA_VERSION } from "./programs.js";
 import { RELATIONS } from "./types.js";
 // ---------- tokenizer ----------
 // Split `code` on whitespace, but keep a "..." run as one token (quotes included).
@@ -296,7 +296,9 @@ const KNOWN_SIGNALS = new Set(["eff", "conf", "curr", "sal", "unc", "concern", "
 // The PROGRAM_OPERATIONS (watch/drift/quorum/trend/score/...) are scheduled as
 // real prg cells instead (see pass 3).
 const KNOWN_TICK_OPS = new Set(["contradiction-load", "currency-decay", "salience", "derive"]);
-// Find the standing-program cell for an operation (prg cell whose spec.operation matches).
+// Find the standing-program cell for an operation instance (prg cell whose
+// spec.operation matches). `watch` and `watch0` are separate instances; the
+// execution layer maps `watch0` back to the base watch operation.
 function findProgram(store, operation) {
     return store.active().find((c) => c.kind === "prg" && c.props.program?.operation === operation);
 }
@@ -331,6 +333,7 @@ function buildProgramSpec(operation, config) {
 //  - one exists and config given -> reconfigure it (update/expand its spec)
 //  - one exists and no config     -> idempotent no-op (keeps the existing spec)
 function scheduleProgram(store, operation, config = []) {
+    const base = baseProgramOperation(operation);
     const existing = findProgram(store, operation);
     if (existing) {
         if (config.length === 0)
@@ -341,7 +344,9 @@ function scheduleProgram(store, operation, config = []) {
     const r = admit({
         kind: "prg",
         title: `${operation} program`,
-        body: `standing ${operation} program, scheduled on the tick`,
+        body: operation === base
+            ? `standing ${operation} program, scheduled on the tick`
+            : `standing ${operation} program, scheduled on the tick as ${base}`,
         confidence: 0.6,
         props: { program: buildProgramSpec(operation, config) },
     }, { store });
@@ -482,14 +487,13 @@ export function loadNetlist(nodes, store, mode = "replay") {
         }
     }
     // pass 3: actuators (verify is read-only, so it skips them)
-    const isProgramOp = (op) => PROGRAM_OPERATIONS.includes(op);
     const reason = (e) => (e instanceof Error ? e.message : String(e));
     if (mode !== "verify") {
         for (const node of actuators) {
             if (node.form === "set") {
                 // op-param form `<op>.<param>` (dotted, op is a program operation) vs cell-field form
-                const opParam = /^([a-z_]+)\.([a-z_][a-z0-9_]*)$/.exec(node.addr);
-                if (opParam && isProgramOp(opParam[1])) {
+                const opParam = /^([a-z_][a-z0-9_]*(?:-[a-z0-9][a-z0-9_-]*)?)\.([a-z_][a-z0-9_]*)$/.exec(node.addr);
+                if (opParam && isProgramOperation(opParam[1])) {
                     try {
                         result.paramsSet.push(applyProgramParam(store, opParam[1], opParam[2], node.value));
                     }
@@ -507,7 +511,7 @@ export function loadNetlist(nodes, store, mode = "replay") {
                 }
             }
             else if (node.form === "schedule") {
-                if (isProgramOp(node.op)) {
+                if (isProgramOperation(node.op)) {
                     try {
                         const sched = scheduleProgram(store, node.op, node.config);
                         result.programsCreated.push({ operation: node.op, key: sched.key, updated: sched.updated });
