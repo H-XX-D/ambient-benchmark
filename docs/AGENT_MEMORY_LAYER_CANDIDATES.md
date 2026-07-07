@@ -51,9 +51,9 @@ Found on 2026-07-07 after the original underground queue was exhausted.
 
 | candidate | repo | shape | language | license | stars | adapter fit |
 |---|---|---|---|---|---:|---|
-| local-memory-mcp-rust | <https://github.com/chriswessells/local-memory-mcp> | one-binary Rust MCP server with SQLite, FTS5, sqlite-vec, short/long-term memory, graph, namespaces, checkpoints, and branches | Rust | MIT | 0 | Strong local/free substrate; direct schema bridge looks feasible but heavier because the store supports 29 tools and vector tables. |
-| claude_memory | <https://github.com/codenamev/claude_memory> | Claude Code hooks plus MCP tools over project/global SQLite fact and observation stores | Ruby | MIT | 22 | Useful Claude-Code-native comparison; bridge could target `.claude/memory.sqlite3` and global `~/.claude/memory.sqlite3`. |
-| mcp-memory-sqlite-personal | <https://github.com/spences10/mcp-memory-sqlite> | personal knowledge graph and memory system for MCP assistants using SQLite text search | TypeScript | MIT | 13 | Similar graph-memory floor to Daichi-Kudo's package; worth inspecting for schema/API differences before another bridge. |
+| local-memory-mcp-rust | <https://github.com/chriswessells/local-memory-mcp> | one-binary Rust MCP server with SQLite, FTS5, sqlite-vec, short/long-term memory, graph, namespaces, checkpoints, and branches | Rust | MIT | 0 | Bridge implemented in `adapters/local-memory-mcp-rust-sqlite-adapter.mjs` for the `memories` + `memory_fts` FTS5 floor (schema from src/db.rs migrate_v1); sqlite-vec and graph/checkpoint tables are a heavier follow-up. |
+| claude_memory | <https://github.com/codenamev/claude_memory> | Claude Code hooks plus MCP tools over project/global SQLite fact and observation stores | Ruby | MIT | 22 | Bridge implemented in `adapters/claude-memory-ruby-sqlite-adapter.mjs` for the `.claude/memory.sqlite3` observations floor (schema from the Ruby migrations); the resolved facts triple store needs entity resolution and is a follow-up. |
+| mcp-memory-sqlite-personal | <https://github.com/spences10/mcp-memory-sqlite> | personal knowledge graph and memory system for MCP assistants using SQLite text search | TypeScript | MIT | 13 | Bridge implemented in `adapters/mcp-memory-sqlite-personal-adapter.mjs` for the entities/observations/relations graph (source/target relations, LIKE search); distinct from the Daichi-Kudo bridge. |
 
 ## Suggested Order
 
@@ -61,9 +61,11 @@ Status (2026-07-07): bridges now exist for all five of the mainstream shortlist
 below (mem0, cognee, graphiti, langmem, memoryos), each wired to the system's
 documented local/OSS API and gated so its verify skips when the package or
 backend is absent. They are wired-to-documented-API and await a live run once
-each system is installed with its backend. The remaining adapter queue is the
-three fresh underground candidates above (local-memory-mcp-rust, claude_memory,
-mcp-memory-sqlite-personal).
+each system is installed with its backend. The three fresh underground
+candidates above (local-memory-mcp-rust, claude_memory, mcp-memory-sqlite-personal)
+are now bridged too; being SQLite-floor systems, their verify scripts run a real
+write/query/reset smoke locally with no upstream install. Every discovered
+candidate now has a bridge.
 
 1. `mem0ai/mem0`: likely fastest useful adapter because the public surface is closest
    to AMBIENT's mandatory `write` and `query` calls.

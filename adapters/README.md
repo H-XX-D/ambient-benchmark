@@ -69,6 +69,21 @@ matching verify script skips, never fails, when the package or backend is absent
   raw context retrieval (not the synthesizing `get_response`, which would be
   model-origin), isolated per store by `data_storage_path`. Needs an
   OpenAI-compatible key (`OPENAI_API_KEY`, optional `OPENAI_BASE_URL`).
+
+Fresh-underground SQLite-floor bridges (local, no models, so their verify scripts
+run a real write/query/reset smoke here without installing the upstream system).
+
+- `local-memory-mcp-rust-sqlite-adapter.mjs`: bridge for chriswessells/local-memory-mcp's
+  `memories` table plus `memory_fts` FTS5 floor (schema from `src/db.rs` migrate_v1),
+  isolated per store. The sqlite-vec vector search and graph/checkpoint tables are a
+  heavier follow-up.
+- `claude-memory-ruby-sqlite-adapter.mjs`: bridge for codenamev/claude_memory's
+  `.claude/memory.sqlite3` floor (schema from its Ruby migrations, SCHEMA_VERSION 20).
+  Writes to the `observations` free-text store; the resolved `facts` triple store needs
+  entity resolution and is left as a follow-up.
+- `mcp-memory-sqlite-personal-adapter.mjs`: bridge for spences10/mcp-memory-sqlite's
+  entities/observations/relations graph (schema from `src/db/migrations/schema.ts`,
+  `source`/`target` relations, LIKE text search). Distinct from the Daichi-Kudo bridge.
 - `harness-automemory.mjs`: the reference auto-memory harness. Used only when a system
   has no native auto-memory, so a bare model can still run the auto tiers (T2, T3); a
   system with its own auto-memory defaults to that. The shared baseline every entrant
