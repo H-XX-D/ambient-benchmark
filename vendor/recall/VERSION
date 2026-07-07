@@ -23,3 +23,15 @@ corpus's long-con payload includes "primary account number 4111 1111 1111
 the check. Candidates are matched by a loose digit-run regex, then verified
 with a real Luhn checksum so arbitrary long reference/tracking numbers don't
 false-positive. 16/16 firewall tests pass, 815/815 full suite pass.
+
+patch 3 (2026-07-07): dist/store.js searchTerms and dist/semantic.js tokenize
+both split queries on /[^a-z0-9_:-]+/, which dropped every non-ASCII character
+before the query reached FTS, so store.search could not retrieve Cyrillic,
+Greek, CJK, or accented-Latin content by its own term (the porter unicode61
+index handled it fine; only the query tokenizer was ASCII-only). Both splits
+are now /[^\p{L}\p{N}_:-]+/gu, keeping Unicode letters/digits while preserving
+the _:- symbol class; ASCII-only input tokenizes identically. Surfaced by the
+AMBIENT retrieval-fidelity area (13), which now verifies non-ASCII retrieval on
+its own axis. Source fix + tests: Recall-GitHub-Clean src/store.ts,
+src/semantic.ts, src/store.test.ts, shipped in PR #37 (merged to main at
+7a2c79b, 812/812 full suite pass); tracked in Recall as ver_1393.

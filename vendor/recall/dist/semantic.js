@@ -93,9 +93,12 @@ function httpEmbedding(url, text) {
     return { backend, dims: vector.length, vector: normalize(vector) };
 }
 function tokenize(text) {
+    // Keep Unicode letters/digits so non-ASCII content contributes real tokens to
+    // the hash:v1 fallback embedding. Matches Recall-GitHub-Clean src/semantic.ts
+    // (see vendor/recall/VERSION patch 3). ASCII-only text tokenizes identically.
     return text
         .toLowerCase()
-        .split(/[^a-z0-9_:-]+/g)
+        .split(/[^\p{L}\p{N}_:-]+/gu)
         .filter((t) => t.length > 1);
 }
 function normalize(vector) {

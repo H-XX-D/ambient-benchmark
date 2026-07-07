@@ -12,9 +12,12 @@ export function contentKey(kind, title) {
     return `${kind}:${title.trim().toLowerCase().replace(/\s+/g, " ")}`;
 }
 export function searchTerms(query) {
+    // Keep Unicode letters/digits so non-ASCII queries survive to FTS MATCH; the
+    // ASCII-only split silently dropped Cyrillic/Greek/CJK/accented terms. Matches
+    // Recall-GitHub-Clean src/store.ts (see vendor/recall/VERSION patch 3).
     return query
         .toLowerCase()
-        .split(/[^a-z0-9_:-]+/g)
+        .split(/[^\p{L}\p{N}_:-]+/gu)
         .filter((term) => term.length > 1)
         .slice(0, 8);
 }
