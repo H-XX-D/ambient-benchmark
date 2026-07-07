@@ -29,6 +29,11 @@
     "adapter:mcp-memory-sqlite": "node adapters/mcp-memory-sqlite-adapter.mjs",
     "adapter:agent-memory": "node adapters/agent-memory-sqlite-adapter.mjs",
     "adapter:agent-memory-mcp": "node adapters/agent-memory-mcp-sqlite-adapter.mjs",
+    "adapter:mem0": "node adapters/mem0-http-adapter.mjs",
+    "adapter:cognee": "node adapters/cognee-python-adapter.mjs",
+    "adapter:graphiti": "node adapters/graphiti-python-adapter.mjs",
+    "adapter:langmem": "node adapters/langmem-python-adapter.mjs",
+    "adapter:memoryos": "node adapters/memoryos-python-adapter.mjs",
     "corpus:injection": "node corpora/build-injection-corpus.mjs",
     "verify": "npm run verify:clean && npm run verify:clean:artifact",
     "verify:clean": "node --disable-warning=ExperimentalWarning scripts/verify-clean-loop.mjs --once --summary-json results/clean-verification.json",
@@ -61,6 +66,11 @@
     "verify:adapter:mcp-memory-sqlite": "node --disable-warning=ExperimentalWarning scripts/verify-mcp-memory-sqlite-adapter-bridge.mjs",
     "verify:adapter:agent-memory": "node --disable-warning=ExperimentalWarning scripts/verify-agent-memory-adapter-bridge.mjs",
     "verify:adapter:agent-memory-mcp": "node --disable-warning=ExperimentalWarning scripts/verify-agent-memory-mcp-adapter-bridge.mjs",
+    "verify:adapter:mem0": "node --disable-warning=ExperimentalWarning scripts/verify-mem0-adapter-bridge.mjs",
+    "verify:adapter:cognee": "node --disable-warning=ExperimentalWarning scripts/verify-cognee-adapter-bridge.mjs",
+    "verify:adapter:graphiti": "node --disable-warning=ExperimentalWarning scripts/verify-graphiti-adapter-bridge.mjs",
+    "verify:adapter:langmem": "node --disable-warning=ExperimentalWarning scripts/verify-langmem-adapter-bridge.mjs",
+    "verify:adapter:memoryos": "node --disable-warning=ExperimentalWarning scripts/verify-memoryos-adapter-bridge.mjs",
     "bench:suite:1b": "node --disable-warning=ExperimentalWarning suites/ambient/ambient-suite-1b.mjs",
     "bench:1b-hard": "node --disable-warning=ExperimentalWarning suites/ambient/ambient-1b-hard.mjs"
   }

@@ -7,11 +7,11 @@ values and should be treated as discovery signals, not benchmark results.
 
 | candidate | repo | shape | language | license | stars | adapter fit |
 |---|---|---|---|---|---:|---|
-| Mem0 | <https://github.com/mem0ai/mem0> | drop-in long-term memory layer for agents and apps | Python | Apache-2.0 | 60,228 | Strong first real adapter if run in OSS/self-hosted mode with local model/vector backends. |
-| Graphiti / Zep | <https://github.com/getzep/graphiti> | temporal context graph engine for AI agents | Python | Apache-2.0 | 28,429 | Best structural comparison to Recall if run against local graph/vector/LLM services. |
-| Cognee | <https://github.com/topoteretes/cognee> | open-source AI memory platform with self-hosted knowledge graph | Python | Apache-2.0 | 27,250 | Good graph-memory incumbent: remember/recall/forget API maps cleanly to AMBIENT write/query. |
-| LangMem | <https://github.com/langchain-ai/langmem> | memory primitives and managers for LangGraph-backed agents | Python | MIT | 1,542 | Good framework-native comparison if backed by local storage and local model calls. |
-| MemoryOS | <https://github.com/BAI-LAB/MemoryOS> | hierarchical memory OS for personalized AI agents | Python | Apache-2.0 | 1,500 | Research-style local/free candidate for hierarchical storage, updating, retrieval, and generation. |
+| Mem0 | <https://github.com/mem0ai/mem0> | drop-in long-term memory layer for agents and apps | Python | Apache-2.0 | 60,228 | Bridge implemented in `adapters/mem0-http-adapter.mjs` (Memory.add/search, isolated by user_id, on-disk isolation with MEM0_CONFIG_JSON); needs OPENAI_API_KEY or a local backend. |
+| Graphiti / Zep | <https://github.com/getzep/graphiti> | temporal context graph engine for AI agents | Python | Apache-2.0 | 28,429 | Bridge implemented in `adapters/graphiti-python-adapter.mjs` (add_episode/search, isolated by group_id); needs a running Neo4j plus OPENAI_API_KEY. Heaviest setup. |
+| Cognee | <https://github.com/topoteretes/cognee> | open-source AI memory platform with self-hosted knowledge graph | Python | Apache-2.0 | 27,250 | Bridge implemented in `adapters/cognee-python-adapter.mjs` (add/cognify/search, isolated by data/system root dirs); needs an LLM (LLM_API_KEY), cognify is LLM-heavy. |
+| LangMem | <https://github.com/langchain-ai/langmem> | memory primitives and managers for LangGraph-backed agents | Python | MIT | 1,542 | Bridge implemented in `adapters/langmem-python-adapter.mjs` (LangGraph store put/search floor, isolated by namespace); needs an embedder (OPENAI_API_KEY or LANGMEM_EMBEDDER). Manager with LLM extraction is a heavier follow-up. |
+| MemoryOS | <https://github.com/BAI-LAB/MemoryOS> | hierarchical memory OS for personalized AI agents | Python | Apache-2.0 | 1,500 | Bridge implemented in `adapters/memoryos-python-adapter.mjs` (add_memory plus raw context retrieval, not synthesized get_response, isolated by data_storage_path); needs an OpenAI-compatible key. |
 
 ## Underground Developer Systems
 
@@ -56,6 +56,14 @@ Found on 2026-07-07 after the original underground queue was exhausted.
 | mcp-memory-sqlite-personal | <https://github.com/spences10/mcp-memory-sqlite> | personal knowledge graph and memory system for MCP assistants using SQLite text search | TypeScript | MIT | 13 | Similar graph-memory floor to Daichi-Kudo's package; worth inspecting for schema/API differences before another bridge. |
 
 ## Suggested Order
+
+Status (2026-07-07): bridges now exist for all five of the mainstream shortlist
+below (mem0, cognee, graphiti, langmem, memoryos), each wired to the system's
+documented local/OSS API and gated so its verify skips when the package or
+backend is absent. They are wired-to-documented-API and await a live run once
+each system is installed with its backend. The remaining adapter queue is the
+three fresh underground candidates above (local-memory-mcp-rust, claude_memory,
+mcp-memory-sqlite-personal).
 
 1. `mem0ai/mem0`: likely fastest useful adapter because the public surface is closest
    to AMBIENT's mandatory `write` and `query` calls.

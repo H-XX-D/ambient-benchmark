@@ -46,6 +46,29 @@ the same corpus and questions with the same fixed model.
 - `agent-memory-mcp-sqlite-adapter.mjs`: local/free bridge for
   mikeylong/agent-memory-mcp's `AGENT_MEMORY_HOME/memory.db` scoped SQLite/FTS
   floor, isolated per AMBIENT store.
+
+The mainstream shortlist (model-backed Python systems, from
+`docs/AGENT_MEMORY_LAYER_CANDIDATES.md`). Each bridges the system's documented
+local/OSS API and needs its backend configured (LLM, embeddings, or Neo4j); the
+matching verify script skips, never fails, when the package or backend is absent.
+
+- `mem0-http-adapter.mjs`: bridge for mem0ai/mem0's `Memory.add`/`Memory.search`
+  API, isolated per AMBIENT store by `user_id` (and by on-disk vector/history path
+  when run with `MEM0_CONFIG_JSON`). Needs `OPENAI_API_KEY` or a local backend.
+- `cognee-python-adapter.mjs`: bridge for topoteretes/cognee's async
+  `add`/`cognify`/`search` graph API, isolated per store via `data_root_directory`
+  and `system_root_directory`. Needs an LLM (`LLM_API_KEY`); cognify is LLM-heavy.
+- `graphiti-python-adapter.mjs`: bridge for getzep/graphiti's async
+  `add_episode`/`search` temporal graph, isolated per store by `group_id`. Needs a
+  running Neo4j (`NEO4J_URI`/`NEO4J_USER`/`NEO4J_PASSWORD`) and `OPENAI_API_KEY`.
+- `langmem-python-adapter.mjs`: bridge for langchain-ai/langmem's LangGraph memory
+  store floor (semantic `put`/`search`), isolated per store by namespace and a
+  persisted snapshot. Needs an embeddings backend (`OPENAI_API_KEY` or
+  `LANGMEM_EMBEDDER`); the full manager with LLM extraction is a heavier follow-up.
+- `memoryos-python-adapter.mjs`: bridge for BAI-LAB/MemoryOS's `add_memory` plus
+  raw context retrieval (not the synthesizing `get_response`, which would be
+  model-origin), isolated per store by `data_storage_path`. Needs an
+  OpenAI-compatible key (`OPENAI_API_KEY`, optional `OPENAI_BASE_URL`).
 - `harness-automemory.mjs`: the reference auto-memory harness. Used only when a system
   has no native auto-memory, so a bare model can still run the auto tiers (T2, T3); a
   system with its own auto-memory defaults to that. The shared baseline every entrant
