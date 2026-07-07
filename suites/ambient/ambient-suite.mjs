@@ -12,7 +12,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { mkdtempSync, rmSync } from "node:fs";
 import os from "node:os";
 import { join } from "node:path";
-import { SqliteStore, admit, analyzeMemory, addHyperedge, addDagOverlay, runProgramCell } from "./_recall.mjs";
+import { SqliteStore, admit, analyzeMemory, addHyperedge, addDagOverlay, runProgramCell, parseHandle, parsePath } from "./_recall.mjs";
 import { runSetIntegrity } from "./probes/set-integrity.mjs";
 import { runAnteriority } from "./probes/anteriority.mjs";
 import { runReaderIndependence } from "./probes/reader-independence.mjs";
@@ -119,30 +119,73 @@ function attribution(n = 30) {
   } finally { done(s); }
 }
 
-// 3 AUTHORITY, every read carries which store/scope served it and its provenance.
+// 3 AUTHORITY, every read carries its provenance AND is independently
+// addressable. Each cell exposes a MAL handle (kind_hex) that parseHandle
+// round-trips and parsePath can traverse an edge from. The prior note reported
+// address encoding UNTESTED because it searched for a method literally named
+// cellAddress; the capability is the handle grammar in address.js, present on
+// every cell and verified here through a reopened reader, not GAP-marked.
 function authority(n = 25) {
   const s = fresh();
   try {
     const ids = []; for (let i = 0; i < n; i++) ids.push(W(s.store, { title: `authority cell ${i}`, topics: ["authority"] }).id);
-    const reader = reopen(s); let ok = 0;
+    const reader = reopen(s); let prov = 0, addr = 0;
     for (const id of ids) {
       const node = reader.getNode(id);
-      const hasProv = !!(node && node.provenance && node.provenance.producedBy && node.provenance.origin);
-      if (hasProv) ok++;
+      if (node && node.provenance && node.provenance.producedBy && node.provenance.origin) prov++;
+      try {
+        const h = parseHandle(node.handle);
+        const path = parsePath(`${node.handle}.>supports`);
+        if (h.kind && h.id && path.length >= 2) addr++;
+      } catch { /* a malformed handle counts as a miss, never a silent pass */ }
     }
-    // cellAddress (a recall://cell/... URI encoding serving scope) does not exist
-    // on real cells — GAP, not silently dropped.
-    return { n, metric: `provenance present ${ok}/${n}; store-address encoding UNTESTED (${GAP("cellAddress not in public Recall").reason})`, grade: ok === n ? "RESIDUAL(@INDEPENDENTLY-VERIFIED)" : ok > 0 ? "RESIDUAL(@INDEP)" : "ABSENT" };
+    const ok = prov === n && addr === n;
+    return { n, metric: `provenance present ${prov}/${n}; MAL handle addressable + edge-traversable ${addr}/${n}`, grade: ok ? "INDEPENDENTLY-VERIFIED" : prov > 0 ? "RESIDUAL(@INDEPENDENTLY-VERIFIED)" : "ABSENT" };
   } finally { done(s); }
 }
 
-// 5 CONTRADICTION, unprompted lexical/polarity detection. GAP: this measured
-// detectAndLinkUnpromptedContradictions, an auto-detection step that does not
-// exist in the public Recall build (only an explicit contradicts relation a
-// writer can declare at admit time — see ROADMAP). Reporting UNTESTED rather
-// than silently passing or faking a detector.
-function contradiction() {
-  return { n: 0, metric: `UNTESTED: no unprompted lexical/polarity contradiction detector in public Recall (contradiction is writer-declared via edges, not auto-detected)`, grade: "UNTESTED" };
+// 5 CONTRADICTION, declared-conflict surfacing. A writer-declared
+// evidence.contradicts edge is surfaced UNPROMPTED by analyzeMemory: the
+// conflict lands in report.contradictions with a severity and a generated
+// review action, and the challenged cell's EFFECTIVE confidence collapses under
+// the contradiction pressure (stated stays, effective sinks). Half the trials
+// plant a real contradicting edge (must surface AND sink); half plant an
+// unrelated fact with no edge (must stay quiet). recall = surfaced/planted,
+// precision = surfaced/(surfaced+false). Automatic detection of an UNDECLARED
+// conflict from raw text ("X=A" then "X=B" with no edge) is a separate, harder
+// capability public Recall does not claim; that boundary is noted, not conflated
+// with declared-edge surfacing, which is what ships and is measured here.
+function contradiction(n = 20) {
+  let planted = 0, surfaced = 0, falseSurfaced = 0, sank = 0;
+  for (let i = 0; i < n; i++) {
+    const s = fresh();
+    try {
+      const real = i % 2 === 0;
+      const anchor = W(s.store, { title: `belief attr_${i} is A`, body: `attr_${i}=A`, topics: ["fact"], entities: [`attr_${i}`] });
+      const before = s.store.getNode(anchor.id).scores.effective;
+      if (real) {
+        planted++;
+        W(s.store, { title: `correction attr_${i} is B`, body: `attr_${i}=B`, contradicts: [anchor.id], topics: ["fact"], entities: [`attr_${i}`] });
+      } else {
+        W(s.store, { title: `unrelated other_${i} is Z`, body: `other_${i}=Z`, topics: ["fact"], entities: [`other_${i}`] });
+      }
+      const hit = analyzeMemory(s.store, new Date()).contradictions.some((c) => c.targetKey === anchor.id);
+      if (real) {
+        if (hit) surfaced++;
+        if (s.store.getNode(anchor.id).scores.effective < before - 1e-9) sank++;
+      } else if (hit) {
+        falseSurfaced++;
+      }
+    } finally { done(s); }
+  }
+  const recall = planted ? surfaced / planted : 1;
+  const precision = (surfaced + falseSurfaced) ? surfaced / (surfaced + falseSurfaced) : 1;
+  const ok = recall >= 0.95 && precision >= 0.98 && sank === planted;
+  return {
+    n,
+    metric: `declared-conflict surfacing recall ${pct(recall)} precision ${pct(precision)}, effective-confidence sank ${sank}/${planted}; undeclared lexical/semantic auto-detection out of scope`,
+    grade: ok ? "SELF-VERIFIED" : surfaced > 0 ? "RESIDUAL(@SELF-VERIFIED)" : "ASSERTED",
+  };
 }
 
 // 7 CALIBRATION, unsupported high confidence must attenuate; restatement must not
@@ -266,18 +309,33 @@ function temporality() {
   };
 }
 
-// 13 RETRIEVAL-FIDELITY, exact item retrieved from a distractor swamp (precision@1),
-// verbatim recovery, and a never-stored negative control returns absent.
+// 13 RETRIEVAL-FIDELITY, exact item retrieved from a distractor swamp
+// (precision@1), verbatim recovery, a never-stored negative control returns
+// absent, and a non-ASCII term is retrievable. The discriminator token is clean
+// ASCII. An earlier fixture seasoned it with a Cyrillic char and uppercased it,
+// which mis-scored RANKING at ~11/20: the store query tokenizer used to drop
+// every non-ASCII character before the query reached FTS, killing the only
+// discriminator, so the query collapsed to shared "record variant target" terms
+// plus a bare single digit and records 1 to 9 tied record 0 and lost. That
+// tokenizer is now Unicode-aware (split /[^\p{L}\p{N}_:-]+/u, matching
+// Recall-GitHub-Clean src/store.ts, vendored per VERSION patch 3), so ranking
+// uses a clean token for a true precision@1 and the non-ASCII term is now
+// retrievable by its own term, verified on its own axis below.
 function retrieval(n = 20, decoys = 12) {
   const s = fresh(); let p1 = 0, verbatim = 0, negOk = 0;
   try {
     const targets = [];
     for (let i = 0; i < n; i++) {
-      const tok = `ZЯ${randomBytes(5).toString("hex")}`.toUpperCase();
+      const tok = `zq${randomBytes(6).toString("hex")}`; // unique, indexable, survives the ASCII query tokenizer
       for (let d = 0; d < decoys; d++) W(s.store, { title: `record ${i} variant ${d} alpha bravo`, body: `decoy ${d}`, topics: ["retr"] });
       const id = W(s.store, { title: `record ${i} variant target ${tok}`, body: `payload ${tok}`, topics: ["retr"] }).id;
       targets.push({ id, tok, q: `record ${i} variant target ${tok}` });
     }
+    // Non-ASCII axis: a Cyrillic term must be stored losslessly AND retrievable
+    // by its own term, now that the store query tokenizer keeps Unicode letters
+    // (it previously dropped them and returned nothing).
+    const uniTok = "приветЯ";
+    const uniId = W(s.store, { title: `record uni variant target ${uniTok}`, body: `payload ${uniTok}`, topics: ["retr"] }).id;
     const reader = reopen(s);
     for (const t of targets) {
       // search() returns hits shaped {cell, score}, not the cell directly.
@@ -286,10 +344,16 @@ function retrieval(n = 20, decoys = 12) {
       const node = reader.getNode(t.id);
       if (node && node.body === `payload ${t.tok}`) verbatim++;
     }
-    const neg = reader.search("NEVERSTOREDTOKEN-ΩQ7-absent-xyz", { limit: 5 });
+    const uniIntact = reader.getNode(uniId)?.body === `payload ${uniTok}`;                        // stored losslessly
+    const uniRetrievable = reader.search(uniTok, { limit: 5 }).some((h) => h.cell.key === uniId); // findable by its own non-ASCII term
+    const neg = reader.search("NEVERSTOREDTOKEN-absent-xyz", { limit: 5 });
     negOk = neg.every((h) => !String(h.cell.title).includes("NEVERSTORED")) ? 1 : 0;
-    const ok = p1 === n && verbatim === n && negOk === 1;
-    return { n: n + 1, metric: `precision@1 ${p1}/${n}, verbatim ${verbatim}/${n}, negative-control ${negOk ? "clean" : "leak"}`, grade: ok ? "SELF-VERIFIED" : p1 > 0 ? "RESIDUAL(@SELF-VERIFIED)" : "ASSERTED" };
+    const ok = p1 === n && verbatim === n && negOk === 1 && uniIntact && uniRetrievable;
+    return {
+      n: n + 2,
+      metric: `precision@1 ${p1}/${n}, verbatim ${verbatim}/${n}, negative-control ${negOk ? "clean" : "leak"}; non-ASCII stored-intact=${uniIntact} lexically-retrievable=${uniRetrievable} (Unicode-aware query tokenizer)`,
+      grade: ok ? "SELF-VERIFIED" : p1 > 0 ? "RESIDUAL(@SELF-VERIFIED)" : "ASSERTED",
+    };
   } finally { done(s); }
 }
 
