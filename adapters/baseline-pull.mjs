@@ -49,13 +49,13 @@ export class BaselinePull {
     return { id };
   }
 
-  async query(question) {
+  async query(question, topK = this.topK) {
     const q = tokens(question);
     const scored = this.items
       .map((it) => ({ it, s: overlap(q, tokens(it.text)) }))
       .filter((x) => x.s > 0)
       .sort((a, b) => b.s - a.s)
-      .slice(0, this.topK);
+      .slice(0, topK || this.topK);
     return {
       support: scored.map((x) => x.it.text),
       provenance: scored.map((x) => ({ id: x.it.id, origin: "external", source: x.it.source, score: Number(x.s.toFixed(3)) })),
