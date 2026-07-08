@@ -274,6 +274,11 @@ to mikeylong/agent-memory-mcp's `AGENT_MEMORY_HOME/memory.db` schema, covering
 scoped memories, idempotency keys, schema migrations, embedding chunk tables,
 and lexical FTS recall without starting the MCP server, importers, automations,
 or Ollama embeddings.
+Fifteenth underground local/free bridge added:
+`adapters/tree-ring-cli-adapter.mjs` maps AMBIENT write/query/reset to
+TerminallyLazy/Tree_Ring_Memory's `tree-ring` CLI, using isolated Tree Ring
+roots per store and returning recalled event summaries plus provenance from the
+CLI's JSON `remember`/`recall` output.
 
 P3. Capability grading across systems. Grade each adapter per rung (pull-correctness,
 supersession, contradiction-surfacing, unprompted-push) and report a profile, never

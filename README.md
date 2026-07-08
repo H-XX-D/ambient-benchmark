@@ -161,6 +161,7 @@ npm run adapter:recall        # expose the vendored Recall adapter on :8092
 npm run adapter:ai-memory     # bridge local alphaonedev/ai-memory-mcp serve daemon on :8093
 npm run adapter:projectmem    # bridge local riponcm/projectmem CLI install on :8094
 npm run adapter:simple-memory # bridge local chrisribe/simple-memory-mcp CLI on :8095
+npm run adapter:tree-ring     # bridge local TerminallyLazy/Tree_Ring_Memory CLI on :8107
 npm run adapter:agent-recall  # bridge local mnardit/agent-recall Python package on :8096
 npm run adapter:total-agent-memory # bridge TAM-compatible local SQLite memory.db on :8097
 npm run adapter:claude-memory-mcp # bridge local @whenmoon-afk/memory-mcp CLI on :8098
@@ -176,6 +177,7 @@ npm run verify:adapter:baseline # no-key smoke for runner -> HTTP adapter -> moc
 npm run verify:adapter:ai-memory # no-key smoke for ai-memory bridge -> mock target
 npm run verify:adapter:projectmem # no-key smoke for projectmem CLI bridge
 npm run verify:adapter:simple-memory # no-key smoke for simple-memory CLI bridge
+npm run verify:adapter:tree-ring # no-key smoke for Tree Ring CLI bridge
 npm run verify:adapter:agent-recall # smoke for agent-recall Python bridge
 npm run verify:adapter:total-agent-memory # smoke for TAM-compatible SQLite bridge
 npm run verify:adapter:claude-memory-mcp # no-key smoke for claude-memory-mcp CLI bridge
@@ -201,8 +203,9 @@ starts ten local adapters plus a mock OpenAI-compatible reader/checker, runs
 `results/cross-adapter-matrix.json`.
 `verify:adapters:matrix:extended` adds optional real runtime bridges for
 `recall`, `ai-memory-search`, `projectmem-cli`, `simple-memory-cli`,
-`claude-memory-mcp-cli`, and `engram-cli`. Missing optional CLIs/daemons are
-recorded as skipped unless you run the matrix without `--allow-skips`.
+`tree-ring-cli`, `claude-memory-mcp-cli`, and `engram-cli`. Missing optional
+CLIs/daemons are recorded as skipped unless you run the matrix without
+`--allow-skips`.
 `verify:adapters:prereqs` writes `results/optional-adapter-prereqs.json` with
 the exact missing binary, daemon, env var, or install/start command for those
 optional targets.
@@ -262,6 +265,16 @@ isolated `MEMORY_DB` files for AMBIENT stores:
 npm install -g simple-memory-mcp
 npm run adapter:simple-memory -- --port 8095
 node tiers/runner.mjs --adapter-url http://127.0.0.1:8095 --source beam --size small --limit 12
+```
+
+For `tree-ring`, install the local/free CLI from a local
+`TerminallyLazy/Tree_Ring_Memory` clone and let the bridge create isolated Tree
+Ring roots for AMBIENT stores:
+
+```
+cargo install --path /path/to/Tree_Ring_Memory/crates/tree-ring-memory-cli
+npm run adapter:tree-ring -- --port 8107
+node tiers/runner.mjs --adapter-url http://127.0.0.1:8107 --source beam --size small --limit 12
 ```
 
 For `agent-recall`, install the local/free Python package and let the bridge
@@ -377,7 +390,8 @@ suites/ambient/   the AMBIENT capability suite (scripts + probes); dist symlink 
 adapters/         the fairness layer: MemoryAdapter contract (http-client.mjs), per-system adapters
                    (recall_adapter.mjs, baseline-pull-server.mjs,
                    ai-memory-http-adapter.mjs, projectmem-cli-adapter.mjs,
-                   simple-memory-cli-adapter.mjs, agent-recall-python-adapter.mjs,
+                   simple-memory-cli-adapter.mjs, tree-ring-cli-adapter.mjs,
+                   agent-recall-python-adapter.mjs,
                    total-agent-memory-sqlite-adapter.mjs,
                    claude-memory-mcp-cli-adapter.mjs,
                    engram-cli-adapter.mjs,
