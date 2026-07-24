@@ -14,7 +14,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { ask, askClassifier } from "../model/backend.mjs";
+import { ask, askClassifier, resolveBackend } from "../model/backend.mjs";
 import { BaselinePull } from "../adapters/baseline-pull.mjs";
 import { HttpAdapter } from "../adapters/http-client.mjs";
 import { ReferenceAutoMemory } from "../adapters/harness-automemory.mjs";
@@ -34,7 +34,7 @@ const SIZE = arg("size", "small");
 const LIMIT = Number(arg("limit", "12"));
 const PER_ABILITY = Number(arg("per-ability", "0"));
 const ADAPTER_URL = arg("adapter-url", ""); // e.g. http://127.0.0.1:8091 (cognicore); empty = in-process baseline-pull
-// Auto tiers (T2/T3) use the reference auto-memory harness (model-decided capture) by default.
+// Auto tiers (T2/T3) use the reference auto-ingestion harness (model-decided capture) by default.
 // Pass --native-auto to skip it and rely on the substrate's own auto-capture (for substrates that have one).
 const NATIVE_AUTO = Boolean(arg("native-auto", ""));
 // Default builds ONE shared store per tier and reuses it for every question (no per-test store
@@ -72,16 +72,83 @@ function loadEvents(conversationId) {
 // otherwise one oversized item wholesale drops every item after it, even smaller ones that
 // would have fit, the exact "retrieval found it, budget dropped it" failure mode this guards
 // against (see ver_c0a9, the same class of bug found in the classifier's own truncation).
-function budgetContext(served) {
+function budgetServedItems(items) {
   const kept = [];
   let total = 0;
-  for (const s of served) {
-    const item = s.length > PER_ITEM_CHARS ? s.slice(0, PER_ITEM_CHARS) + "…" : s;
-    if (total + item.length > MAX_CTX_CHARS) continue;
-    kept.push(item);
-    total += item.length;
+  for (const item of items) {
+    const text = String(item.text ?? "");
+    const clipped = text.length > PER_ITEM_CHARS ? text.slice(0, PER_ITEM_CHARS) + "…" : text;
+    if (total + clipped.length > MAX_CTX_CHARS) continue;
+    kept.push({ ...item, text: clipped });
+    total += clipped.length;
   }
   return kept;
+}
+
+function normalizeProvenance(provenance, fallback) {
+  const p = provenance && typeof provenance === "object" ? provenance : {};
+  const adapterSupplied = Object.keys(p).length > 0;
+  return {
+    id: typeof p.id === "string" && p.id ? p.id : fallback.id,
+    // The harness observes this item cross the adapter boundary. Per-item metadata is
+    // optional, so missing origin defaults to external; an explicit model origin is
+    // preserved and never earns memory credit.
+    origin: p.origin === "model" ? "model" : "external",
+    provenanceSource: adapterSupplied ? "adapter" : "harness-observed",
+    source: typeof p.source === "string" ? p.source : fallback.source,
+    store: fallback.store,
+    channel: fallback.channel,
+    score: typeof p.score === "number" ? p.score : undefined,
+    writtenAt: typeof p.writtenAt === "string" ? p.writtenAt : undefined,
+  };
+}
+
+function itemsFromQueryResult(result, { store, channel, question, topK }) {
+  const support = Array.isArray(result?.support) ? result.support : [];
+  const provenance = Array.isArray(result?.provenance) ? result.provenance : [];
+  const items = support.map((text, index) => ({
+    text: String(text),
+    provenance: normalizeProvenance(provenance[index], {
+      id: `${store ?? "none"}:${channel}:${index}`,
+      source: channel,
+      store,
+      channel,
+    }),
+  }));
+  return {
+    origin: "memory_db",
+    store,
+    channel,
+    question,
+    requestedTopK: topK,
+    supportCount: support.length,
+    provenance: items.map((item, index) => ({ queryIndex: index, ...item.provenance })),
+    items,
+  };
+}
+
+function mergeServedItems(queryTraces) {
+  const seen = new Set();
+  const merged = [];
+  for (const trace of queryTraces) {
+    for (const item of trace.items) {
+      const key = item.text;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      merged.push(item);
+    }
+  }
+  return merged;
+}
+
+function traceBackend() {
+  const cfg = resolveBackend();
+  return {
+    origin: "model_api",
+    backend: cfg.backend,
+    endpoint: cfg.endpoint,
+    model: cfg.model || "local",
+  };
 }
 
 // AMORTIZED build: each tier's memory is built ONCE and reused, not rebuilt per question or per
@@ -221,28 +288,50 @@ const SYS = [
 ].join("\n");
 
 async function askSegment(base, seg, tier) {
-  let served = [];
+  const memoryQueries = [];
+  let servedItems = [];
   let storeCall = false;
   if (tier === "T3") {
     // both memories enabled: the custom graph (conflicts flagged, head-only) then the distilled auto
-    const c = (await base.query(seg.question, 6, STORE.custom)).support || [];
-    const a = (await base.query(seg.question, 6, STORE.auto)).support || [];
-    served = budgetContext([...new Set([...c, ...a])]);
+    const custom = itemsFromQueryResult(await base.query(seg.question, 6, STORE.custom), {
+      store: STORE.custom,
+      channel: "custom",
+      question: seg.question,
+      topK: 6,
+    });
+    const auto = itemsFromQueryResult(await base.query(seg.question, 6, STORE.auto), {
+      store: STORE.auto,
+      channel: "auto",
+      question: seg.question,
+      topK: 6,
+    });
+    memoryQueries.push(custom, auto);
+    servedItems = budgetServedItems(mergeServedItems(memoryQueries));
     storeCall = true;
   } else {
     const storeName = TIER_STORE[tier]; // T2->auto, T4->custom, T1->none
     if (storeName) {
-      served = budgetContext((await base.query(seg.question, 8, storeName)).support || []);
+      const trace = itemsFromQueryResult(await base.query(seg.question, 8, storeName), {
+        store: storeName,
+        channel: storeName,
+        question: seg.question,
+        topK: 8,
+      });
+      memoryQueries.push(trace);
+      servedItems = budgetServedItems(trace.items);
       storeCall = true; // the harness observed the store call: this is the trace
     }
   }
+  const served = servedItems.map((item) => item.text);
   const ctx = served.length ? "Context:\n" + served.map((s) => "- " + s).join("\n") + "\n\n" : "";
   let answer = "";
+  const answerTrace = traceBackend();
   try {
     answer = await ask({ system: SYS, user: ctx + "Question: " + seg.question, maxTokens: 128 });
   } catch (e) {
     answer = "[model error: " + e.message + "]";
   }
+  const servedProvenance = servedItems.map((item, index) => ({ contextIndex: index, ...item.provenance }));
   return {
     segId: seg.id,
     ability: seg.ability,
@@ -253,6 +342,21 @@ async function askSegment(base, seg, tier) {
     supportIds: seg.supportIds ?? null,
     storeCall, // trace: did the harness route a store call for this answer
     servedCount: served.length,
+    servedContext: served,
+    servedProvenance,
+    sourceTrace: {
+      schema: "ambient.source_trace.v1",
+      answer: answerTrace,
+      memoryQueries: memoryQueries.map(({ items, ...trace }) => ({
+        ...trace,
+        servedCount: servedProvenance.filter((p) => p.store === trace.store && p.channel === trace.channel).length,
+      })),
+      attribution: {
+        hasStoreCall: storeCall,
+        hasMemoryDbSupport: servedProvenance.some((item) => item.origin === "external"),
+        hasModelOriginSupport: answerTrace.origin === "model_api",
+      },
+    },
     answer,
   };
 }

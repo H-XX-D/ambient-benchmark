@@ -84,10 +84,10 @@ run a real write/query/reset smoke here without installing the upstream system).
 - `mcp-memory-sqlite-personal-adapter.mjs`: bridge for spences10/mcp-memory-sqlite's
   entities/observations/relations graph (schema from `src/db/migrations/schema.ts`,
   `source`/`target` relations, LIKE text search). Distinct from the Daichi-Kudo bridge.
-- `harness-automemory.mjs`: the reference auto-memory harness. Used only when a system
-  has no native auto-memory, so a bare model can still run the auto tiers (T2, T3); a
-  system with its own auto-memory defaults to that. The shared baseline every entrant
-  is measured against. See RULES.md.
+- `harness-automemory.mjs`: the reference auto-ingestion harness. Used only when a
+  system has no native auto-memory, so a bare model can still run the auto tiers
+  (T2, T3); a system with its own auto-memory defaults to that. The shared baseline
+  every entrant is measured against. See RULES.md.
 
 Rule: optional capabilities a system lacks are graded ABSENT, never FAIL. A system
 reports what it cannot do; it is never silently zeroed.

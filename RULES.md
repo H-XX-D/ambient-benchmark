@@ -9,10 +9,12 @@ none of them favor how Recall happens to work.
 
 A system must expose a store call the harness can route through and watch: the model
 issues a query, the store receives it, returns information, and the model responds.
-The harness traces that call. The model does not cite its own sources, and the system
-does not have to return per-item provenance; the harness knows the information came
-from outside the model because it watched the call go to the store and come back. That
-observable call is the entire entry bar.
+The harness traces that call and records the exact non-empty context returned to the
+reader. The model does not cite its own sources, and the system does not have to return
+per-item provenance; the harness knows the context came from outside the model because
+it watched it cross the adapter boundary. An empty query proves that the store was
+checked, but supplies no support and cannot complete a segment. That observable call
+and returned context are the entire entry bar.
 
 A system that exposes no such call cannot be traced and is ineligible, not scored
 zero. Everything else is optional: per-item provenance, push surfacing, staleness,
@@ -31,8 +33,8 @@ measuring the model, not the memory.
 The system takes in the information (ingest), then is asked questions (query). The
 harness verifies the answer's support came from outside the model by watching the
 store call: the model queries, the store returns information, the model responds. The
-harness traces the call; the model does not self-attribute. Given the traced call,
-each answer is one of three:
+harness traces the call; the model does not self-attribute. The model judge assigns
+one of three semantic verdicts:
 
 - CORRECT: the right answer, support traced outside the model. This completes the
   segment and is the only verdict that scores for the memory.
@@ -46,9 +48,11 @@ each answer is one of three:
   wrong: the system was credulous, not merely mistaken. The contradiction-resolution
   and abstention segments draw it out.
 
-A correct answer produced with no store call is the model knowing it, not the memory,
-so it earns the memory nothing (the T1 baseline with no store isolates this). See
-docs/ATTRIBUTION.md.
+The deterministic attribution gate then assigns the final outcome: COMPLETED when a
+correct answer has non-empty externally served support; UNTRACED when a correct answer
+has no store call or only model-origin/unknown support; NOT-SERVED when a watched query
+returned no context; otherwise WRONG or GULLIBLE. A correct T1 answer is reader
+accuracy, not memory completion. See docs/ATTRIBUTION.md.
 
 ## Rule 4: four tiers, a 2x2 ablation
 
@@ -90,14 +94,19 @@ produce the right result), never as a checkbox for owning the primitive.
 ## Rule 7: every number is recomputable
 
 A reported result ships with its served context, the model transcript, and a
-script that recomputes it. Structural claims are graded by deterministic code with
-sha256-recomputable proofs, never through the model. A number nobody else can
-reproduce is not published.
+source trace for every answer. The harness first gives the initial information
+to the agent/substrate and lets it write the store; only after that build phase
+does questioning begin. Each answer row records the exact context served to the
+reader, adapter provenance for each served item, and whether support came through
+a memory DB query or the reader model/API path. Structural claims are graded by
+deterministic code with sha256-recomputable proofs, never through the model. A
+number nobody else can reproduce is not published.
 
 ## What a system implements
 
 One interface, `adapters/contract.mjs`. Mandatory: `query(question)` returning the
-served context with provenance (Rule 1). Optional: `write`, `surface` (the push
+served context. Per-item provenance is optional diagnostic metadata because the
+harness already watches the adapter boundary. Optional: `write`, `surface` (the push
 hook), `setAutoCapture` (the tier toggle). Full contract in
 `docs/ADAPTER_CONTRACT.md`.
 
@@ -105,13 +114,16 @@ hook), `setAutoCapture` (the tier toggle). Full contract in
 
 A model with no memory of its own is still testable. When a system has native
 automatic capture, AMBIENT uses it: that native auto-memory is what the auto tiers
-measure. When a system has none, AMBIENT supplies a reference auto-memory harness, a
-standard capture-on-write, retrieve-on-query loop over an external store, identical
-for every entrant, so the bare model can still run T2 and T3. Its served context
-comes from the harness store, which is outside the model, so segments score normally.
-The harness is a fallback and a shared baseline, never a substitute for a native
-lever: a system with its own auto-memory is measured against the same harness, so it
-scores only by beating it, not by out-engineering it. The harness lives in
+measure. When a system has none, AMBIENT supplies a reference auto-ingestion harness:
+the same reader model builds the store before questioning begins, then the model
+reads from that store during T2 and T3. That standard capture-on-write,
+retrieve-on-query loop over an external store is identical for every entrant, so the
+bare model can still run the auto tiers without inheriting a second hidden model.
+Its served context comes from the harness store, which is outside the model, so
+segments score normally. The harness is a fallback and a shared baseline, never a
+substitute for a native lever: a system with its own auto-memory is measured against
+the same harness, so it scores only by beating it, not by out-engineering it. The
+harness lives in
 `adapters/harness-automemory.mjs`.
 
 ## Corpus size and reader backend

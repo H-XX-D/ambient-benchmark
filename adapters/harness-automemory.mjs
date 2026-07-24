@@ -1,11 +1,13 @@
-// AMBIENT reference auto-memory harness.
+// AMBIENT reference auto-ingestion harness.
 //
 // Purpose: give a model with no native auto-memory a fair, identical auto-capture
 // behavior so it can run the auto tiers (T2, T3). AMBIENT prefers a system's NATIVE
 // auto-memory when it has one; this harness is the fallback and the fair baseline for
-// systems that lack one. It is identical for every entrant, so a native system scores
-// only by beating it, never by out-engineering its own harness. See RULES.md
-// ("Testing a bare model").
+// systems that lack one. The same reader model builds the memory store before the
+// benchmark questions begin, so the comparison stays on the memory layer rather than
+// on a different ingestion model. It is identical for every entrant, so a native
+// system scores only by beating it, never by out-engineering its own harness. See
+// RULES.md ("Testing a bare model").
 //
 // WHAT AUTO-MEMORY IS (and why this is not "store every turn"): real auto-memory is
 // MODEL-DECIDED. As the conversation streams by, the model judges what is durable and

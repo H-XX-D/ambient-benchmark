@@ -33,7 +33,7 @@ Full text in [RULES.md](RULES.md).
 6. Score ability, not mechanism: how well a system does the task, never whether it
    owns a particular lever (push hook, graph). No bonus for having one, no penalty
    for lacking one.
-7. Every number ships with its served context, transcript, and a recompute script.
+7. Every number ships with its served context, transcript, source trace, per-item provenance where available, and a recompute script.
 
 ## The four tiers
 
@@ -50,8 +50,10 @@ of the T2 and T4 gains over baseline, auto and curation are synergistic. That
 interaction is the thing a ranking cannot show, and the reason the tiers exist.
 
 A bare model with no memory of its own runs the auto tiers (T2 and T3) through a
-reference auto-memory harness that AMBIENT supplies, identical for every entrant, so
-lever-less systems can still be placed on the ladder. See [RULES.md](RULES.md).
+reference auto-ingestion harness that AMBIENT supplies, identical for every entrant,
+so lever-less systems can still be placed on the ladder. The same reader model builds
+its own store before the benchmark questions begin, which keeps the comparison on the
+memory layer rather than on a different ingestion model. See [RULES.md](RULES.md).
 
 ## Where the questions come from
 
@@ -90,7 +92,7 @@ system. See [docs/00_AMBIENT.md](docs/00_AMBIENT.md) and
 ## Status
 
 The full pipeline is built and running end to end against Recall, the first system
-tested: adapter contract, four-tier runner, reference auto-memory harness, an
+tested: adapter contract, four-tier runner, reference auto-ingestion harness, an
 ingest-time write firewall, and a 92-segment / 15-ability capability corpus.
 
 **Deterministic core** (model-free, Node 24, no keys, no network):
@@ -128,8 +130,10 @@ seams that a weak reader fails too broadly to isolate and a frontier reader quie
 papers over. See [docs/10_AMBIENT_SUITE.md](docs/10_AMBIENT_SUITE.md).
 
 Open items: a fast ingest-time classifier backend (the write firewall currently rides
-on the same 32B reader, which is slow at scale), the medium/large corpus sizes, and
-full cross-adapter capability grading with served-context transcripts and goldens.
+on the same 32B reader, which is slow at scale), and real-reader/real-judge
+cross-adapter capability grading with served-context transcripts and goldens. Medium
+and large BEAM/LongMemEval inputs are materialized locally; L4 expiry semantics are
+versioned and hash-guarded against longitudinal definition drift.
 See [ROADMAP.md](ROADMAP.md).
 
 ## Quickstart
@@ -146,14 +150,20 @@ npm run verify:clean          # one local/free clean pass: syntax, benches, adap
 npm run verify:clean:artifact # validate the last clean-verification summary artifact
 npm run verify:clean:loop     # retry clean passes until success; default cap is 25 attempts
 npm run verify:mal:standing-programs # smoke named MAL standing programs: addf watch0/drift0/etc tick
+npm run verify:attribution      # regression gate for completed/untraced/not-served scoring
+npm run verify:l4-policy       # freeze L4 expiry semantics and boundary witnesses
 npm run verify:adapters:matrix # ten-adapter no-key runner matrix with transcript row checks
 npm run verify:adapters:matrix:artifact # validate the last cross-adapter matrix + transcripts
+npm run verify:adapters:structural # one authored structural scenario/ability through ten adapters
+npm run verify:adapters:structural:artifact # validate the structural matrix artifact
 npm run verify:adapters:matrix:extended # also try Recall plus CLI/daemon bridges; skip missing prereqs
 npm run verify:adapters:prereqs # report optional CLI/daemon prerequisites for wider benching
 npm run judge:adapters:matrix # judge every passed matrix transcript into one grade artifact
 npm run judge:adapters:matrix:artifact # validate a cross-adapter grade summary artifact
 npm run verify:adapters:judge # smoke the judge wrapper against a local mock judge
 npm run verify:adapters:grade:pipeline # run matrix -> mock judge -> grade artifact checker
+npm run bench:paid:medium       # real reader+judge, LongMemEval medium, 20/ability
+npm run bench:paid:large        # real reader+judge stress run, 50/ability
 npm run corpus:injection      # build the prompt-injection resistance corpus
 npm run bench:injection       # run the LLM-mediated injection suite; needs GEMINI_API_KEY
 npm run adapter:baseline      # expose the non-Recall keyword baseline on :8091
@@ -216,6 +226,13 @@ wrapper/checker path locally with a mock OpenAI-compatible judge and writes smok
 artifacts under `results/judge-smoke-*`. `verify:adapters:grade:pipeline` runs the
 full ten-adapter local/free matrix, grades it with a mock judge, and validates
 `results/cross-adapter-grade-pipeline-summary.json`.
+
+The judge produces semantic verdicts (`correct`, `wrong`, `gullible`), then a
+deterministic attribution gate produces `completed`, `untraced`, `not-served`,
+`wrong`, or `gullible`. Reports keep answer accuracy separate from memory completion;
+a correct T1 answer or a correct answer after an empty store return never earns memory
+credit. `verify:adapters:structural` also routes one scenario from each of the 15
+authored structural abilities through the same ten-adapter boundary.
 
 Named MAL standing programs use numeric instance ids. The suffix keeps multiple
 programs of the same base operation separate while still executing the base op:

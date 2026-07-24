@@ -16,7 +16,10 @@ treats the ability to trace where an answer came from as the price of entry.
 AMBIENT defines a scoring frame and an adapter interface, not a memory design. Any
 substrate that can report what it served and where that came from can be measured.
 Recall is only the first system tested, not a reference the benchmark
-assumes. The rules (RULES.md) never mention a data structure.
+assumes. When a system has no native auto-capture, AMBIENT supplies a
+reference auto-ingestion harness so the same reader model can build the
+memory store before questions begin. The rules (RULES.md) never mention a
+data structure.
 
 ## Two axes
 
@@ -93,6 +96,6 @@ tiers whichever backend is chosen. See corpora/ and model/.
 The deterministic AMBIENT core runs green here against a vendored build of Recall,
 the first system tested. That core exercises Recall's own primitives, so until the
 capabilities go through the adapter contract the numbers show Recall, not a neutral
-field. The adapter contract, the reference auto-memory harness, a second substrate,
-the sized corpora, the reader backends, and the tier runner are the next build. See
-ROADMAP.md.
+field. The adapter contract, the reference auto-ingestion harness, a second
+substrate, the sized corpora, the reader backends, and the tier runner are the next
+build. See ROADMAP.md.
