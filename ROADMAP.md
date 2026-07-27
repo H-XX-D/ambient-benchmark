@@ -11,9 +11,10 @@ against a live model instead of regex markers. The small corpus (92 segments, 15
 abilities) is assembled and the ceiling test (tiers/quality-graph.mjs) confirmed the
 memory graph carries full signal for a 32B reader's residual gaps. See README.md
 Status for the current numbers; this file keeps the original phase plan below as a
-record of the order things were built in and what is still open (medium/large
-corpus, a fast ingest-time classifier, full cross-adapter capability grading, and
-golden transcript publication).
+record of the order things were built in and what is still open (a fast ingest-time
+classifier, real-reader/real-judge cross-adapter capability grading, and golden
+transcript publication). Small, medium, and large BEAM/LongMemEval inputs are now
+materialized locally.
 
 The deterministic, model-free AMBIENT core runs green in this folder against a
 vendored build of Recall, the first system tested (vendor/recall, commit 4c1e232),
@@ -21,9 +22,11 @@ Node 24, no keys, no network: L1 100/100, L3 100/100, L2 literal 0 vs entailment
 L4 naive 75/50 vs expiry-aware 100/100. The core currently runs on Recall's own
 primitives, so these numbers are Recall demonstrating the capabilities. The adapter
 field now has multiple local/free non-Recall bridges and smokes; the remaining
-cross-system work is to expand from the local ten-adapter matrix smoke into full
-capability grading and publish served-context transcripts/goldens for each adapter
-(see Risks to hold).
+cross-system work is to expand from the local ten-adapter wiring matrix and the
+15-ability structural adapter matrix into real-reader/real-judge capability grading
+and publish served-context transcripts/goldens for each adapter (see Risks to hold).
+Semantic judging is now separated from deterministic attribution, and L4 is bound to
+the hashed `l4-expiry.v1` policy with frozen longitudinal boundary witnesses.
 
 ## Dependency strategy
 
@@ -290,7 +293,7 @@ validates that summary against its verdict/summary files. `npm run verify:adapte
 smoke-tests the grading wrapper plus artifact checker against a local mock judge.
 `npm run verify:adapters:grade:pipeline` runs the full ten-adapter local/free
 matrix, grades it with a mock judge, and validates the consolidated artifact.
-`npm run verify:adapters:matrix:extended` also tries Recall plus CLI/daemon-backed
+`npm run verify:adapters:matrix:optional` also tries Recall plus CLI/daemon-backed
 bridges and records missing local prerequisites as skips. `npm run verify:adapters:prereqs`
 reports the install or daemon command needed to move each skipped optional target
 into the matrix.
@@ -323,9 +326,10 @@ generalization to lever-less incumbents (P3) is what those levers produce.
   cross-system capability grades before served-context transcripts and goldens exist
   would itself break the honesty bar.
 - Push-axis unfairness: if ABSENT is graded as FAIL, the board becomes a rigged demo.
-- Attribution mislabel: if served context is not captured with external-origin
-  provenance, a correct answer cannot be told from model knowledge and credit is
-  guesswork.
+- Attribution mislabel: keep semantic correctness separate from deterministic
+  completion, and require a watched query plus non-empty externally served context.
+- Harness definition drift: version semantic policies such as L4 expiry and freeze
+  their boundary witnesses; never mutate a published policy version in place.
 - Portability rot: three absolute paths plus the old Desktop run dir mean a naive
   copy runs here and breaks elsewhere. Fix before sharing.
 

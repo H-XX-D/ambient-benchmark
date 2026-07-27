@@ -147,7 +147,7 @@ try {
   }
 
   const artifact = JSON.parse(await readFile(smokeOut, "utf8"));
-  if (artifact.schema !== "ambient.cross-adapter-grades.v1") {
+  if (artifact.schema !== "ambient.cross-adapter-grades.v2") {
     throw new Error(`unexpected schema: ${artifact.schema}`);
   }
   if (artifact.totals.adapters !== 1 || artifact.totals.passed !== 1) {

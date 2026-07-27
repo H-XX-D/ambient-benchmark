@@ -42,6 +42,8 @@ async function expectedCommands(summary) {
     "bench",
     "bench:suite",
     "bench:contradiction",
+    "verify:attribution",
+    "verify:l4-policy",
     "verify:mal:standing-programs",
     ...adapterScripts,
   ];

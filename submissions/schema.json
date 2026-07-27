@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ambientbench.org/schemas/submission.v1.json",
+  "title": "AMBIENT community leaderboard submission",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "track", "system", "corpus", "submittedAt", "sourceCommit", "submittedBy", "publicationGate", "result", "artifacts", "artifactSha256"],
+  "properties": {
+    "schema": { "const": "ambient.submission.v1" },
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,79}$" },
+    "track": { "enum": ["architecture", "native-system"] },
+    "system": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": { "name": { "type": "string", "minLength": 1, "maxLength": 100 }, "version": { "type": "string", "minLength": 1, "maxLength": 100 } }
+    },
+    "corpus": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "submittedAt": { "type": "string", "format": "date-time" },
+    "sourceCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "submittedBy": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "publicationGate": { "const": "passed" },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["items", "metric", "score", "lower95", "upper95"],
+      "properties": {
+        "items": { "type": "integer", "minimum": 1, "description": "Unique question segments; repeats and tier cells are not additional items." },
+        "metric": { "enum": ["architecture-lift", "native-completion"] },
+        "score": { "type": "number", "minimum": -1, "maximum": 1 },
+        "lower95": { "type": "number", "minimum": -1, "maximum": 1 },
+        "upper95": { "type": "number", "minimum": -1, "maximum": 1 },
+        "baseline": { "type": "number", "minimum": 0, "maximum": 1 },
+        "treatment": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runManifest", "transcript", "judgeManifest", "verdicts", "summary"],
+      "properties": {
+        "runManifest": { "type": "string" },
+        "transcript": { "type": "string" },
+        "judgeManifest": { "type": "string" },
+        "verdicts": { "type": "string" },
+        "summary": { "type": "string" }
+      }
+    },
+    "artifactSha256": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["runManifest", "transcript", "judgeManifest", "verdicts", "summary"],
+      "properties": {
+        "runManifest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "transcript": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "judgeManifest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "verdicts": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "summary": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "track": { "const": "architecture" } } },
+      "then": {
+        "properties": { "result": { "required": ["baseline", "treatment"], "properties": { "metric": { "const": "architecture-lift" } } } }
+      },
+      "else": {
+        "properties": { "result": { "properties": { "metric": { "const": "native-completion" }, "score": { "minimum": 0 }, "lower95": { "minimum": 0 }, "upper95": { "minimum": 0 } } } }
+      }
+    }
+  ]
+}

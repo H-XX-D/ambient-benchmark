@@ -20,6 +20,12 @@ import { mkdtempSync, rmSync } from "node:fs";
 import os from "node:os";
 import { join } from "node:path";
 import { SqliteStore, admit, addHyperedge, addDagOverlay, runProgramCell, analyzeMemory } from "./_recall.mjs";
+import {
+  L4_POLICY,
+  L4_POLICY_DEFINITION_SHA256,
+  extractExpiryV1,
+  verifyExpiryPolicyV1,
+} from "./l4-expiry-policy.mjs";
 
 // Flat proposal matching the current admit() schema. The old nested
 // recall.write.v1 shape doesn't exist in the vendored build. contradicts
@@ -151,16 +157,17 @@ console.log(`detection recall : ${pct(r.recall)} (${r.detectedTrips}/${r.trueCon
 console.log(`precision        : ${pct(r.precision)} (false trips: ${r.falseTrips} — distractors/reinforcements must not trip)`);
 console.log(`median latency   : ${r.medLatency} tick(s) from contradictor arrival to surfacing\n`);
 console.log("---- surfacing cost (native standing program vs pull bolt-on) ----");
-console.log(`native (Recall) : ${r.nativeCost} program-runs — O(writes)`);
+console.log(`reference system (Recall): ${r.nativeCost} program-runs — O(writes)`);
 console.log(`pull bolt-on    : ${r.boltOnCost} re-queries — O(writes x beliefs=${r.beliefs}) = ${(r.boltOnCost / r.nativeCost).toFixed(1)}x, and only on demand`);
-console.log("\nincumbents (no standing-program primitive): score 0 on the push axis by construction.");
+console.log("\nThis is a Recall reference-implementation diagnostic, not a cross-adapter score.");
+console.log("Any architecture may complete the proactive ability with an equivalent observable mechanism; untested systems remain UNTESTED, not zero.");
 
 // ============================ L3: transitive / holonomy ============================
 // Pairwise-plausible, globally-impossible orderings: A>B, B>C, C>A. Each edge is
 // believable alone; together they're a contradiction no pairwise check catches.
 // The substrate refuses to materialize a cyclic ordering overlay (addDagOverlay
-// throws), so the closing edge is rejected at write time. No pull memory system
-// has a global-consistency primitive at all.
+// throws), so the closing edge is rejected at write time. Competing systems are
+// assessed through the same outcome test; their mechanism is not presumed.
 function makeTriples(n) {
   const triples = [];
   for (let i = 0; i < n; i++) {
@@ -218,7 +225,7 @@ console.log(`triples: ${l3.triples} (half A>B,B>C,C>A inconsistent; half A>B,B>C
 console.log(`detection recall : ${pct(l3.recall)} (${l3.detected}/${l3.inconsistentTotal} cyclic orderings rejected at write time)`);
 console.log(`precision        : ${pct(l3.precision)} (false rejections of consistent orderings: ${l3.falseFlags})`);
 console.log("latency          : caught on the closing edge — pairwise checks never see it");
-console.log("\nno pull memory system materializes an ordering overlay and checks global acyclicity -> 0 on this axis by construction.");
+console.log("\nThis probe verifies one global-acyclicity implementation. Other architectures are scored only after their adapter runs the same outcome test.");
 
 // ============================ L2: entailed contradiction ============================
 // The contradiction needs an ENTAILMENT step (amoxicillin IS a penicillin), so a
@@ -307,15 +314,6 @@ const L4_CASES = [
   { text: "rehearsing for the May recital", createdAt: "2023-05-10", gold: true },
   { text: "planning a vacation in August 2023", createdAt: "2023-07-10", gold: false }
 ];
-const MONTH_END = { january: "01-31", february: "02-28", march: "03-31", april: "04-30", may: "05-31", june: "06-30", july: "07-31", august: "08-31", september: "09-30", october: "10-31", november: "11-30", december: "12-31" };
-function extractExpiry(text) {
-  const t = text.toLowerCase();
-  const year = (t.match(/\b(20\d{2})\b/) || [])[1] || "2023";
-  if (/\bq2\b/.test(t)) return `${year}-06-30T23:59:59.000Z`;
-  if (/\bq1\b/.test(t)) return `${year}-03-31T23:59:59.000Z`;
-  for (const [month, end] of Object.entries(MONTH_END)) if (t.includes(month)) return `${year}-${end}T23:59:59.000Z`;
-  return null;
-}
 function l4Proposal(title, expiresAt) {
   return {
     kind: "obs",
@@ -330,12 +328,13 @@ function l4Proposal(title, expiresAt) {
   };
 }
 function runL4() {
+  const policyWitness = verifyExpiryPolicyV1();
   const tmp = mkdtempSync(join(os.tmpdir(), "sentinel-l4-"));
   const store = new SqliteStore(join(tmp, "d.sqlite3"));
   const idToCase = new Map();
   try {
     for (const c of L4_CASES) {
-      const result = admit(l4Proposal(c.text, extractExpiry(c.text)), { store, now: new Date(c.createdAt).toISOString() });
+      const result = admit(l4Proposal(c.text, extractExpiryV1(c.text, c.createdAt)), { store, now: new Date(c.createdAt).toISOString() });
       if (!result.accepted) throw new Error(`L4 write not admitted: ${c.text} -> ${JSON.stringify(result.issues)}`);
       idToCase.set(result.cell.key, c);
     }
@@ -347,12 +346,13 @@ function runL4() {
       for (const [d, s] of [[exp, sExp], [age, sAge]]) { if (s && c.gold) d.tp++; else if (s) d.fp++; else if (c.gold) d.fn++; }
     }
     const sc = (d) => ({ recall: d.tp + d.fn ? d.tp / (d.tp + d.fn) : 1, precision: d.tp + d.fp ? d.tp / (d.tp + d.fp) : 1 });
-    return { exp: sc(exp), age: sc(age), trueN: L4_CASES.filter((c) => c.gold).length };
+    return { exp: sc(exp), age: sc(age), trueN: L4_CASES.filter((c) => c.gold).length, policyWitness };
   } finally { store.close(); rmSync(tmp, { recursive: true, force: true }); }
 }
 const l4 = runL4();
 console.log("\n==================== AMBIENT L4 — stale-by-implicit-expiry (floor + ceiling) ====================\n");
+console.log(`policy: ${L4_POLICY.version} sha256=${L4_POLICY_DEFINITION_SHA256} (definition-drift guard: ${l4.policyWitness.verified ? "PASS" : "FAIL"})`);
 console.log(`${L4_CASES.length} beliefs (${l4.trueN} expired by NOW=2023-07-15, ${L4_CASES.length - l4.trueN} timeless-or-future)\n`);
 console.log(`  naive age baseline (flag if old)      : recall ${pct(l4.age.recall)} precision ${pct(l4.age.precision)}  <- misses recent-expired, false-flags timeless-old`);
 console.log(`  expiry-aware (ceiling extract + floor): recall ${pct(l4.exp.recall)} precision ${pct(l4.exp.precision)}  (analyzeMemory flags expires_at <= now, unprompted)`);
-console.log("\npull memory systems have no staleness model -> return the stale belief on query as if current (0 on this axis).");
+console.log("\nThis probe verifies one expiry-aware implementation. Systems without a completed adapter run are UNTESTED, not assumed to return stale state.");

@@ -1,0 +1,1071 @@
+- generic [active]:
+  - generic [ref=e1]: (0%)
+  - banner:
+    - generic:
+      - generic:
+        - link:
+          - /url: /
+      - generic:
+        - menu:
+          - listitem:
+            - link "T e c h n o l o g y T e c h n o l o g y":
+              - /url: /#technology
+              - generic:
+                - generic:
+                  - generic:
+                    - generic: T
+                    - generic: e
+                    - generic: c
+                    - generic: h
+                    - generic: "n"
+                    - generic: o
+                    - generic: l
+                    - generic: o
+                    - generic: g
+                    - generic: "y"
+                  - generic:
+                    - generic: T
+                    - generic: e
+                    - generic: c
+                    - generic: h
+                    - generic: "n"
+                    - generic: o
+                    - generic: l
+                    - generic: o
+                    - generic: g
+                    - generic: "y"
+          - listitem:
+            - link "A b o u t U s A b o u t U s":
+              - /url: /#about-us
+              - generic:
+                - generic:
+                  - generic:
+                    - generic: A
+                    - generic: b
+                    - generic: o
+                    - generic: u
+                    - generic: t
+                    - generic: U
+                    - generic: s
+                  - generic:
+                    - generic: A
+                    - generic: b
+                    - generic: o
+                    - generic: u
+                    - generic: t
+                    - generic: U
+                    - generic: s
+          - listitem:
+            - link "C a r e e r s C a r e e r s":
+              - /url: /#careers
+              - generic:
+                - generic:
+                  - generic:
+                    - generic: C
+                    - generic: a
+                    - generic: r
+                    - generic: e
+                    - generic: e
+                    - generic: r
+                    - generic: s
+                  - generic:
+                    - generic: C
+                    - generic: a
+                    - generic: r
+                    - generic: e
+                    - generic: e
+                    - generic: r
+                    - generic: s
+        - generic:
+          - link "C o n t a c t U s C o n t a c t U s":
+            - /url: "#contact-us"
+            - generic:
+              - generic:
+                - generic:
+                  - generic: C
+                  - generic: o
+                  - generic: "n"
+                  - generic: t
+                  - generic: a
+                  - generic: c
+                  - generic: t
+                  - generic: U
+                  - generic: s
+                - generic:
+                  - generic: C
+                  - generic: o
+                  - generic: "n"
+                  - generic: t
+                  - generic: a
+                  - generic: c
+                  - generic: t
+                  - generic: U
+                  - generic: s
+  - main:
+    - generic:
+      - generic:
+        - generic:
+          - heading "Protein Sequencing by Expansion (ProSE™)" [level=1]
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - generic: Protein
+                  - generic: Sequencing
+                - generic:
+                  - generic: by
+                  - generic: Expansion
+                - generic: (ProSE™)
+              - generic: Protein Sequencing by Expansion (ProSE™)
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - generic: Advancing
+                  - generic: life
+                  - generic: science
+                  - generic: discovery
+                  - generic: with
+                  - generic: massively
+                  - generic: parallel,
+                  - generic: single-molecule
+                  - generic:
+                    - generic: proteome
+                    - generic: sequencing
+                - generic: Advancing life science discovery with massively parallel, single-molecule proteome sequencing
+            - generic:
+              - link "T u r n t h e P a g e T u r n t h e P a g e":
+                - /url: "#technology"
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: T
+                      - generic: u
+                      - generic: r
+                      - generic: "n"
+                      - generic: t
+                      - generic: h
+                      - generic: e
+                      - generic: P
+                      - generic: a
+                      - generic: g
+                      - generic: e
+                    - generic:
+                      - generic: T
+                      - generic: u
+                      - generic: r
+                      - generic: "n"
+                      - generic: t
+                      - generic: h
+                      - generic: e
+                      - generic: P
+                      - generic: a
+                      - generic: g
+                      - generic: e
+          - generic:
+            - generic:
+              - link "S c r o l l S c r o l l":
+                - /url: "#technology"
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: S
+                      - generic: c
+                      - generic: r
+                      - generic: o
+                      - generic: l
+                      - generic: l
+                    - generic:
+                      - generic: S
+                      - generic: c
+                      - generic: r
+                      - generic: o
+                      - generic: l
+                      - generic: l
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - generic: "1"
+                - text: "1"
+          - generic:
+            - heading "Introducing ProSE™" [level=2]
+            - generic:
+              - generic:
+                - generic: Introducing ProSE™
+                - text: Introducing ProSE™
+        - generic:
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - paragraph: "1"
+              - generic:
+                - generic:
+                  - paragraph: Technology
+              - generic:
+                - paragraph:
+                  - generic:
+                    - generic:
+                      - generic: ProSE™ will revolutionize proteomics by
+                      - generic: delivering unprecedented precision,
+                      - generic: scalability, and accessibility.
+                    - text: ProSE™ will revolutionize proteomics by delivering unprecedented precision, scalability, and accessibility.
+              - generic:
+                - paragraph:
+                  - generic:
+                    - generic: "2026"
+                    - text: "2026"
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic: "1"
+                        - heading "Sample Preparation" [level=3]
+                      - generic: To prepare samples for ProSE, proteins and peptides are first functionalized by attaching an initiating linker to one terminus of each peptide chain.
+                    - generic: "1"
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic: "2"
+                        - heading "Molecular Expansion" [level=3]
+                      - generic: Each amino acid is then sequentially added and uniformly spaced along the linker in its original order, constructing a ProSE Molecule.
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic: "3"
+                        - heading "Amino Acid Sequencing" [level=3]
+                      - generic: Finally, the assembled ProSE Molecule passes through a nanopore, where distinct electrical signatures from each amino acid reveal the protein’s sequence.
+                - generic:
+                  - link "C o n t a c t U s C o n t a c t U s":
+                    - /url: "#contact-us"
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic: C
+                          - generic: o
+                          - generic: "n"
+                          - generic: t
+                          - generic: a
+                          - generic: c
+                          - generic: t
+                          - generic: U
+                          - generic: s
+                        - generic:
+                          - generic: C
+                          - generic: o
+                          - generic: "n"
+                          - generic: t
+                          - generic: a
+                          - generic: c
+                          - generic: t
+                          - generic: U
+                          - generic: s
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - generic: Protein
+              - generic: Sequencing
+              - generic: by
+              - generic: Expansion
+              - generic: (ProSE™)
+              - generic: leverages
+              - generic:
+                - generic: spatial
+                - generic: expansion
+              - generic: of
+              - generic: amino
+              - generic: acids
+              - generic: from
+              - generic: proteins
+              - generic: to
+              - generic: enable
+              - generic: single
+              - generic: amino
+              - generic: acid
+              - generic:
+                - generic: discrimination
+                - generic: of
+                - generic: all
+                - generic: "20"
+                - generic: amino
+                - generic: acids
+                - generic: and
+                - generic: PTMs.
+            - generic: Protein Sequencing by Expansion (ProSE™) leverages spatial expansion of amino acids from proteins to enable single amino acid discrimination of all 20 amino acids and PTMs.
+        - generic:
+          - generic:
+            - generic:
+              - paragraph: "1"
+          - generic:
+            - generic:
+              - paragraph: Glyphic biotechnologies
+          - generic:
+            - generic:
+              - paragraph: "2026"
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - paragraph: "1"
+          - generic:
+            - generic:
+              - paragraph: SAMPLE PREPARATION
+          - generic:
+            - generic:
+              - generic:
+                - paragraph: REAGENT KITS FUNCTIONALIZE PEPTIDES
+        - generic:
+          - generic:
+            - generic:
+              - paragraph: "2"
+          - generic:
+            - generic:
+              - paragraph: MOLECULAR EXPANSION
+          - generic:
+            - generic:
+              - generic:
+                - paragraph: ORDERED EXPANSION OF AMINO ACIDS
+        - generic:
+          - generic:
+            - generic:
+              - paragraph: "3"
+          - generic:
+            - generic:
+              - paragraph: AMINO ACID SEQUENCING
+          - generic:
+            - generic:
+              - generic:
+                - paragraph: UNBIASED DISCRIMINATION OF ALL 20 AAs + PTMs
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - heading "Glyphic Biotechnologies" [level=2]
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: G
+                      - generic: l
+                      - generic: "y"
+                      - generic: p
+                      - generic: h
+                      - generic: i
+                      - generic: c
+                    - generic:
+                      - generic: B
+                      - generic: i
+                      - generic: o
+                      - generic: t
+                      - generic: e
+                      - generic: c
+                      - generic: h
+                      - generic: "n"
+                      - generic: o
+                      - generic: l
+                      - generic: o
+                      - generic: g
+                      - generic: i
+                      - generic: e
+                      - generic: s
+                  - text: Glyphic Biotechnologies
+            - generic:
+              - generic:
+                - img "glyphic bio abstract image"
+        - generic:
+          - generic:
+            - generic: "2"
+            - generic: Glyphic Biotechnologies
+            - generic:
+              - paragraph:
+                - generic:
+                  - generic:
+                    - generic: Glyphic Biotechnologies, Inc. is developing the
+                    - generic: first truly de novo high-throughput proteome
+                    - generic: sequencing technology capable of discriminating
+                    - generic: all 20 AAs and PTMs accurately with single
+                    - generic: molecule sensitivity.
+                  - text: Glyphic Biotechnologies, Inc. is developing the first truly de novo high-throughput proteome sequencing technology capable of discriminating all 20 AAs and PTMs accurately with single molecule sensitivity.
+            - generic:
+              - paragraph:
+                - generic:
+                  - generic: Since 2021
+                  - text: Since 2021
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - img "amino acids on a dna backbone"
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - heading "Protein Sequencing by Expansion (ProSE™)" [level=3]
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic: P
+                          - generic: r
+                          - generic: o
+                          - generic: t
+                          - generic: e
+                          - generic: i
+                          - generic: "n"
+                        - generic:
+                          - generic: S
+                          - generic: e
+                          - generic: q
+                          - generic: u
+                          - generic: e
+                          - generic: "n"
+                          - generic: c
+                          - generic: i
+                          - generic: "n"
+                          - generic: g
+                        - generic:
+                          - generic: b
+                          - generic: "y"
+                        - generic:
+                          - generic: E
+                          - generic: x
+                          - generic: p
+                          - generic: a
+                          - generic: "n"
+                          - generic: s
+                          - generic: i
+                          - generic: o
+                          - generic: "n"
+                        - generic:
+                          - generic: (
+                          - generic: P
+                          - generic: r
+                          - generic: o
+                          - generic: S
+                          - generic: E
+                          - generic: ™
+                          - generic: )
+                  - generic:
+                    - generic:
+                      - paragraph: Founded in 2021 and headquartered in Berkeley (CA), Glyphic Biotechnologies exists to fundamentally rewrite the rules of proteomics.
+                      - paragraph: We believe proteome sequencing will be one of the defining technologies of the 21st century. The precision, scalability, and accessibility of Glyphic’s Protein Sequencing by Expansion (ProSE™) will enable the development of critical first-in-class therapies, and deeper insights into life itself.
+              - generic:
+                - generic:
+                  - generic:
+                    - paragraph: Patent Strategy
+                  - generic:
+                    - paragraph: Glyphic pioneers innovation and holds seminal IP in protein sequencing.
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - link "11,499,979 Jan 8, 2019":
+                          - /url: https://patents.google.com/patent/US11499979B2/en?oq=11%2c499%2c979
+                          - generic: 11,499,979
+                          - generic: Jan 8, 2019
+                      - generic:
+                        - link "11,346,842 Jun 20, 2019":
+                          - /url: https://patents.google.com/patent/US11346842B2/en?oq=11%2c346%2c842
+                          - generic: 11,346,842
+                          - generic: Jun 20, 2019
+                      - generic:
+                        - link "11,906,525 Jun 20, 2019":
+                          - /url: https://patents.google.com/patent/US11906525B2/en?oq=11%2c906%2c525
+                          - generic: 11,906,525
+                          - generic: Jun 20, 2019
+                      - generic:
+                        - link "11,971,417 Jan 8, 2019":
+                          - /url: https://patents.google.com/patent/US11971417B2/en?oq=11%2c971%2c417
+                          - generic: 11,971,417
+                          - generic: Jan 8, 2019
+                      - generic:
+                        - link "12,259,393 Aug 2, 2022":
+                          - /url: https://patents.google.com/patent/US12259393B2/en?oq=12%2c259%2c393
+                          - generic: 12,259,393
+                          - generic: Aug 2, 2022
+                      - generic:
+                        - link "12,259,394 Aug 2, 2022":
+                          - /url: https://patents.google.com/patent/US12259394B2/en?oq=12%2c259%2c394
+                          - generic: 12,259,394
+                          - generic: Aug 2, 2022
+                      - generic:
+                        - link "12,379,380 Jan 8, 2019":
+                          - /url: https://patents.google.com/patent/US20240280581A1/en?oq=US20240280581
+                          - generic: 12,379,380
+                          - generic: Jan 8, 2019
+                      - generic:
+                        - link "12,399,180 Aug 2, 2022":
+                          - /url: https://patents.google.com/patent/US20250180576A1/en?oq=19%2f057%2c465
+                          - generic: 12,399,180
+                          - generic: Aug 2, 2022
+                      - generic:
+                        - link "12,399,181 Aug 2, 2022":
+                          - /url: https://patents.google.com/patent/US20250180577A1/en?oq=19%2f057%2c496
+                          - generic: 12,399,181
+                          - generic: Aug 2, 2022
+                    - generic:
+                      - generic:
+                        - link "11,499,979 Jan 8, 2019":
+                          - /url: https://patents.google.com/patent/US11499979B2/en?oq=11%2c499%2c979
+                          - generic: 11,499,979
+                          - generic: Jan 8, 2019
+                      - generic:
+                        - link "11,346,842 Jun 20, 2019":
+                          - /url: https://patents.google.com/patent/US11346842B2/en?oq=11%2c346%2c842
+                          - generic: 11,346,842
+                          - generic: Jun 20, 2019
+                      - generic:
+                        - link "11,906,525 Jun 20, 2019":
+                          - /url: https://patents.google.com/patent/US11906525B2/en?oq=11%2c906%2c525
+                          - generic: 11,906,525
+                          - generic: Jun 20, 2019
+                      - generic:
+                        - link "11,971,417 Jan 8, 2019":
+                          - /url: https://patents.google.com/patent/US11971417B2/en?oq=11%2c971%2c417
+                          - generic: 11,971,417
+                          - generic: Jan 8, 2019
+                      - generic:
+                        - link "12,259,393 Aug 2, 2022":
+                          - /url: https://patents.google.com/patent/US12259393B2/en?oq=12%2c259%2c393
+                          - generic: 12,259,393
+                          - generic: Aug 2, 2022
+                      - generic:
+                        - link "12,259,394 Aug 2, 2022":
+                          - /url: https://patents.google.com/patent/US12259394B2/en?oq=12%2c259%2c394
+                          - generic: 12,259,394
+                          - generic: Aug 2, 2022
+                      - generic:
+                        - link "12,379,380 Jan 8, 2019":
+                          - /url: https://patents.google.com/patent/US20240280581A1/en?oq=US20240280581
+                          - generic: 12,379,380
+                          - generic: Jan 8, 2019
+                      - generic:
+                        - link "12,399,180 Aug 2, 2022":
+                          - /url: https://patents.google.com/patent/US20250180576A1/en?oq=19%2f057%2c465
+                          - generic: 12,399,180
+                          - generic: Aug 2, 2022
+                      - generic:
+                        - link "12,399,181 Aug 2, 2022":
+                          - /url: https://patents.google.com/patent/US20250180577A1/en?oq=19%2f057%2c496
+                          - generic: 12,399,181
+                          - generic: Aug 2, 2022
+                    - generic:
+                      - generic:
+                        - link "11,499,979 Jan 8, 2019":
+                          - /url: https://patents.google.com/patent/US11499979B2/en?oq=11%2c499%2c979
+                          - generic: 11,499,979
+                          - generic: Jan 8, 2019
+                      - generic:
+                        - link "11,346,842 Jun 20, 2019":
+                          - /url: https://patents.google.com/patent/US11346842B2/en?oq=11%2c346%2c842
+                          - generic: 11,346,842
+                          - generic: Jun 20, 2019
+                      - generic:
+                        - link "11,906,525 Jun 20, 2019":
+                          - /url: https://patents.google.com/patent/US11906525B2/en?oq=11%2c906%2c525
+                          - generic: 11,906,525
+                          - generic: Jun 20, 2019
+                      - generic:
+                        - link "11,971,417 Jan 8, 2019":
+                          - /url: https://patents.google.com/patent/US11971417B2/en?oq=11%2c971%2c417
+                          - generic: 11,971,417
+                          - generic: Jan 8, 2019
+                      - generic:
+                        - link "12,259,393 Aug 2, 2022":
+                          - /url: https://patents.google.com/patent/US12259393B2/en?oq=12%2c259%2c393
+                          - generic: 12,259,393
+                          - generic: Aug 2, 2022
+                      - generic:
+                        - link "12,259,394 Aug 2, 2022":
+                          - /url: https://patents.google.com/patent/US12259394B2/en?oq=12%2c259%2c394
+                          - generic: 12,259,394
+                          - generic: Aug 2, 2022
+                      - generic:
+                        - link "12,379,380 Jan 8, 2019":
+                          - /url: https://patents.google.com/patent/US20240280581A1/en?oq=US20240280581
+                          - generic: 12,379,380
+                          - generic: Jan 8, 2019
+                      - generic:
+                        - link "12,399,180 Aug 2, 2022":
+                          - /url: https://patents.google.com/patent/US20250180576A1/en?oq=19%2f057%2c465
+                          - generic: 12,399,180
+                          - generic: Aug 2, 2022
+                      - generic:
+                        - link "12,399,181 Aug 2, 2022":
+                          - /url: https://patents.google.com/patent/US20250180577A1/en?oq=19%2f057%2c496
+                          - generic: 12,399,181
+                          - generic: Aug 2, 2022
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - generic: "3"
+              - text: "3"
+          - generic:
+            - heading "Careers" [level=2]
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - generic: C
+                    - generic: a
+                    - generic: r
+                    - generic: e
+                    - generic: e
+                    - generic: r
+                    - generic: s
+                - text: Careers
+          - generic:
+            - generic:
+              - generic:
+                - generic: At Glyphic Biotechnologies, we hire
+                - generic: exceptional candidates motivated by solving
+                - generic: complex, meaningful problems. Join our
+                - generic: talented team in shaping the future of
+                - generic: proteomics worldwide.
+              - text: At Glyphic Biotechnologies, we hire exceptional candidates motivated by solving complex, meaningful problems. Join our talented team in shaping the future of proteomics worldwide.
+        - generic:
+          - generic:
+            - paragraph: Open positions
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - heading "Data Infrastructure Engineer" [level=3]
+                        - list:
+                          - listitem: Berkeley, California, United States
+                      - generic:
+                        - list:
+                          - listitem:
+                            - paragraph: Research & Development
+                        - generic:
+                          - paragraph: $135K – $178K
+                      - generic:
+                        - button "L e a r n M o r e L e a r n M o r e":
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: L
+                                - generic: e
+                                - generic: a
+                                - generic: r
+                                - generic: "n"
+                                - generic: M
+                                - generic: o
+                                - generic: r
+                                - generic: e
+                              - generic:
+                                - generic: L
+                                - generic: e
+                                - generic: a
+                                - generic: r
+                                - generic: "n"
+                                - generic: M
+                                - generic: o
+                                - generic: r
+                                - generic: e
+                        - link:
+                          - /url: https://job-boards.greenhouse.io/glyphicbiotechnologies/jobs/4194165009
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - heading "Scientist / Senior Scientist, Assay Development (Reagents)" [level=3]
+                        - list:
+                          - listitem: Berkeley, California, United States
+                      - generic:
+                        - list:
+                          - listitem:
+                            - paragraph: Research & Development
+                        - generic:
+                          - paragraph: $112K – $162K
+                      - generic:
+                        - button "L e a r n M o r e L e a r n M o r e":
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: L
+                                - generic: e
+                                - generic: a
+                                - generic: r
+                                - generic: "n"
+                                - generic: M
+                                - generic: o
+                                - generic: r
+                                - generic: e
+                              - generic:
+                                - generic: L
+                                - generic: e
+                                - generic: a
+                                - generic: r
+                                - generic: "n"
+                                - generic: M
+                                - generic: o
+                                - generic: r
+                                - generic: e
+                        - link:
+                          - /url: https://job-boards.greenhouse.io/glyphicbiotechnologies/jobs/4258096009
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - heading "Staff / Senior Scientist, Assay Development (Chemistry)" [level=3]
+                        - list:
+                          - listitem: Berkeley, California, United States
+                      - generic:
+                        - list:
+                          - listitem:
+                            - paragraph: Research & Development
+                        - generic:
+                          - paragraph: $123K – $188K
+                      - generic:
+                        - button "L e a r n M o r e L e a r n M o r e":
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: L
+                                - generic: e
+                                - generic: a
+                                - generic: r
+                                - generic: "n"
+                                - generic: M
+                                - generic: o
+                                - generic: r
+                                - generic: e
+                              - generic:
+                                - generic: L
+                                - generic: e
+                                - generic: a
+                                - generic: r
+                                - generic: "n"
+                                - generic: M
+                                - generic: o
+                                - generic: r
+                                - generic: e
+                        - link:
+                          - /url: https://job-boards.greenhouse.io/glyphicbiotechnologies/jobs/4258160009
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - heading "Staff / Senior Scientist, Bioconjugation Chemistry" [level=3]
+                        - list:
+                          - listitem: Berkeley, California, United States
+                      - generic:
+                        - list:
+                          - listitem:
+                            - paragraph: Research & Development
+                        - generic:
+                          - paragraph: $123K – $188K
+                      - generic:
+                        - button "L e a r n M o r e L e a r n M o r e":
+                          - generic:
+                            - generic:
+                              - generic:
+                                - generic: L
+                                - generic: e
+                                - generic: a
+                                - generic: r
+                                - generic: "n"
+                                - generic: M
+                                - generic: o
+                                - generic: r
+                                - generic: e
+                              - generic:
+                                - generic: L
+                                - generic: e
+                                - generic: a
+                                - generic: r
+                                - generic: "n"
+                                - generic: M
+                                - generic: o
+                                - generic: r
+                                - generic: e
+                        - link:
+                          - /url: https://job-boards.greenhouse.io/glyphicbiotechnologies/jobs/4227259009
+              - generic:
+                - link "W r i t e Y o u r N e x t C h a p t e r W r i t e Y o u r N e x t C h a p t e r":
+                  - /url: https://job-boards.greenhouse.io/glyphicbiotechnologies
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic: W
+                        - generic: r
+                        - generic: i
+                        - generic: t
+                        - generic: e
+                        - generic: "Y"
+                        - generic: o
+                        - generic: u
+                        - generic: r
+                        - generic: "N"
+                        - generic: e
+                        - generic: x
+                        - generic: t
+                        - generic: C
+                        - generic: h
+                        - generic: a
+                        - generic: p
+                        - generic: t
+                        - generic: e
+                        - generic: r
+                      - generic:
+                        - generic: W
+                        - generic: r
+                        - generic: i
+                        - generic: t
+                        - generic: e
+                        - generic: "Y"
+                        - generic: o
+                        - generic: u
+                        - generic: r
+                        - generic: "N"
+                        - generic: e
+                        - generic: x
+                        - generic: t
+                        - generic: C
+                        - generic: h
+                        - generic: a
+                        - generic: p
+                        - generic: t
+                        - generic: e
+                        - generic: r
+                - generic:
+                  - button [disabled]
+                  - button
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - img "protein sequencing by expansion"
+        - generic:
+          - generic:
+            - generic:
+              - paragraph: The next great chapter of scientific discovery will be written in ProSE™
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - heading "Contact" [level=2]
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - generic: C
+                    - generic: o
+                    - generic: "n"
+                    - generic: t
+                    - generic: a
+                    - generic: c
+                    - generic: t
+                - text: Contact
+          - generic:
+            - generic:
+              - generic:
+                - paragraph: Information
+            - generic:
+              - generic:
+                - generic:
+                  - paragraph: "A:"
+                  - generic: "3100 San Pablo Ave. #201 Berkeley, CA 94702"
+              - generic:
+                - generic:
+                  - paragraph: "E:"
+                  - link "letschat@glyphic.bio":
+                    - /url: mailto:letschat@glyphic.bio
+              - generic:
+                - generic:
+                  - paragraph: "S:"
+                  - list:
+                    - listitem:
+                      - link "Linkedin":
+                        - /url: https://www.linkedin.com/company/glyphicbio/
+                      - text: ","
+                    - listitem:
+                      - link "X":
+                        - /url: https://x.com/GlyphicBio
+        - generic:
+          - generic:
+            - heading "Get in Touch!" [level=2]
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - generic: G
+                    - generic: e
+                    - generic: t
+                    - generic: i
+                    - generic: "n"
+                    - generic: T
+                    - generic: o
+                    - generic: u
+                    - generic: c
+                    - generic: h
+                    - generic: "!"
+                - text: Get in Touch!
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - paragraph: Compose the Future with Us
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - textbox "Name*"
+                      - generic:
+                        - generic:
+                          - textbox "Email*"
+                      - generic:
+                        - generic:
+                          - textbox "Comment"
+                    - generic:
+                      - generic:
+                        - checkbox "I accept the Terms of Use and Privacy Policy."
+                        - generic:
+                          - text: I accept the
+                          - link "Terms of Use":
+                            - /url: /terms-of-use
+                          - text: and
+                          - link "Privacy Policy.":
+                            - /url: /privacy-policy
+                    - generic:
+                      - button "C o n t a c t U s C o n t a c t U s" [disabled]:
+                        - generic:
+                          - generic:
+                            - generic:
+                              - generic: C
+                              - generic: o
+                              - generic: "n"
+                              - generic: t
+                              - generic: a
+                              - generic: c
+                              - generic: t
+                              - generic: U
+                              - generic: s
+                            - generic:
+                              - generic: C
+                              - generic: o
+                              - generic: "n"
+                              - generic: t
+                              - generic: a
+                              - generic: c
+                              - generic: t
+                              - generic: U
+                              - generic: s
+  - contentinfo:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - paragraph: Join our mail list
+              - generic:
+                - generic:
+                  - generic:
+                    - textbox "Your Email*"
+                - generic:
+                  - button "S u b s c r i b e S u b s c r i b e":
+                    - generic:
+                      - generic:
+                        - generic:
+                          - generic: S
+                          - generic: u
+                          - generic: b
+                          - generic: s
+                          - generic: c
+                          - generic: r
+                          - generic: i
+                          - generic: b
+                          - generic: e
+                        - generic:
+                          - generic: S
+                          - generic: u
+                          - generic: b
+                          - generic: s
+                          - generic: c
+                          - generic: r
+                          - generic: i
+                          - generic: b
+                          - generic: e
+              - generic:
+                - paragraph: Thank you!
+        - generic:
+          - generic:
+            - paragraph: Information
+          - generic:
+            - list:
+              - listitem:
+                - link "Technology":
+                  - /url: /#technology
+              - listitem:
+                - link "About Us":
+                  - /url: /#about-us
+              - listitem:
+                - link "Careers":
+                  - /url: /#careers
+              - listitem:
+                - link "Contact Us":
+                  - /url: /#contact-us
+        - generic:
+          - generic:
+            - paragraph: Social Media
+          - generic:
+            - list:
+              - listitem:
+                - link "Linkedin":
+                  - /url: https://www.linkedin.com/company/glyphicbio/
+              - listitem:
+                - link "X":
+                  - /url: https://x.com/GlyphicBio
+        - generic:
+          - generic:
+            - paragraph: Contacts
+          - generic:
+            - generic:
+              - paragraph: "3100 San Pablo Ave. #201 Berkeley, CA 94702"
+            - generic:
+              - link "letschat@glyphic.bio":
+                - /url: mailto:letschat@glyphic.bio
+      - generic:
+        - generic:
+          - text: Designed by
+          - link "Obys":
+            - /url: https://obys.agency
+        - generic:
+          - list:
+            - listitem:
+              - link "FAQs":
+                - /url: /faqs
+              - text: ","
+            - listitem:
+              - link "Privacy Policy":
+                - /url: /privacy-policy
+              - text: ","
+            - listitem:
+              - link "Terms of Use":
+                - /url: /terms-of-use
+              - text: ","
+            - listitem:
+              - link "FCOI Policy":
+                - /url: /fcoi-policy
+        - generic:
+          - generic:
+            - paragraph: ©2026. glyphic//bio. All right reserved.
+  - generic:
+    - alert

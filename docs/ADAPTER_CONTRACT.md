@@ -12,10 +12,23 @@ response) and knows the served content came from outside the model, without the 
 citing itself. That observable call is the single hard requirement.
 
 The reason is the scoring rule (docs/ATTRIBUTION.md): an answer scores for the memory
-only when it is correct and the harness watched a store call supply the support.
+only when it is correct and the harness watched a store call return non-empty support
+that was actually served to the reader.
 Returning per-item provenance (id, source, write time) is recommended and sharpens
 diagnostics, but it is not the eligibility bar; the traced call is. A system that
 exposes no store call cannot be traced and is ineligible, not scored zero.
+
+The runner writes that observation into every transcript row:
+
+- `servedContext`: exact budgeted context strings shown to the reader.
+- `servedProvenance`: one provenance object per served context item.
+- `sourceTrace`: a harness-authored trace with memory query entries marked
+  `origin: "memory_db"` and the reader answer entry marked `origin: "model_api"`.
+
+Judging happens after answers are stored in the transcript. The judge scores the
+stored answer and gold; it does not award memory credit. A deterministic attribution
+gate combines the semantic verdict with the harness trace afterward. A query returning
+zero items is `NOT-SERVED`, not memory support.
 
 ## Optional capabilities (a system may use them; presence is never scored)
 

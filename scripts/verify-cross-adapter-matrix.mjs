@@ -15,19 +15,29 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, isAbsolute, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { selectStratifiedSegments } from "../tiers/sampling.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SOURCE = arg("source", "beam");
 const SIZE = arg("size", "small");
 const LIMIT = Number(arg("limit", "2"));
 const PER_ABILITY = Number(arg("per-ability", "0"));
+const SEED = arg("seed", "ambient-v1");
+const REPEATS = Math.max(1, Number(arg("repeats", "1")) || 1);
+const TRACK = arg("track", "development");
+const TIER_ORDER = arg("tier-order", "balanced");
+const ADAPTER_DECLARATION = arg("adapter-declaration", "");
 const OUT = arg("out", "results/cross-adapter-matrix.json");
-const EXPECTED_SEGMENTS = expectedSegmentCount();
-const EXPECTED_ROWS = EXPECTED_SEGMENTS * 4;
+const EXPECTED_SELECTION = expectedSelection();
+const EXPECTED_SEGMENTS = EXPECTED_SELECTION.segments.length;
+const EXPECTED_ROWS = EXPECTED_SEGMENTS * 4 * REPEATS;
 const INCLUDE_OPTIONAL = hasFlag("include-optional");
 const ALLOW_SKIPS = hasFlag("allow-skips");
 const USE_EXTERNAL_MODEL = hasFlag("use-external-model");
-const ADAPTER_TIMEOUT_MS = Number(arg("adapter-timeout-ms", USE_EXTERNAL_MODEL ? "900000" : "90000"));
+// Some SQLite bridge packages have a cold first-run/import path that can exceed
+// 90 seconds on otherwise healthy machines. Keep the smoke gate bounded while
+// avoiding a false adapter failure during that one-time initialization.
+const ADAPTER_TIMEOUT_MS = Number(arg("adapter-timeout-ms", USE_EXTERNAL_MODEL ? "900000" : "180000"));
 
 const DEFAULT_ADAPTERS = [
   {
@@ -55,12 +65,9 @@ const DEFAULT_ADAPTERS = [
     rootPrefix: "ambient-cross-agent-memory-",
   },
   {
-    id: "agent-recall-python",
-    script: "adapters/agent-recall-python-adapter.mjs",
-    rootPrefix: "ambient-cross-agent-recall-",
-    packagePathEnv: "AMBIENT_AGENT_RECALL_TEST_PACKAGE_PATH",
-    packagePathDefault: "/tmp/ambient-agent-recall",
-    packagePathProbe: ["agent_recall", "store.py"],
+    id: "mcp-memory-sqlite-personal",
+    script: "adapters/mcp-memory-sqlite-personal-adapter.mjs",
+    rootPrefix: "ambient-cross-mcp-memory-sqlite-personal-",
   },
   {
     id: "mcp-memory-keeper-sqlite",
@@ -85,6 +92,14 @@ const DEFAULT_ADAPTERS = [
 ];
 
 const OPTIONAL_ADAPTERS = [
+  {
+    id: "agent-recall-python",
+    script: "adapters/agent-recall-python-adapter.mjs",
+    rootPrefix: "ambient-cross-agent-recall-",
+    packagePathEnv: "AMBIENT_AGENT_RECALL_TEST_PACKAGE_PATH",
+    packagePathDefault: "/tmp/ambient-agent-recall",
+    packagePathProbe: ["agent_recall", "store.py"],
+  },
   {
     id: "recall",
     script: "adapters/recall_adapter.mjs",
@@ -148,18 +163,10 @@ function selectedAdapters() {
   return selected;
 }
 
-function expectedSegmentCount() {
+function expectedSelection() {
   const file = join(ROOT, "corpora", "out", SOURCE, SIZE, "segments.jsonl");
   const all = readFileSync(file, "utf8").trim().split("\n").map((line) => JSON.parse(line));
-  const byAbility = new Map();
-  for (const segment of all) {
-    if (!byAbility.has(segment.ability)) byAbility.set(segment.ability, []);
-    byAbility.get(segment.ability).push(segment);
-  }
-  const cap = PER_ABILITY || Math.max(1, Math.ceil(LIMIT / byAbility.size));
-  const picked = [];
-  for (const [, segments] of byAbility) picked.push(...segments.slice(0, cap));
-  return picked.slice(0, LIMIT || picked.length).length;
+  return selectStratifiedSegments(all, { limit: LIMIT, perAbility: PER_ABILITY, seed: SEED });
 }
 
 function commandExists(command) {
@@ -360,8 +367,20 @@ async function runAdapter(adapter, modelPort) {
       SIZE,
       "--limit",
       String(LIMIT),
+      "--seed",
+      SEED,
+      "--repeats",
+      String(REPEATS),
+      "--track",
+      TRACK,
+      "--tier-order",
+      TIER_ORDER,
     ];
     if (PER_ABILITY) runnerArgs.push("--per-ability", String(PER_ABILITY));
+    if (TRACK === "architecture") {
+      const declaration = ADAPTER_DECLARATION || `adapters/declarations/${adapter.id}.json`;
+      runnerArgs.push("--adapter-declaration", declaration);
+    }
     const modelEnv = USE_EXTERNAL_MODEL
       ? process.env
       : {
@@ -387,6 +406,11 @@ async function runAdapter(adapter, modelPort) {
     if (!existsSync(transcriptPath)) {
       throw new Error(`transcript missing for ${adapter.id}: ${transcriptPath}`);
     }
+    const manifest = transcript.transcript.replace(/transcript-/, "manifest-").replace(/\.jsonl$/, ".json");
+    const manifestPath = isAbsolute(manifest) ? manifest : join(ROOT, manifest);
+    if (!existsSync(manifestPath)) {
+      throw new Error(`run manifest missing for ${adapter.id}: ${manifest}`);
+    }
     const fileRows = await countRows(transcriptPath);
     if (fileRows !== EXPECTED_ROWS) {
       throw new Error(`expected ${EXPECTED_ROWS} transcript rows for ${adapter.id}, file has ${fileRows}`);
@@ -400,6 +424,7 @@ async function runAdapter(adapter, modelPort) {
       status: "passed",
       adapterUrl: `http://127.0.0.1:${port}`,
       transcript: transcript.transcript,
+      manifest,
       rows: fileRows,
       command: [process.execPath, ...runnerArgs].join(" "),
     };
@@ -438,6 +463,11 @@ async function main() {
     size: SIZE,
     limit: LIMIT,
     perAbility: PER_ABILITY || null,
+    seed: SEED,
+    repeats: REPEATS,
+    track: TRACK,
+    tierOrder: TIER_ORDER,
+    sampling: EXPECTED_SELECTION.metadata,
     expectedRowsPerAdapter: EXPECTED_ROWS,
     model: USE_EXTERNAL_MODEL ? (process.env.AMBIENT_MODEL || "external") : "mock",
     checker: USE_EXTERNAL_MODEL ? (process.env.AMBIENT_CHECKER_MODEL || process.env.AMBIENT_MODEL || "external") : "mock",

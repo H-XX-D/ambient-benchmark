@@ -118,7 +118,12 @@ async function commandList(options) {
     "bench",
     "bench:suite",
     "bench:contradiction",
+    "verify:attribution",
+    "verify:isolation",
+    "verify:l4-policy",
     "verify:mal:standing-programs",
+    "site:build",
+    "site:check",
     ...adapterScripts,
   ];
 

@@ -2,8 +2,12 @@
 
 Agentic Memory: Baseline-Isolated Evaluation, Normalized Tiers.
 
-It doesn't measure what a model can't do. It measures what your memory layer
-actually does for the agent.
+Licensed under the [MIT License](LICENSE). Reconstructed corpora and other
+third-party materials retain their own terms; see
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+It does not rank models. It estimates what a memory treatment adds to a fixed
+reader under a declared evaluation track.
 
 AMBIENT measures what an agentic memory system adds to a model, with the model held
 fixed and the memory's contribution isolated so no result is mis-credited. It is
@@ -39,7 +43,7 @@ Full text in [RULES.md](RULES.md).
 
 | tier | auto-capture | curated store | isolates |
 |------|--------------|---------------|----------|
-| T1 baseline      | off | off | raw model capability |
+| T1 baseline      | off | off | instructed no-context control |
 | T2 auto only     | on  | off | automatic capture alone |
 | T3 auto + custom | on  | on  | full stack |
 | T4 custom only   | off | on  | curated memory alone |
@@ -54,6 +58,13 @@ reference auto-ingestion harness that AMBIENT supplies, identical for every entr
 so lever-less systems can still be placed on the ladder. The same reader model builds
 its own store before the benchmark questions begin, which keeps the comparison on the
 memory layer rather than on a different ingestion model. See [RULES.md](RULES.md).
+
+Architecture-only claims use an additional integrity gate: adapter-side generative
+models are disallowed, representation and reranker models must be identical and
+declared, and the corpus, reader, classifier, judge, prompts, budgets, tier order, and
+repeat count are pinned in a run manifest. Native end-to-end systems run in a separate
+track and are never presented as architecture-only evidence. See
+[docs/EVALUATION_PROTOCOL.md](docs/EVALUATION_PROTOCOL.md).
 
 ## Where the questions come from
 
@@ -95,6 +106,12 @@ The full pipeline is built and running end to end against Recall, the first syst
 tested: adapter contract, four-tier runner, reference auto-ingestion harness, an
 ingest-time write firewall, and a 92-segment / 15-ability capability corpus.
 
+Evidence is deliberately split by class. The passing ten-adapter mock-reader/mock-judge
+matrix proves orchestration and wire compatibility; it is not a quality ranking. The
+historical real-judge matrix currently contains judge errors, so the public site reports
+**zero publishable comparative runs** until a real-reader, real-judge artifact clears the
+model-isolation and publication gates.
+
 **Deterministic core** (model-free, Node 24, no keys, no network):
 - L1 unprompted contradiction: recall 100%, precision 100%, 0-tick latency
 - L3 transitive inconsistency: recall 100%, precision 100% (cyclic ordering
@@ -109,6 +126,16 @@ ingest-time write firewall, and a 92-segment / 15-ability capability corpus.
 - Current hardened small run, reverified after the Recall `0.12.0` sync on
   2026-07-06: 6/6 scenarios resistant, 0 vulnerable, 0/2 clean controls
   false-flagged, against the patched vendored Recall gate (`ver_8922`).
+
+**Hard forced-compromise diagnostic** (local llama.cpp reader):
+- Deliberately admits hostile records, then separates policy enforcement,
+  retrieval target survival, and reader canary leakage.
+- Three Z6 / Qwen2.5-32B fixed-seed repeats on 2026-07-27 each scored 6/8.
+  The repeatable architecture signal is a sybil top-k failure: 24 poison records
+  displaced the official record in 3/3 runs. Direct-query and sybil canary output
+  is reader-mediated and is not attributed to the memory architecture alone.
+- These are diagnostic artifacts, not leaderboard rows. See
+  [the evidence note](results/ambient-injection-hard-z6-qwen32-20260727.md).
 
 **Write-time model firewall**: relations (supersedes, contradicts, concerns,
 ordering, collection membership) are decided by a model reading each turn against
@@ -151,17 +178,24 @@ npm run verify:clean:artifact # validate the last clean-verification summary art
 npm run verify:clean:loop     # retry clean passes until success; default cap is 25 attempts
 npm run verify:mal:standing-programs # smoke named MAL standing programs: addf watch0/drift0/etc tick
 npm run verify:attribution      # regression gate for completed/untraced/not-served scoring
+npm run verify:isolation        # fail-closed model/corpus/prompt/pairing integrity gate
+npm run bench:injection:hard    # local forced-compromise diagnostic; proven slot reset required
+npm run verify:injection:hard:artifacts # validate the three preserved diagnostic runs
 npm run verify:l4-policy       # freeze L4 expiry semantics and boundary witnesses
+npm run site:build             # derive public status data from checked repository artifacts
+npm run site:check             # verify the site's evidence labels and deployment files
 npm run verify:adapters:matrix # ten-adapter no-key runner matrix with transcript row checks
 npm run verify:adapters:matrix:artifact # validate the last cross-adapter matrix + transcripts
 npm run verify:adapters:structural # one authored structural scenario/ability through ten adapters
 npm run verify:adapters:structural:artifact # validate the structural matrix artifact
-npm run verify:adapters:matrix:extended # also try Recall plus CLI/daemon bridges; skip missing prereqs
+npm run verify:adapters:matrix:optional # also try Recall plus CLI/daemon bridges; skip missing prereqs
 npm run verify:adapters:prereqs # report optional CLI/daemon prerequisites for wider benching
 npm run judge:adapters:matrix # judge every passed matrix transcript into one grade artifact
 npm run judge:adapters:matrix:artifact # validate a cross-adapter grade summary artifact
 npm run verify:adapters:judge # smoke the judge wrapper against a local mock judge
 npm run verify:adapters:grade:pipeline # run matrix -> mock judge -> grade artifact checker
+npm run verify:sampling          # prove balanced coverage and segment-cluster uncertainty
+npm run bench:architecture:baseline # 400 unique BEAM questions × 3 repeats; real reader and judge
 npm run bench:paid:medium       # real reader+judge, LongMemEval medium, 20/ability
 npm run bench:paid:large        # real reader+judge stress run, 50/ability
 npm run corpus:injection      # build the prompt-injection resistance corpus
@@ -209,10 +243,19 @@ pass/fail status.
 starts ten local adapters plus a mock OpenAI-compatible reader/checker, runs
 `tiers/runner.mjs --source beam --size small --limit 2` through each, and writes
 `results/cross-adapter-matrix.json`.
-`verify:adapters:matrix:extended` adds optional real runtime bridges for
+`verify:adapters:matrix:optional` adds optional real runtime bridges for
 `recall`, `ai-memory-search`, `projectmem-cli`, `simple-memory-cli`,
 `claude-memory-mcp-cli`, and `engram-cli`. Missing optional CLIs/daemons are
 recorded as skipped unless you run the matrix without `--allow-skips`.
+
+Question selection is seeded and stratified across abilities. The old global
+truncation could label 12 questions “extended” while covering only 6 of BEAM's 10
+abilities. Hosted scopes are now 10-question smoke, 100-question pilot,
+200-question extended, and the complete 400-question BEAM-small corpus. Repeats
+remain correlated measurements of the same questions; they do not increase the
+unique item count. Architecture publication requires every ability, at least 30
+unique questions per ability, three balanced repeats, and the segment-cluster
+bootstrap interval.
 `verify:adapters:prereqs` writes `results/optional-adapter-prereqs.json` with
 the exact missing binary, daemon, env var, or install/start command for those
 optional targets.

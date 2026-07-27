@@ -1,0 +1,4 @@
+[    3161ms] [ERROR] Failed to load resource: net::ERR_INVALID_HANDLE @ https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600&display=swap:0
+[    9791ms] [ERROR] Failed to load resource: net::ERR_INVALID_HANDLE @ https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600&display=swap:0
+[   49188ms] [ERROR] Failed to load resource: net::ERR_INVALID_HANDLE @ https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600&display=swap:0
+[   52718ms] [ERROR] Failed to load resource: net::ERR_INVALID_HANDLE @ https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600&display=swap:0

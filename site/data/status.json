@@ -1,0 +1,25 @@
+{
+  "schema": "ambient.site-status.v1",
+  "generatedAt": "2026-07-27T16:48:07.448Z",
+  "sourceCommit": "fab4f62e04ac191dee7810b57ceb1519031288b5",
+  "release": {
+    "code": "verified-pre-release",
+    "label": "Verified pre-release · 0 validated submissions"
+  },
+  "verification": {
+    "status": "passed",
+    "generatedAt": "2026-07-27T04:54:57.973Z",
+    "steps": 132,
+    "copy": "132 deterministic and local checks passed in the latest recorded clean run."
+  },
+  "adapterSmoke": {
+    "kind": "mock-reader-mock-judge-pipeline-smoke",
+    "generatedAt": "2026-07-10T20:58:14.442Z",
+    "adapters": 10,
+    "publishableAsQualityResult": false
+  },
+  "publicEvidence": {
+    "publishableComparisons": 0,
+    "copy": "No comparative score is published. Passing mock output remains pipeline evidence only, never a ranking."
+  }
+}

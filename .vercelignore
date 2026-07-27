@@ -1,0 +1,22 @@
+# Vercel publishes the evidence website, not local benchmark corpora or runners.
+.git/
+.vercel/
+.playwright-cli/
+output/
+recall-self-run/
+corpora/
+adapters/
+fixtures/
+model/
+suites/
+tiers/
+vendor/
+docs/
+
+# The site build consumes only these recorded evidence summaries.
+results/*
+!results/clean-verification.json
+!results/cross-adapter-grade-pipeline-summary.json
+
+.DS_Store
+*.log

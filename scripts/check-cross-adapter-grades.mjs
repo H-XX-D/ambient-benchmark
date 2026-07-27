@@ -1,16 +1,19 @@
 #!/usr/bin/env node
 // Validate a cross-adapter grade artifact plus its verdict/summary files.
 
+import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { dirname, isAbsolute, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { attributionEvidence } from "../tiers/attribution.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const args = process.argv.slice(2);
 const STATUSES = new Set(["passed", "judge-error", "failed", "skipped"]);
 const MATRIX_STATUSES = new Set(["passed", "failed", "skipped"]);
 const VERDICTS = new Set(["correct", "wrong", "gullible"]);
+const OUTCOMES = new Set(["completed", "untraced", "not-served", "wrong", "gullible"]);
 const TIERS = ["T1", "T2", "T3", "T4"];
 
 function argValue(name, fallback) {
@@ -94,6 +97,16 @@ async function validateJudgedEntry(entry) {
   const transcriptRows = await readJsonl(transcriptPath);
   const verdictRows = await readJsonl(verdictPath);
   const summary = await readJson(summaryPath);
+  if (entry.judgeManifest) {
+    const judgeManifestPath = absolute(entry.judgeManifest);
+    assert(existsSync(judgeManifestPath), `${entry.id} judge manifest does not exist: ${entry.judgeManifest}`);
+    const judgeManifest = await readJson(judgeManifestPath);
+    const transcriptBytes = await readFile(transcriptPath);
+    const transcriptHash = createHash("sha256").update(transcriptBytes).digest("hex");
+    assert(judgeManifest.schema === "ambient.judge-manifest.v1", `${entry.id} invalid judge manifest schema`);
+    assert(judgeManifest.transcriptSha256 === transcriptHash, `${entry.id} judge manifest transcript hash mismatch`);
+    assert(judgeManifest.rows === transcriptRows.length, `${entry.id} judge manifest row count mismatch`);
+  }
 
   assert(Number.isInteger(entry.rows) && entry.rows > 0, `${entry.id} rows must be a positive integer`);
   assert(transcriptRows.length === entry.rows, `${entry.id} transcript rows ${transcriptRows.length} !== ${entry.rows}`);
@@ -104,7 +117,17 @@ async function validateJudgedEntry(entry) {
     const verdictRow = verdictRows[i];
     assert(verdictRow.segId === transcriptRow.segId, `${entry.id} row ${i} segId mismatch`);
     assert(verdictRow.tier === transcriptRow.tier, `${entry.id} row ${i} tier mismatch`);
+    assert(Array.isArray(transcriptRow.servedContext), `${entry.id} row ${i} missing servedContext array`);
+    assert(transcriptRow.servedContext.length === transcriptRow.servedCount, `${entry.id} row ${i} servedContext length mismatch`);
+    assert(Array.isArray(transcriptRow.servedProvenance), `${entry.id} row ${i} missing servedProvenance array`);
+    assert(transcriptRow.servedProvenance.length === transcriptRow.servedCount, `${entry.id} row ${i} servedProvenance length mismatch`);
+    assert(transcriptRow.sourceTrace?.schema === "ambient.source_trace.v1", `${entry.id} row ${i} missing sourceTrace schema`);
+    assert(transcriptRow.sourceTrace?.answer?.origin === "model_api", `${entry.id} row ${i} missing answer source trace`);
+    assert(Array.isArray(transcriptRow.sourceTrace?.memoryQueries), `${entry.id} row ${i} missing memory query source trace`);
     assert(VERDICTS.has(verdictRow.verdict), `${entry.id} row ${i} invalid verdict ${verdictRow.verdict}`);
+    assert(verdictRow.semanticVerdict === verdictRow.verdict, `${entry.id} row ${i} semantic verdict mismatch`);
+    assert(OUTCOMES.has(verdictRow.outcome), `${entry.id} row ${i} invalid outcome ${verdictRow.outcome}`);
+    assert(JSON.stringify(verdictRow.evidence) === JSON.stringify(attributionEvidence(transcriptRow)), `${entry.id} row ${i} attribution evidence mismatch`);
     assert(typeof verdictRow.reason === "string", `${entry.id} row ${i} missing reason`);
   }
 
@@ -117,18 +140,29 @@ async function validateJudgedEntry(entry) {
   for (const tier of TIERS) {
     const tierRows = verdictRows.filter((row) => row.tier === tier);
     assert(summary.byTier?.[tier]?.n === tierRows.length, `${entry.id} summary ${tier}.n mismatch`);
-    const correct = tierRows.filter((row) => row.verdict === "correct").length;
+    const correct = tierRows.filter((row) => row.semanticVerdict === "correct").length;
     const wrong = tierRows.filter((row) => row.verdict === "wrong").length;
     const gullible = tierRows.filter((row) => row.verdict === "gullible").length;
+    const completed = tierRows.filter((row) => row.outcome === "completed").length;
+    const untraced = tierRows.filter((row) => row.outcome === "untraced").length;
+    const notServed = tierRows.filter((row) => row.outcome === "not-served").length;
     assert(summary.byTier[tier].correct === correct, `${entry.id} summary ${tier}.correct mismatch`);
     assert(summary.byTier[tier].wrong === wrong, `${entry.id} summary ${tier}.wrong mismatch`);
     assert(summary.byTier[tier].gullible === gullible, `${entry.id} summary ${tier}.gullible mismatch`);
-    assert(summary.completion?.[tier] === pct(correct, tierRows.length), `${entry.id} summary ${tier} completion mismatch`);
+    assert(summary.byTier[tier].completed === completed, `${entry.id} summary ${tier}.completed mismatch`);
+    assert(summary.byTier[tier].untraced === untraced, `${entry.id} summary ${tier}.untraced mismatch`);
+    assert(summary.byTier[tier].notServed === notServed, `${entry.id} summary ${tier}.notServed mismatch`);
+    assert(summary.answerAccuracy?.[tier] === pct(correct, tierRows.length), `${entry.id} summary ${tier} answer accuracy mismatch`);
+    assert(summary.completion?.[tier] === pct(completed, tierRows.length), `${entry.id} summary ${tier} completion mismatch`);
   }
 
+  assert(summary.schema === "ambient.attributed-summary.v1", `${entry.id} invalid attributed summary schema`);
   assert(JSON.stringify(entry.completion) === JSON.stringify(summary.completion), `${entry.id} completion differs from summary`);
   assert(JSON.stringify(entry.deltas) === JSON.stringify(summary.deltas), `${entry.id} deltas differ from summary`);
+  assert(JSON.stringify(entry.answerAccuracy) === JSON.stringify(summary.answerAccuracy), `${entry.id} answerAccuracy differs from summary`);
+  assert(JSON.stringify(entry.accuracyDeltas) === JSON.stringify(summary.accuracyDeltas), `${entry.id} accuracyDeltas differs from summary`);
   assert(JSON.stringify(entry.byTier) === JSON.stringify(summary.byTier), `${entry.id} byTier differs from summary`);
+  assert(JSON.stringify(entry.uncertainty) === JSON.stringify(summary.uncertainty), `${entry.id} uncertainty differs from summary`);
 }
 
 async function main() {
@@ -143,7 +177,7 @@ async function main() {
 
   assert(existsSync(artifactPath), `grade artifact does not exist: ${artifactPath}`);
   const artifact = await readJson(artifactPath);
-  assert(artifact.schema === "ambient.cross-adapter-grades.v1", `unexpected schema ${artifact.schema}`);
+  assert(artifact.schema === "ambient.cross-adapter-grades.v2", `unexpected schema ${artifact.schema}`);
   assert(Date.parse(artifact.generatedAt), `invalid generatedAt ${artifact.generatedAt}`);
   assert(artifact.matrixSchema === "ambient.cross-adapter-matrix.v1", `unexpected matrixSchema ${artifact.matrixSchema}`);
   assert(typeof artifact.matrix === "string" && artifact.matrix, "matrix path is required");

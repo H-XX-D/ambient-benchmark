@@ -15,7 +15,7 @@ const DEFAULT_ADAPTERS = [
   "mcp-local-memory-sqlite",
   "sqlite-memory-mcp-sqlite",
   "agent-memory-sqlite",
-  "agent-recall-python",
+  "mcp-memory-sqlite-personal",
   "mcp-memory-keeper-sqlite",
   "local-memory-mcp-sqlite",
   "mcp-memory-sqlite",
@@ -136,6 +136,11 @@ const source = argValue("--source", "beam");
 const size = argValue("--size", "small");
 const limit = argValue("--limit", "2");
 const perAbility = argValue("--per-ability", "0");
+const seed = argValue("--seed", "ambient-v1");
+const repeats = argValue("--repeats", "1");
+const track = argValue("--track", "development");
+const tierOrder = argValue("--tier-order", "balanced");
+const adapterDeclaration = argValue("--adapter-declaration", "");
 const skipMatrix = hasFlag("--skip-matrix");
 const useExternalModel = hasFlag("--use-external-model");
 const useExternalJudge = hasFlag("--use-external-judge");
@@ -155,12 +160,21 @@ if (!skipMatrix) {
     size,
     "--limit",
     limit,
+    "--seed",
+    seed,
+    "--repeats",
+    repeats,
+    "--track",
+    track,
+    "--tier-order",
+    tierOrder,
     "--adapters",
     adapters,
     "--out",
     matrixPath,
   ];
   if (Number(perAbility)) matrixArgs.push("--per-ability", perAbility);
+  if (adapterDeclaration) matrixArgs.push("--adapter-declaration", adapterDeclaration);
   if (useExternalModel) matrixArgs.push("--use-external-model");
   await runStep(
     "cross-adapter matrix",

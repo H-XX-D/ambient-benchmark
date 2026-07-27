@@ -1,0 +1,12 @@
+{
+  "schema": "ambient.adapter-declaration.v1",
+  "adapter": "baseline-pull",
+  "components": {
+    "capturePolicy": "ambient-reference-auto-v1",
+    "ingestGenerativeModel": null,
+    "queryGenerativeModel": null,
+    "representationModel": "lexical-tf-none",
+    "rerankerModel": null,
+    "notes": "Deterministic lexical retrieval baseline; the shared AMBIENT ingest classifier is recorded separately in the run manifest."
+  }
+}

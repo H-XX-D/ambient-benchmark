@@ -36,6 +36,10 @@ function summaryPathFor(verdictPath) {
   return verdictPath.replace(/\.jsonl$/, "-summary.json");
 }
 
+function judgeManifestPathFor(transcriptPath) {
+  return transcriptPath.replace(/transcript-/, "judge-manifest-").replace(/\.jsonl$/, ".json");
+}
+
 async function readJson(file) {
   return JSON.parse(await readFile(file, "utf8"));
 }
@@ -141,18 +145,20 @@ for (const entry of selected) {
   const proc = await runNode(judgeScript, [repoRelative(transcriptPath)], process.env);
   const verdictPath = verdictPathFor(transcriptPath);
   const summaryPath = summaryPathFor(verdictPath);
+  const judgeManifestPath = judgeManifestPathFor(transcriptPath);
 
-  if (proc.code !== 0 || !existsSync(summaryPath)) {
+  if (proc.code !== 0 || !existsSync(summaryPath) || !existsSync(judgeManifestPath)) {
     entries.push({
       ...adapter,
       status: "failed",
       verdicts: repoRelative(verdictPath),
       summary: repoRelative(summaryPath),
+      judgeManifest: repoRelative(judgeManifestPath),
       exitCode: proc.code,
       signal: proc.signal,
       stdoutTail: tail(proc.stdout),
       stderrTail: tail(proc.stderr),
-      reason: proc.code !== 0 ? "judge process failed" : "judge summary was not written",
+      reason: proc.code !== 0 ? "judge process failed" : "judge summary or manifest was not written",
     });
     continue;
   }
@@ -168,11 +174,15 @@ for (const entry of selected) {
     status: judgeErrors ? "judge-error" : "passed",
     verdicts: repoRelative(verdictPath),
     summary: repoRelative(summaryPath),
+    judgeManifest: repoRelative(judgeManifestPath),
     judgeErrors,
     completion: summary.completion ?? null,
     deltas: summary.deltas ?? null,
+    answerAccuracy: summary.answerAccuracy ?? null,
+    accuracyDeltas: summary.accuracyDeltas ?? null,
     byTier: summary.byTier ?? null,
     byAbility: summary.byAbility ?? null,
+    uncertainty: summary.uncertainty ?? null,
   });
 }
 
@@ -186,7 +196,7 @@ const totals = {
 };
 
 const artifact = {
-  schema: "ambient.cross-adapter-grades.v1",
+  schema: "ambient.cross-adapter-grades.v2",
   generatedAt: new Date().toISOString(),
   matrix: repoRelative(matrixPath),
   matrixSchema: matrix.schema ?? null,

@@ -1,0 +1,252 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#main"
+  - banner [ref=e3]:
+    - link "AMBIENT home" [ref=e4] [cursor=pointer]:
+      - /url: "#top"
+      - text: AMBIENT
+    - navigation "Primary navigation" [ref=e6]:
+      - link "Repository ↗" [ref=e10] [cursor=pointer]:
+        - /url: https://github.com/H-XX-D/ambient-benchmark
+  - main [ref=e11]:
+    - generic [ref=e28]:
+      - paragraph [ref=e29]: AgenticMemory
+      - heading "Baseline-Isolated Evaluation, Normalized Tiers." [level=1] [ref=e30]: Baseline-IsolatedEvaluation,Normalized Tiers.
+      - paragraph [ref=e31]: A controlled protocol for estimating what a memory architecture adds while the reader, judge, corpus, prompts, budgets, and run design remain fixed.
+      - generic [ref=e32]:
+        - link "GitHub repository" [ref=e33] [cursor=pointer]:
+          - /url: https://github.com/H-XX-D/ambient-benchmark
+        - link "Run or download" [ref=e34] [cursor=pointer]:
+          - /url: "#run"
+        - link "Evaluation protocol" [ref=e35] [cursor=pointer]:
+          - /url: https://github.com/H-XX-D/ambient-benchmark/blob/master/docs/EVALUATION_PROTOCOL.md
+        - link "Leaderboard" [ref=e36] [cursor=pointer]:
+          - /url: /leaderboard.html
+    - region [ref=e37]:
+      - generic [ref=e38]:
+        - figure "Figure 01 One reader traversed under four controlled memory conditions." [ref=e39]:
+          - generic: T1 / Control
+          - generic [ref=e41]:
+            - generic [ref=e42]: Figure 01
+            - paragraph [ref=e43]: One reader traversed under four controlled memory conditions.
+        - generic [ref=e44]:
+          - generic [ref=e45]:
+            - generic [ref=e46]:
+              - generic [ref=e47]: Protocol
+              - generic [ref=e48]: 2 × 2 isolation
+            - paragraph [ref=e49]: The subject is the memory architecture—not the model.
+            - generic [ref=e50]: "2026"
+          - list "Benchmark tier sequence" [ref=e51]:
+            - listitem [ref=e52]:
+              - generic [ref=e53]: 01 / T1
+              - generic [ref=e54]:
+                - heading "No memory" [level=2] [ref=e55]
+                - paragraph [ref=e56]: The no-context control. Correct answers are not credited to a memory system.
+              - generic [ref=e57]: Capture off · Bespoke memory off
+            - listitem [ref=e58]:
+              - generic [ref=e59]: 02 / T2
+              - generic [ref=e60]:
+                - heading "Reference capture" [level=2] [ref=e61]
+                - paragraph [ref=e62]: Shared automatic capture is enabled while the bespoke agentic memory remains absent.
+              - generic [ref=e63]: Capture on · Bespoke memory off
+            - listitem [ref=e64]:
+              - generic [ref=e65]: 03 / T3
+              - generic [ref=e66]:
+                - heading "Full composition" [level=2] [ref=e67]
+                - paragraph [ref=e68]: Both layers operate together, exposing positive or negative interaction effects.
+              - generic [ref=e69]: Capture on · Bespoke memory on
+            - listitem [ref=e70]:
+              - generic [ref=e71]: 04 / T4
+              - generic [ref=e72]:
+                - heading "Bespoke agentic memory isolated" [level=2] [ref=e73]
+                - paragraph [ref=e74]: The bespoke agentic memory operates without reference capture; T4−T1 is the primary contrast.
+              - generic [ref=e75]: Capture off · Bespoke memory on
+    - generic [ref=e78]:
+      - generic [ref=e79]:
+        - generic [ref=e80]: "01"
+        - paragraph [ref=e81]: Measure inventory
+      - generic [ref=e82]:
+        - heading "Fifteen reported abilities" [level=2] [ref=e83]
+        - paragraph [ref=e84]: These abilities describe the behaviors a dependable memory system should make possible, from declining unsupported answers to preserving provenance, chronology, and set integrity. AMBIENT tests the observable result of each ability—not the internal mechanism a system uses to produce it.
+        - generic [ref=e85]:
+          - article [ref=e86]:
+            - generic [ref=e87]: "01"
+            - heading "Abstention" [level=3] [ref=e88]
+            - paragraph [ref=e89]: Declines when the record cannot support an answer instead of inventing one.
+          - article [ref=e90]:
+            - generic [ref=e91]: "02"
+            - heading "Adoption" [level=3] [ref=e92]
+            - paragraph [ref=e93]: Routes new memories into the governed store so they remain available later.
+          - article [ref=e94]:
+            - generic [ref=e95]: "03"
+            - heading "Anteriority" [level=3] [ref=e96]
+            - paragraph [ref=e97]: Establishes that one record existed before another without inventing time evidence.
+          - article [ref=e98]:
+            - generic [ref=e99]: "04"
+            - heading "Calibration" [level=3] [ref=e100]
+            - paragraph [ref=e101]: Keeps confidence proportional to evidence and resists confidence laundering.
+          - article [ref=e102]:
+            - generic [ref=e103]: "05"
+            - heading "Concurrency" [level=3] [ref=e104]
+            - paragraph [ref=e105]: Preserves simultaneous writes without silent loss, corruption, or cross-talk.
+          - article [ref=e106]:
+            - generic [ref=e107]: "06"
+            - heading "Contradiction resolution" [level=3] [ref=e108]
+            - paragraph [ref=e109]: Surfaces incompatible claims instead of choosing a convenient side as fact.
+          - article [ref=e110]:
+            - generic [ref=e111]: "07"
+            - heading "Enumeration" [level=3] [ref=e112]
+            - paragraph [ref=e113]: Returns the complete requested set without omissions, duplicates, or unrelated members.
+          - article [ref=e114]:
+            - generic [ref=e115]: "08"
+            - heading "Expiry" [level=3] [ref=e116]
+            - paragraph [ref=e117]: Stops treating a claim as current after its declared or semantic validity ends.
+          - article [ref=e118]:
+            - generic [ref=e119]: "09"
+            - heading "Federation" [level=3] [ref=e120]
+            - paragraph [ref=e121]: Combines independent stores while preserving origin and exposing cross-store conflicts.
+          - article [ref=e122]:
+            - generic [ref=e123]: "10"
+            - heading "Holonomy" [level=3] [ref=e124]
+            - paragraph [ref=e125]: Detects cyclic ordering contradictions such as A before B before C before A.
+          - article [ref=e126]:
+            - generic [ref=e127]: "11"
+            - heading "Modality" [level=3] [ref=e128]
+            - paragraph [ref=e129]: Keeps hypothetical, proposed, and actual events from being mistaken for one another.
+          - article [ref=e130]:
+            - generic [ref=e131]: "12"
+            - heading "Provenance" [level=3] [ref=e132]
+            - paragraph [ref=e133]: Preserves where a remembered claim came from and which evidence supports it.
+          - article [ref=e134]:
+            - generic [ref=e135]: "13"
+            - heading "Reactivity" [level=3] [ref=e136]
+            - paragraph [ref=e137]: Updates dependent conclusions when supporting memory changes or is superseded.
+          - article [ref=e138]:
+            - generic [ref=e139]: "14"
+            - heading "Reader independence" [level=3] [ref=e140]
+            - paragraph [ref=e141]: Shows the memory supplies facts the fixed reader could not recover alone.
+          - article [ref=e142]:
+            - generic [ref=e143]: "15"
+            - heading "Set integrity" [level=3] [ref=e144]
+            - paragraph [ref=e145]: Proves served items belong to the recorded set and that its history is append-only.
+        - link "Read the ability definitions" [ref=e146] [cursor=pointer]:
+          - /url: https://github.com/H-XX-D/ambient-benchmark/blob/master/docs/10_AMBIENT_SUITE.md
+    - region [ref=e147]:
+      - generic [ref=e148]:
+        - generic [ref=e149]: Run AMBIENT
+        - generic [ref=e150]:
+          - heading "Bring the model. Choose the memory." [level=2] [ref=e151]
+          - paragraph [ref=e152]: The hosted runner lets each participant choose one reader and a separate judge through Hugging Face Inference Providers. Participants sign in with Hugging Face and authorize only inference access; the harness holds the reader fixed, changes the memory condition, and measures whether retrieved evidence lets that same reader complete questions it missed without memory.
+          - paragraph [ref=e153]: Run scopes contain 10, 100, 200, or 400 unique questions sampled evenly across all ten BEAM abilities. Ten is explicitly a smoke test; the complete 400-question scope is the first hosted option near a ±5-point worst-case single-tier margin. Repeats never count as new questions.
+          - paragraph [ref=e154]: "The primary result is attributed memory lift: T4 memory-on completion minus T1 no-memory completion. The report also separates gullible answers, answers without traced support, and cases where the needed evidence was not served. This is not a model leaderboard."
+          - paragraph [ref=e155]: Hosted runs produce an unreviewed evidence bundle. A complete 400-question run is automatically recorded on the separate hosted-results board after structural checks; only repository-reviewed bundles enter the verified architecture leaderboard. The GitHub repository remains the canonical protocol, full local runner, and evidence-review path.
+          - generic [ref=e156]:
+            - link "Evaluation rules" [ref=e157] [cursor=pointer]:
+              - /url: https://github.com/H-XX-D/ambient-benchmark/blob/master/RULES.md
+            - link "Submission format" [ref=e158] [cursor=pointer]:
+              - /url: https://github.com/H-XX-D/ambient-benchmark/blob/master/submissions/README.md
+      - generic [ref=e159]:
+        - article [ref=e160]:
+          - generic [ref=e161]: "01"
+          - heading "Download from GitHub" [level=3] [ref=e162]
+          - paragraph [ref=e163]: Clone the MIT-licensed repository to inspect the protocol, run locally, add an adapter, or submit an evidence bundle.
+          - link "Open GitHub repository ↗" [ref=e164] [cursor=pointer]:
+            - /url: https://github.com/H-XX-D/ambient-benchmark
+        - article [ref=e165]:
+          - generic [ref=e166]: "02"
+          - heading "Run in Hugging Face" [level=3] [ref=e167]
+          - paragraph [ref=e168]: Use the hosted Space. Sign in with Hugging Face, select the memory and models there, and run inference under your account.
+          - link "Open Hugging Face Space ↗" [ref=e169] [cursor=pointer]:
+            - /url: https://tjhendrix-ambient-benchmark.hf.space
+      - paragraph [ref=e170]: No configuration or API credentials are collected by this website.
+    - region [ref=e171]:
+      - figure "Figure 02 Does the memory help? A useful system raises traced completion without increasing gullibility, unsupported correctness, or failures to serve needed evidence." [ref=e172]:
+        - generic [ref=e173]:
+          - img "A robotic tape library selecting one barcode-indexed record from a dense archival store." [ref=e174]
+          - generic:
+            - complementary:
+              - text: 01 / Useful
+              - paragraph: Correct answer with evidence actually served by memory
+            - complementary:
+              - text: 02 / Harmful
+              - paragraph: Wrong or gullible answer caused by misleading memory
+            - complementary:
+              - text: 03 / Unproven
+              - paragraph: Correct answer without a trace showing memory supplied it
+        - generic [ref=e175]:
+          - generic [ref=e176]: Figure 02
+          - heading "Does the memory help?" [level=2] [ref=e177]
+          - paragraph [ref=e178]: A useful system raises traced completion without increasing gullibility, unsupported correctness, or failures to serve needed evidence.
+    - generic [ref=e179]:
+      - generic [ref=e180]:
+        - generic [ref=e181]: "02"
+        - paragraph [ref=e182]: Reporting tracks
+      - generic [ref=e183]:
+        - heading "Results are divided into two tracks" [level=2] [ref=e184]
+        - generic [ref=e185]:
+          - article [ref=e186]:
+            - generic [ref=e187]: Architecture track
+            - heading "What did the memory add?" [level=3] [ref=e188]
+            - paragraph [ref=e189]: The reader, judge, corpus, prompts, and budgets stay fixed. Only the memory condition changes.
+            - generic [ref=e190]:
+              - generic [ref=e191]:
+                - term [ref=e192]: Primary score
+                - definition [ref=e193]: T4 memory-only completion minus T1 no-memory completion.
+              - generic [ref=e194]:
+                - term [ref=e195]: Valid comparison
+                - definition [ref=e196]: Only rows with the same control fingerprint.
+          - article [ref=e197]:
+            - generic [ref=e198]: Native system track
+            - heading "Does the complete system work?" [level=3] [ref=e199]
+            - paragraph [ref=e200]: Each system may use its preferred reader, retrieval, prompts, and complete production stack.
+            - generic [ref=e201]:
+              - generic [ref=e202]:
+                - term [ref=e203]: Primary score
+                - definition [ref=e204]: T3 attributed completion for the end-to-end system.
+              - generic [ref=e205]:
+                - term [ref=e206]: Interpretation
+                - definition [ref=e207]: Product performance—not proof that memory alone caused the result.
+        - generic [ref=e208]:
+          - generic [ref=e209]:
+            - generic [ref=e210]: Scoring example
+            - heading "A correct answer is not enough." [level=3] [ref=e211]
+            - paragraph [ref=e212]: AMBIENT asks whether memory caused the correct answer—and whether bad memory caused harm.
+          - generic [ref=e213]:
+            - article [ref=e214]:
+              - generic [ref=e215]: Memory deserves credit
+              - heading "Correct because memory served it" [level=4] [ref=e216]
+              - generic [ref=e217]:
+                - generic [ref=e218]:
+                  - term [ref=e219]: Question
+                  - definition [ref=e220]: When is the Atlas review?
+                - generic [ref=e221]:
+                  - term [ref=e222]: Served memory
+                  - definition [ref=e223]: “The review moved from 12 May to 18 May.”
+                - generic [ref=e224]:
+                  - term [ref=e225]: Answer
+                  - definition [ref=e226]: 18 May
+              - strong [ref=e227]: Completed · traced memory credit
+            - article [ref=e228]:
+              - generic [ref=e229]: Memory does not deserve credit
+              - heading "Wrong—or correct for another reason" [level=4] [ref=e230]
+              - generic [ref=e231]:
+                - generic [ref=e232]:
+                  - term [ref=e233]: Bad-memory case
+                  - definition [ref=e234]: "Outdated “12 May” is served and repeated: wrong or gullible."
+                - generic [ref=e235]:
+                  - term [ref=e236]: Untraced case
+                  - definition [ref=e237]: "The reader says “18 May,” but memory served no supporting fact: correct answer, zero memory credit."
+              - strong [ref=e238]: Wrong / gullible / untraced · no memory credit
+        - link "Leaderboard definitions and results" [ref=e239] [cursor=pointer]:
+          - /url: /leaderboard.html
+  - contentinfo [ref=e240]:
+    - link "AMBIENT" [ref=e241] [cursor=pointer]:
+      - /url: "#top"
+    - paragraph [ref=e243]: "Agentic Memory: Baseline-Isolated Evaluation, Normalized Tiers."
+    - generic [ref=e244]:
+      - link "Privacy" [ref=e245] [cursor=pointer]:
+        - /url: /privacy.html
+      - link "Terms" [ref=e246] [cursor=pointer]:
+        - /url: /terms.html
+      - link "MIT License" [ref=e247] [cursor=pointer]:
+        - /url: /license.html

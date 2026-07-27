@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // AMBIENT judge pass. Reads a four-tier transcript (from tiers/runner.mjs) and scores
-// every answer correct / wrong / gullible, then aggregates per-tier completion, gullible
-// rate, and the attribution deltas (T2/T4/T3 vs the T1 baseline).
+// every answer correct / wrong / gullible. A deterministic second stage combines that
+// semantic verdict with the harness trace, then aggregates answer accuracy separately
+// from memory completion and attribution deltas (T2/T4/T3 vs T1).
 //
 // THE JUDGE IS A FRONTIER MODEL, NOT THE LOCAL READER. Judging runs through a quality API
 // or a subscription harness (Claude, GPT, Gemini), separate from the fixed reader: a model
@@ -22,8 +23,10 @@
 //
 // Usage: node tiers/judge.mjs results/transcript-<source>-<size>.jsonl
 
+import { createHash } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { basename } from "node:path";
+import { aggregateAttributedVerdicts, attributedVerdict } from "./attribution.mjs";
 
 const TRANSCRIPT = process.argv[2];
 if (!TRANSCRIPT) {
@@ -36,6 +39,8 @@ const JUDGE = {
   model: ENV("AMBIENT_JUDGE_MODEL", "judge"),
   key: ENV("AMBIENT_JUDGE_KEY", "no-key"),
 };
+const JUDGE_PARAMS = { temperature: 0, maxTokens: 120 };
+const sha256 = (value) => createHash("sha256").update(value).digest("hex");
 
 const RUBRIC =
   "You are the AMBIENT judge. Given a benchmark row, output STRICT JSON " +
@@ -62,8 +67,8 @@ async function judgeOne(row) {
         { role: "system", content: RUBRIC },
         { role: "user", content: user },
       ],
-      temperature: 0,
-      max_tokens: 120,
+      temperature: JUDGE_PARAMS.temperature,
+      max_tokens: JUDGE_PARAMS.maxTokens,
     }),
   });
   if (!res.ok) throw new Error(`judge ${res.status}: ${(await res.text()).slice(0, 160)}`);
@@ -86,32 +91,9 @@ function parseVerdict(txt) {
   return { verdict: v, reason: "parsed-from-text" };
 }
 
-function aggregate(verdicts) {
-  const byTier = {};
-  const byAbility = {};
-  for (const v of verdicts) {
-    const t = (byTier[v.tier] ??= { correct: 0, wrong: 0, gullible: 0, n: 0 });
-    t[v.verdict]++;
-    t.n++;
-    const a = (byAbility[v.ability] ??= {});
-    const at = (a[v.tier] ??= { correct: 0, gullible: 0, n: 0 });
-    at.n++;
-    if (v.verdict === "correct") at.correct++;
-    if (v.verdict === "gullible") at.gullible++;
-  }
-  const pct = (c, n) => (n ? Math.round((100 * c) / n) : 0);
-  const comp = (t) => pct((byTier[t] || {}).correct || 0, (byTier[t] || {}).n || 0);
-  const d = (t) => comp(t) - comp("T1");
-  return {
-    byTier,
-    byAbility,
-    completion: Object.fromEntries(["T1", "T2", "T3", "T4"].map((t) => [t, comp(t)])),
-    deltas: { T2: d("T2"), T4: d("T4"), T3: d("T3"), interaction: d("T3") - (d("T2") + d("T4")) },
-  };
-}
-
 async function main() {
-  const rows = readFileSync(TRANSCRIPT, "utf8").trim().split("\n").map((l) => JSON.parse(l));
+  const transcriptBytes = readFileSync(TRANSCRIPT);
+  const rows = transcriptBytes.toString("utf8").trim().split("\n").map((l) => JSON.parse(l));
   console.log(`judging ${rows.length} rows | judge model=${JUDGE.model} @ ${JUDGE.endpoint}`);
   const verdicts = [];
   let done = 0;
@@ -122,17 +104,33 @@ async function main() {
     } catch (e) {
       v = { verdict: "wrong", reason: "judge error: " + e.message };
     }
-    verdicts.push({ segId: r.segId, tier: r.tier, ability: r.ability, tag: r.tag, storeCall: r.storeCall, ...v });
+    const attributed = attributedVerdict(r, v);
+    verdicts.push({
+      runId: r.runId ?? null,
+      replicate: r.replicate ?? 0,
+      segId: r.segId,
+      tier: r.tier,
+      ability: r.ability,
+      tag: r.tag,
+      storeCall: r.storeCall,
+      servedCount: r.servedCount,
+      verdict: attributed.semanticVerdict,
+      ...attributed,
+    });
     process.stdout.write(`\r  ${++done}/${rows.length}`);
   }
   console.log("");
 
-  const agg = aggregate(verdicts);
-  console.log("\nTIER   completion  gullible  n");
+  const agg = aggregateAttributedVerdicts(verdicts);
+  console.log("\nTIER   answer-accuracy  memory-completion  gullible  untraced  not-served  n");
   for (const t of ["T1", "T2", "T3", "T4"]) {
-    const s = agg.byTier[t] || { correct: 0, gullible: 0, n: 0 };
+    const s = agg.byTier[t] || { correct: 0, completed: 0, gullible: 0, untraced: 0, notServed: 0, n: 0 };
     const pct = (c) => (s.n ? Math.round((100 * c) / s.n) : 0);
-    console.log(`  ${t}   ${(pct(s.correct) + "%").padStart(7)}  ${(pct(s.gullible) + "%").padStart(7)}  ${String(s.n).padStart(3)}`);
+    console.log(
+      `  ${t}   ${(pct(s.correct) + "%").padStart(15)}  ${(pct(s.completed) + "%").padStart(17)}  ` +
+      `${(pct(s.gullible) + "%").padStart(8)}  ${(pct(s.untraced) + "%").padStart(9)}  ` +
+      `${(pct(s.notServed) + "%").padStart(10)}  ${String(s.n).padStart(3)}`,
+    );
   }
   console.log("\nAttribution (completion vs T1 baseline):");
   console.log(`  T2 auto only   : ${agg.deltas.T2 >= 0 ? "+" : ""}${agg.deltas.T2} pts`);
@@ -143,7 +141,29 @@ async function main() {
   const out = TRANSCRIPT.replace(/transcript-/, "verdicts-");
   writeFileSync(out, verdicts.map((v) => JSON.stringify(v)).join("\n") + "\n");
   writeFileSync(out.replace(/\.jsonl$/, "-summary.json"), JSON.stringify(agg, null, 2));
-  console.log(`\nwrote ${basename(out)} + summary`);
+  const judgeErrors = verdicts.filter((row) => String(row.reason).startsWith("judge error:")).length;
+  const runIds = [...new Set(rows.map((row) => row.runId).filter(Boolean))];
+  const judgeSpec = {
+    endpoint: JUDGE.endpoint,
+    model: JUDGE.model,
+    ...JUDGE_PARAMS,
+    rubricSha256: sha256(RUBRIC),
+  };
+  judgeSpec.fingerprint = sha256(JSON.stringify(judgeSpec));
+  const judgeManifest = {
+    schema: "ambient.judge-manifest.v1",
+    generatedAt: new Date().toISOString(),
+    transcript: TRANSCRIPT,
+    transcriptSha256: sha256(transcriptBytes),
+    runIds,
+    rows: rows.length,
+    judge: judgeSpec,
+    judgeErrors,
+    validForPublication: judgeErrors === 0 && runIds.length === 1,
+  };
+  const judgeManifestOut = out.replace(/verdicts-/, "judge-manifest-").replace(/\.jsonl$/, ".json");
+  writeFileSync(judgeManifestOut, JSON.stringify(judgeManifest, null, 2) + "\n");
+  console.log(`\nwrote ${basename(out)} + summary + ${basename(judgeManifestOut)}`);
 }
 
 main().catch((e) => {

@@ -14,7 +14,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const DEFAULT_PACKAGE_PATH = "/tmp/ambient-agent-recall";
+const DEFAULT_PACKAGE_PATH = join(ROOT, "fixtures", "agent-recall");
 
 function listen(server) {
   return new Promise((resolve, reject) => {

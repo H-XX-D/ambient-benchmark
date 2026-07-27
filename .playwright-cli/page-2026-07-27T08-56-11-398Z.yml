@@ -1,0 +1,82 @@
+- generic [ref=e4]:
+  - main [ref=e22]:
+    - generic [ref=e23]:
+      - generic [ref=e26]:
+        - generic [ref=e27]:
+          - text: Bespoke agentic memory · hosted runner
+          - heading [level=1] [ref=e28]:
+            - text: Hold the model fixed.
+            - emphasis [ref=e29]: Change the memory.
+          - paragraph [ref=e30]: Choose a reader, a memory architecture, and an independent judge. AMBIENT tests whether the selected memory helps that same reader recover and correctly use evidence it missed with memory off. It does not rank reader models.
+        - generic [ref=e31]:
+          - strong [ref=e32]: What is measured
+          - text: T1 is the fixed reader with no served memory. T4 isolates the selected memory. T4−T1 is attributed memory lift. The evidence bundle also separates gullible, untraced, and evidence-not-served outcomes.
+      - heading "01 · Memory architecture" [level=3] [ref=e37]
+      - generic [ref=e40]:
+        - generic [ref=e41]: Memory under test
+        - combobox "Memory under test" [ref=e45]: Recall
+      - heading "02 · Fixed reader" [level=3] [ref=e50]
+      - paragraph [ref=e55]: The reader answers every question under all four conditions. Its model is held fixed; its key pays the selected provider for reader and checker calls.
+      - generic [ref=e57]:
+        - generic [ref=e59]:
+          - generic [ref=e60]: Reader provider
+          - combobox "Reader provider" [ref=e64]: OpenAI
+        - generic [ref=e66]:
+          - generic [ref=e67]: Reader model ID
+          - textbox "Reader model ID" [ref=e69]:
+            - /placeholder: ""
+            - text: gpt-4.1-mini
+        - generic [ref=e71]:
+          - generic [ref=e72]: Reader API key
+          - textbox "Reader API key" [ref=e74]:
+            - /placeholder: ""
+            - text: fake-reader-key-123
+      - heading "03 · Independent judge" [level=3] [ref=e79]
+      - paragraph [ref=e84]: The judge must be a different model. It grades correctness after the run and cannot award memory credit without traced retrieved evidence.
+      - generic [ref=e86]:
+        - generic [ref=e88]:
+          - generic [ref=e89]: Judge provider
+          - combobox "Judge provider" [ref=e93]: OpenAI
+        - generic [ref=e95]:
+          - generic [ref=e96]: Judge model ID
+          - textbox "Judge model ID" [ref=e98]:
+            - /placeholder: ""
+            - text: gpt-4.1-mini
+        - generic [ref=e100]:
+          - generic [ref=e101]: Judge API key
+          - textbox "Judge API key" [ref=e103]:
+            - /placeholder: ""
+            - text: fake-judge-key-456
+      - heading "04 · Run scope" [level=3] [ref=e108]
+      - generic [ref=e110]:
+        - generic [ref=e112]:
+          - generic [ref=e113]: BEAM question pairs
+          - combobox "BEAM question pairs" [ref=e117]: 2 · smoke
+        - generic [ref=e119] [cursor=pointer]:
+          - checkbox "I understand that my keys go to this Hugging Face Space and the selected providers for this run. I am using revocable, spend-limited keys." [checked] [ref=e120]
+          - generic [ref=e121]: I understand that my keys go to this Hugging Face Space and the selected providers for this run. I am using revocable, spend-limited keys.
+      - button "Run controlled evaluation" [active] [ref=e122] [cursor=pointer]
+      - generic [ref=e139]:
+        - button "Clear" [ref=e141] [cursor=pointer]
+        - generic [ref=e147]: Error
+      - generic [ref=e123]:
+        - generic [ref=e148]:
+          - button "Clear" [ref=e150] [cursor=pointer]
+          - generic [ref=e156]: Error
+        - generic: Download unreviewed evidence bundle
+        - generic "Empty value" [ref=e124]
+      - button "Technical run log ▼" [ref=e130] [cursor=pointer]:
+        - generic [ref=e131]: Technical run log
+        - generic [ref=e132]: ▼
+      - generic [ref=e136]:
+        - strong [ref=e137]: Publication boundary
+        - text: Every hosted bundle is marked unreviewed. A completed run never writes to Supabase or enters the leaderboard automatically. Submit the bundle through
+        - link "GitHub" [ref=e138] [cursor=pointer]:
+          - /url: https://github.com/H-XX-D/ambient-benchmark
+        - text: for integrity review.
+  - status [ref=e159]:
+    - button "Error Close" [ref=e160] [cursor=pointer]:
+      - generic [ref=e164]: Error
+      - button "Close" [ref=e169]:
+        - generic [ref=e170]: ×
+    - generic [ref=e171]: The judge must be a different model from the reader.

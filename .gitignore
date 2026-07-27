@@ -1,8 +1,14 @@
 node_modules/
-/results/
+/results/*
+!/results/ambient-injection-hard-z6-qwen32-20260727-trial-1.json
+!/results/ambient-injection-hard-z6-qwen32-20260727-trial-2.json
+!/results/ambient-injection-hard-z6-qwen32-20260727-trial-3.json
+!/results/ambient-injection-hard-z6-qwen32-20260727.md
 corpora/data/
 corpora/out/
 *.key
 .env
 .env.local
 .DS_Store
+.vercel
+dist/hf-space/

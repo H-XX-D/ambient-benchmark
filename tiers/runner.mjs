@@ -11,13 +11,16 @@
 // Requires corpora reconstructed into corpora/out/<source>/<size>/ and a reader backend
 // (model/backend.mjs -> llama-server or online). Uses the in-process baseline adapter.
 
+import { createHash, randomUUID } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { ask, askClassifier, resolveBackend } from "../model/backend.mjs";
+import { ask, askClassifier, publicModelSpec, resolveBackend, resolveClassifier } from "../model/backend.mjs";
 import { BaselinePull } from "../adapters/baseline-pull.mjs";
 import { HttpAdapter } from "../adapters/http-client.mjs";
 import { ReferenceAutoMemory } from "../adapters/harness-automemory.mjs";
+import { selectStratifiedSegments } from "./sampling.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const TIERS = ["T1", "T2", "T3", "T4"];
@@ -33,6 +36,11 @@ const SOURCE = arg("source", "beam");
 const SIZE = arg("size", "small");
 const LIMIT = Number(arg("limit", "12"));
 const PER_ABILITY = Number(arg("per-ability", "0"));
+const REPEATS = Math.max(1, Number(arg("repeats", "1")) || 1);
+const SEED = arg("seed", "ambient-v1");
+const TIER_ORDER = arg("tier-order", "balanced");
+const TRACK = arg("track", "development");
+const ADAPTER_DECLARATION = arg("adapter-declaration", "");
 const ADAPTER_URL = arg("adapter-url", ""); // e.g. http://127.0.0.1:8091 (cognicore); empty = in-process baseline-pull
 // Auto tiers (T2/T3) use the reference auto-ingestion harness (model-decided capture) by default.
 // Pass --native-auto to skip it and rely on the substrate's own auto-capture (for substrates that have one).
@@ -48,17 +56,43 @@ const BUILD_ONLY = Boolean(arg("build-only", ""));
 const QUERY_ONLY = Boolean(arg("query-only", ""));
 const OUT = join(ROOT, "corpora", "out", SOURCE, SIZE);
 
+if (!["balanced", "fixed"].includes(TIER_ORDER)) {
+  throw new Error("--tier-order must be balanced or fixed");
+}
+if (!["development", "architecture", "native-system"].includes(TRACK)) {
+  throw new Error("--track must be development, architecture, or native-system");
+}
+if (TRACK === "architecture" && NATIVE_AUTO) {
+  throw new Error("--track architecture requires the shared reference auto-ingestion path; remove --native-auto");
+}
+if (TRACK === "architecture" && !ADAPTER_DECLARATION) {
+  throw new Error("--track architecture requires --adapter-declaration <json>; undeclared adapter-side models cannot support an architecture-only claim");
+}
+if (TRACK === "architecture" && REPEATS < 3) {
+  throw new Error("--track architecture requires --repeats 3 or greater so reader variance is observable");
+}
+
+const sha256 = (value) => createHash("sha256").update(value).digest("hex");
+
+function gitValue(args, fallback = null) {
+  try {
+    return execFileSync("git", args, { cwd: ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim() || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function tierSequence(segmentIndex, repeatIndex) {
+  if (TIER_ORDER === "fixed") return [...TIERS];
+  // A deterministic Latin-square rotation prevents tier/service ordering from being
+  // perfectly confounded with treatment while keeping every segment paired.
+  const offset = (segmentIndex + repeatIndex + Number.parseInt(sha256(SEED).slice(0, 4), 16)) % TIERS.length;
+  return [...TIERS.slice(offset), ...TIERS.slice(0, offset)];
+}
+
 function loadSegments() {
   const all = readFileSync(join(OUT, "segments.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
-  const byAbility = new Map();
-  for (const s of all) {
-    if (!byAbility.has(s.ability)) byAbility.set(s.ability, []);
-    byAbility.get(s.ability).push(s);
-  }
-  const cap = PER_ABILITY || Math.max(1, Math.ceil(LIMIT / byAbility.size));
-  const picked = [];
-  for (const [, segs] of byAbility) picked.push(...segs.slice(0, cap));
-  return picked.slice(0, LIMIT || picked.length);
+  return selectStratifiedSegments(all, { limit: LIMIT, perAbility: PER_ABILITY, seed: SEED });
 }
 
 function loadEvents(conversationId) {
@@ -145,9 +179,7 @@ function traceBackend() {
   const cfg = resolveBackend();
   return {
     origin: "model_api",
-    backend: cfg.backend,
-    endpoint: cfg.endpoint,
-    model: cfg.model || "local",
+    ...publicModelSpec(cfg, "reader"),
   };
 }
 
@@ -287,7 +319,7 @@ const SYS = [
   "If the answer is not in the context, reply exactly: I don't know.",
 ].join("\n");
 
-async function askSegment(base, seg, tier) {
+async function askSegment(base, seg, tier, runId, replicate) {
   const memoryQueries = [];
   let servedItems = [];
   let storeCall = false;
@@ -333,6 +365,8 @@ async function askSegment(base, seg, tier) {
   }
   const servedProvenance = servedItems.map((item, index) => ({ contextIndex: index, ...item.provenance }));
   return {
+    runId,
+    replicate,
     segId: seg.id,
     ability: seg.ability,
     tag: seg.tag,
@@ -362,7 +396,8 @@ async function askSegment(base, seg, tier) {
 }
 
 async function main() {
-  const segs = loadSegments();
+  const selection = loadSegments();
+  const segs = selection.segments;
   const base = ADAPTER_URL ? await new HttpAdapter(ADAPTER_URL).init() : new BaselinePull();
   const harness = NATIVE_AUTO ? null : new ReferenceAutoMemory(base, ask);
   const runName = base.name + (harness ? "+auto" : "");
@@ -380,15 +415,76 @@ async function main() {
     console.log("query-only: skipping build, answering against the adapter's already-built stores");
   }
 
-  const transcript = [];
-  for (const tier of TIERS) {
-    let done = 0;
-    for (const seg of segs) {
-      transcript.push(await askSegment(base, seg, tier));
-      process.stdout.write(`\r  ${tier} ${++done}/${segs.length}`);
+  const corpusFiles = [join(OUT, "segments.jsonl"), ...convIds.map((id) => join(OUT, "corpus", id.replace(/[/:]/g, "_") + ".jsonl"))]
+    .filter(existsSync)
+    .sort();
+  const corpusDigest = sha256(corpusFiles.map((file) => `${file.slice(ROOT.length + 1)}:${sha256(readFileSync(file))}`).join("\n"));
+  const reader = publicModelSpec(resolveBackend(), "reader");
+  const classifier = publicModelSpec(resolveClassifier(), "ingest-classifier");
+  const promptFingerprint = sha256(SYS);
+  const protocolFingerprint = sha256([SOURCE, SIZE, corpusDigest, reader.fingerprint, classifier.fingerprint, promptFingerprint, TRACK, SEED].join(":"));
+  const runId = `ambient-${randomUUID()}`;
+  const gitCommit = gitValue(["rev-parse", "HEAD"]);
+  const gitDirty = Boolean(gitValue(["status", "--porcelain"], ""));
+  let adapterDeclaration = null;
+  if (ADAPTER_DECLARATION) {
+    const declarationPath = join(ROOT, ADAPTER_DECLARATION);
+    if (!existsSync(declarationPath)) throw new Error(`adapter declaration not found: ${ADAPTER_DECLARATION}`);
+    adapterDeclaration = JSON.parse(readFileSync(declarationPath, "utf8"));
+    if (adapterDeclaration.schema !== "ambient.adapter-declaration.v1") {
+      throw new Error(`unsupported adapter declaration schema: ${adapterDeclaration.schema}`);
     }
-    process.stdout.write("\n");
   }
+  const manifest = {
+    schema: "ambient.run-manifest.v1",
+    runId,
+    generatedAt: new Date().toISOString(),
+    claimTrack: TRACK,
+    claimScope: TRACK === "architecture"
+      ? "architecture-effect candidate; requires adapter component declarations and integrity gate"
+      : TRACK === "native-system"
+        ? "end-to-end system performance; not an architecture-only causal claim"
+        : "development artifact; not publishable",
+    design: {
+      factors: { referenceAutoCapture: [false, true], customSubstrateStore: [false, true] },
+      tiers: TIERS,
+      tierOrder: TIER_ORDER,
+      seed: SEED,
+      repeats: REPEATS,
+      pairedBy: ["segId", "replicate"],
+      contextBudgetChars: MAX_CTX_CHARS,
+      perItemChars: PER_ITEM_CHARS,
+      sampling: selection.metadata,
+    },
+    corpus: { source: SOURCE, size: SIZE, segments: segs.length, conversations: convIds.length, sha256: corpusDigest },
+    models: { reader, classifier },
+    prompts: { readerSha256: promptFingerprint, ingestClassifierSha256: sha256(FIREWALL_SYS) },
+    adapter: {
+      name: base.name,
+      urlMode: Boolean(ADAPTER_URL),
+      nativeAuto: NATIVE_AUTO,
+      declaration: adapterDeclaration
+        ? { path: ADAPTER_DECLARATION, sha256: sha256(readFileSync(join(ROOT, ADAPTER_DECLARATION))), components: adapterDeclaration.components }
+        : null,
+    },
+    runtime: { node: process.version, platform: process.platform, arch: process.arch },
+    source: { gitCommit, gitDirty, argv: process.argv.slice(2) },
+    protocolFingerprint,
+  };
+
+  const transcript = [];
+  let completed = 0;
+  const expected = segs.length * TIERS.length * REPEATS;
+  for (let replicate = 0; replicate < REPEATS; replicate += 1) {
+    for (let segmentIndex = 0; segmentIndex < segs.length; segmentIndex += 1) {
+      const seg = segs[segmentIndex];
+      for (const tier of tierSequence(segmentIndex, replicate)) {
+        transcript.push(await askSegment(base, seg, tier, runId, replicate));
+        process.stdout.write(`\r  paired run ${++completed}/${expected}`);
+      }
+    }
+  }
+  process.stdout.write("\n");
 
   // production summary only; verdicts are a separate judge pass.
   const byTier = {};
@@ -409,8 +505,11 @@ async function main() {
   mkdirSync(resDir, { recursive: true });
   const stamp = `${SOURCE}-${SIZE}-${runName}`;
   const path = join(resDir, `transcript-${stamp}.jsonl`);
+  const manifestPath = join(resDir, `manifest-${stamp}.json`);
   writeFileSync(path, transcript.map((r) => JSON.stringify(r)).join("\n") + "\n");
-  console.log(`\nwrote ${transcript.length} rows -> results/transcript-${stamp}.jsonl  (judge with a separate pass)`);
+  writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
+  console.log(`\nwrote ${transcript.length} rows -> results/transcript-${stamp}.jsonl`);
+  console.log(`wrote controlled-run metadata -> results/manifest-${stamp}.json  (judge with a separate pass)`);
 
   // show two samples so the transcript is legible at a glance
   console.log("\nsamples (T1 baseline vs T4 custom-only):");

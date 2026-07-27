@@ -1,0 +1,273 @@
+- generic [active] [ref=e1]:
+  - link "Skip to content" [ref=e2] [cursor=pointer]:
+    - /url: "#main"
+  - banner [ref=e3]:
+    - link "AMBIENT home" [ref=e4] [cursor=pointer]:
+      - /url: "#top"
+      - text: AMBIENT
+    - navigation "Primary navigation" [ref=e6]:
+      - link "Design" [ref=e7] [cursor=pointer]:
+        - /url: "#design"
+      - link "Evidence" [ref=e8] [cursor=pointer]:
+        - /url: "#evidence"
+      - link "Results" [ref=e9] [cursor=pointer]:
+        - /url: /leaderboard.html
+      - link "Run ↗" [ref=e10] [cursor=pointer]:
+        - /url: https://huggingface.co/spaces/tjhendrix/ambient-benchmark
+      - link "Repository ↗" [ref=e11] [cursor=pointer]:
+        - /url: https://github.com/H-XX-D/ambient-benchmark
+  - main [ref=e12]:
+    - generic [ref=e13]:
+      - generic [ref=e14]:
+        - paragraph [ref=e15]: Open benchmark
+        - generic [ref=e16]:
+          - generic [ref=e17]:
+            - term [ref=e18]: Release
+            - definition [ref=e19]: 0.1 pre-release
+          - generic [ref=e20]:
+            - term [ref=e21]: Scope
+            - definition [ref=e22]: Memory architecture
+          - generic [ref=e23]:
+            - term [ref=e24]: Execution
+            - definition [ref=e25]: Hosted or local
+          - generic [ref=e26]:
+            - term [ref=e27]: License
+            - definition [ref=e28]: MIT
+      - generic [ref=e29]:
+        - paragraph [ref=e30]: AgenticMemory
+        - heading "Baseline-Isolated Evaluation, Normalized Tiers." [level=1] [ref=e31]: Baseline-IsolatedEvaluation,Normalized Tiers.
+        - paragraph [ref=e32]: A controlled protocol for estimating what a memory architecture adds while the reader, judge, corpus, prompts, budgets, and run design remain fixed.
+        - generic [ref=e33]:
+          - link "GitHub repository" [ref=e34] [cursor=pointer]:
+            - /url: https://github.com/H-XX-D/ambient-benchmark
+          - link "Hosted runner" [ref=e35] [cursor=pointer]:
+            - /url: https://huggingface.co/spaces/tjhendrix/ambient-benchmark
+          - link "Evaluation protocol" [ref=e36] [cursor=pointer]:
+            - /url: https://github.com/H-XX-D/ambient-benchmark/blob/master/docs/EVALUATION_PROTOCOL.md
+          - link "Leaderboard" [ref=e37] [cursor=pointer]:
+            - /url: /leaderboard.html
+    - region [ref=e38]:
+      - generic [ref=e39]:
+        - figure "Figure 01 One reader traversed under four controlled memory conditions." [ref=e40]:
+          - generic:
+            - generic: T1 / Control
+            - generic: Capture off · Memory off
+          - generic [ref=e42]:
+            - generic [ref=e43]: Figure 01
+            - paragraph [ref=e44]: One reader traversed under four controlled memory conditions.
+        - generic [ref=e45]:
+          - generic [ref=e46]:
+            - generic [ref=e47]:
+              - generic [ref=e48]: Protocol
+              - generic [ref=e49]: 2 × 2 isolation
+            - paragraph [ref=e50]: The subject is the memory architecture—not the model.
+            - generic [ref=e51]: "2026"
+          - list "Benchmark tier sequence" [ref=e52]:
+            - listitem [ref=e53]:
+              - generic [ref=e54]: 01 / T1
+              - generic [ref=e55]:
+                - heading "No memory" [level=2] [ref=e56]
+                - paragraph [ref=e57]: The no-context control. Correct answers are not credited to a memory system.
+              - generic [ref=e58]: Capture off · Bespoke memory off
+            - listitem [ref=e59]:
+              - generic [ref=e60]: 02 / T2
+              - generic [ref=e61]:
+                - heading "Reference capture" [level=2] [ref=e62]
+                - paragraph [ref=e63]: Shared automatic capture is enabled while the bespoke agentic memory remains absent.
+              - generic [ref=e64]: Capture on · Bespoke memory off
+            - listitem [ref=e65]:
+              - generic [ref=e66]: 03 / T3
+              - generic [ref=e67]:
+                - heading "Full composition" [level=2] [ref=e68]
+                - paragraph [ref=e69]: Both layers operate together, exposing positive or negative interaction effects.
+              - generic [ref=e70]: Capture on · Bespoke memory on
+            - listitem [ref=e71]:
+              - generic [ref=e72]: 04 / T4
+              - generic [ref=e73]:
+                - heading "Bespoke agentic memory isolated" [level=2] [ref=e74]
+                - paragraph [ref=e75]: The bespoke agentic memory operates without reference capture; T4−T1 is the primary contrast.
+              - generic [ref=e76]: Capture off · Bespoke memory on
+          - generic [ref=e77]: Scroll to traverse
+    - region "Current evidence status" [ref=e79]:
+      - generic [ref=e80]:
+        - generic [ref=e81]: Release state
+        - strong [ref=e82]: Verified pre-release · 0 validated submissions
+      - generic [ref=e83]:
+        - generic [ref=e84]: Verified checks
+        - strong [ref=e85]: "132"
+      - generic [ref=e86]:
+        - generic [ref=e87]: Adapter smoke paths
+        - strong [ref=e88]: "10"
+      - generic [ref=e89]:
+        - generic [ref=e90]: Published submissions
+        - strong [ref=e91]: "0"
+    - generic [ref=e92]:
+      - generic [ref=e93]:
+        - generic [ref=e94]: "01"
+        - paragraph [ref=e95]: Research question
+      - generic [ref=e96]:
+        - heading "What changed because of the memory layer?" [level=2] [ref=e97]
+        - generic [ref=e98]:
+          - paragraph [ref=e99]: A conventional memory score can combine model capability, retrieval policy, prompt construction, context budget, and judge preference. It may describe a product, but it cannot by itself identify the contribution of the memory architecture.
+          - paragraph [ref=e100]: AMBIENT isolates that contribution with paired cells, source traces, a separately pinned judge, and an architecture integrity gate. When a controlled component drifts, the architecture claim fails closed.
+        - generic [ref=e101]:
+          - generic [ref=e102]: Primary estimand
+          - code [ref=e103]:
+            - text: Δ
+            - subscript [ref=e104]: architecture
+            - text: = completion(T4) − completion(T1)
+    - region "Result interpretation" [ref=e105]:
+      - generic [ref=e106]:
+        - generic [ref=e107]: Result interpretation
+        - generic [ref=e108]: AMBIENT / 01
+      - paragraph [ref=e109]:
+        - text: T4−T1 estimates the effect of the bespoke agentic memory.
+        - emphasis [ref=e110]: T3 reports the complete system and is not used for that attribution.
+    - region [ref=e111]:
+      - figure "Figure 02 What remains fixed. The same reader, judge, prompts, corpus, and budgets are used across four memory conditions." [ref=e112]:
+        - generic [ref=e113]:
+          - img "A robotic tape library selecting one barcode-indexed record from a dense archival store." [ref=e114]
+          - generic:
+            - complementary:
+              - text: 01 / Fixed controls
+              - paragraph: Reader · judge · prompts · corpus · budget
+            - complementary:
+              - text: 02 / Permitted variables
+              - paragraph: Reference capture · bespoke agentic memory
+            - complementary:
+              - text: 03 / Attribution gate
+              - paragraph: Component drift invalidates the architecture claim
+        - generic [ref=e115]:
+          - generic [ref=e116]: Figure 02
+          - heading "What remains fixed." [level=2] [ref=e117]
+          - paragraph [ref=e118]: The same reader, judge, prompts, corpus, and budgets are used across four memory conditions.
+    - generic [ref=e119]:
+      - generic [ref=e120]:
+        - generic [ref=e121]: "02"
+        - paragraph [ref=e122]: Experimental design
+      - generic [ref=e123]:
+        - heading "One reader. Four conditions." [level=2] [ref=e124]
+        - table "AMBIENT tier definitions" [ref=e125]:
+          - row "Tier Reference capture Bespoke agentic memory Interpretation" [ref=e126]:
+            - generic [ref=e127]: Tier
+            - generic [ref=e128]: Reference capture
+            - generic [ref=e129]: Bespoke agentic memory
+            - generic [ref=e130]: Interpretation
+          - row "T1 Off Off No-context control; correct answers are not credited to memory." [ref=e131]:
+            - generic [ref=e132]: T1
+            - generic [ref=e133]: "Off"
+            - generic [ref=e134]: "Off"
+            - paragraph [ref=e135]: No-context control; correct answers are not credited to memory.
+          - row "T2 On Off Shared automatic capture without the bespoke agentic memory." [ref=e136]:
+            - generic [ref=e137]: T2
+            - generic [ref=e138]: "On"
+            - generic [ref=e139]: "Off"
+            - paragraph [ref=e140]: Shared automatic capture without the bespoke agentic memory.
+          - row "T3 On On Full composition; exposes positive or negative interaction." [ref=e141]:
+            - generic [ref=e142]: T3
+            - generic [ref=e143]: "On"
+            - generic [ref=e144]: "On"
+            - paragraph [ref=e145]: Full composition; exposes positive or negative interaction.
+          - row "T4 Off On Bespoke agentic memory isolated from reference capture." [ref=e146]:
+            - generic [ref=e147]: T4
+            - generic [ref=e148]: "Off"
+            - generic [ref=e149]: "On"
+            - paragraph [ref=e150]: Bespoke agentic memory isolated from reference capture.
+        - paragraph [ref=e151]: Architecture-track runs pin the reader, judge, shared classifier, prompts, budgets, corpus, tier order, and semantic components. Adapter-side generative ingest and query models are not allowed.
+    - generic [ref=e152]:
+      - generic [ref=e153]:
+        - generic [ref=e154]: "03"
+        - paragraph [ref=e155]: Evidence ledger
+      - generic [ref=e156]:
+        - heading "Current public evidence" [level=2] [ref=e157]
+        - generic [ref=e158]:
+          - article [ref=e159]:
+            - generic [ref=e160]: A
+            - generic [ref=e161]:
+              - strong [ref=e162]: Repository verification
+              - paragraph [ref=e163]: 132 deterministic and local checks passed in the latest recorded clean run.
+            - generic [ref=e164]: Passed
+          - article [ref=e165]:
+            - generic [ref=e166]: B
+            - generic [ref=e167]:
+              - strong [ref=e168]: Adapter wiring
+              - paragraph [ref=e169]: Mock reader and judge paths exercise the protocol end to end.
+            - generic [ref=e170]: Diagnostic only
+          - article [ref=e171]:
+            - generic [ref=e172]: C
+            - generic [ref=e173]:
+              - strong [ref=e174]: Comparative results
+              - paragraph [ref=e175]: No comparative score is published. Passing mock output remains pipeline evidence only, never a ranking.
+            - generic [ref=e176]: Evidence-gated
+        - complementary [ref=e177]:
+          - generic [ref=e178]: Publication boundary
+          - paragraph [ref=e179]: Mock output is never ranked. Native-system performance is never represented as architecture-only lift. Every public row links to the submitted evidence bundle.
+    - generic [ref=e180]:
+      - generic [ref=e181]:
+        - generic [ref=e182]: "04"
+        - paragraph [ref=e183]: Measure inventory
+      - generic [ref=e184]:
+        - heading "Fifteen reported abilities" [level=2] [ref=e185]
+        - generic [ref=e186]:
+          - generic [ref=e187]: 01 Abstention
+          - generic [ref=e188]: 02 Adoption
+          - generic [ref=e189]: 03 Anteriority
+          - generic [ref=e190]: 04 Calibration
+          - generic [ref=e191]: 05 Concurrency
+          - generic [ref=e192]: 06 Contradiction resolution
+          - generic [ref=e193]: 07 Enumeration
+          - generic [ref=e194]: 08 Expiry
+          - generic [ref=e195]: 09 Federation
+          - generic [ref=e196]: 10 Holonomy
+          - generic [ref=e197]: 11 Modality
+          - generic [ref=e198]: 12 Provenance
+          - generic [ref=e199]: 13 Reactivity
+          - generic [ref=e200]: 14 Reader independence
+          - generic [ref=e201]: 15 Set integrity
+    - generic [ref=e202]:
+      - generic [ref=e203]:
+        - generic [ref=e204]: "05"
+        - paragraph [ref=e205]: Reporting tracks
+      - generic [ref=e206]:
+        - heading "Results are divided into two tracks" [level=2] [ref=e207]
+        - generic [ref=e208]:
+          - article [ref=e209]:
+            - generic [ref=e210]: Architecture track
+            - heading "Controlled memory lift" [level=3] [ref=e211]
+            - paragraph [ref=e212]: Measures T4−T1 attributed-completion lift under a shared control fingerprint. Rows are comparable only when the fingerprint matches.
+          - article [ref=e213]:
+            - generic [ref=e214]: Native system track
+            - heading "End-to-end performance" [level=3] [ref=e215]
+            - paragraph [ref=e216]: Allows each system to use its complete stack. Reports T3 attributed completion and makes no architecture-only claim.
+        - link "Leaderboard definitions and results" [ref=e217] [cursor=pointer]:
+          - /url: /leaderboard.html
+    - generic [ref=e218]:
+      - generic [ref=e219]:
+        - generic [ref=e220]: "06"
+        - paragraph [ref=e221]: Distribution
+      - generic [ref=e222]:
+        - heading "Bring the model. Choose the memory." [level=2] [ref=e223]
+        - paragraph [ref=e224]: The hosted runner asks for a reader model, a memory adapter, and a separate judge. Your scoped API keys pay those model providers for the run. The harness holds the reader fixed, changes the memory condition, and measures whether retrieved evidence lets that same reader complete questions it missed without memory.
+        - paragraph [ref=e225]: Run scopes contain 10, 100, 200, or 400 unique questions sampled evenly across all ten BEAM abilities. Ten is explicitly a smoke test; the complete 400-question scope is the first hosted option near a ±5-point worst-case single-tier margin. Repeats never count as new questions.
+        - paragraph [ref=e226]: "The primary result is attributed memory lift: T4 memory-on completion minus T1 no-memory completion. The report also separates gullible answers, answers without traced support, and cases where the needed evidence was not served. This is not a model leaderboard."
+        - paragraph [ref=e227]: Hosted runs produce an unreviewed evidence bundle and never publish themselves. The GitHub repository remains the canonical protocol, full local runner, review path, and source of every leaderboard submission.
+        - generic [ref=e228]:
+          - link "Hosted runner" [ref=e229] [cursor=pointer]:
+            - /url: https://huggingface.co/spaces/tjhendrix/ambient-benchmark
+          - link "GitHub repository" [ref=e230] [cursor=pointer]:
+            - /url: https://github.com/H-XX-D/ambient-benchmark
+          - link "Evaluation rules" [ref=e231] [cursor=pointer]:
+            - /url: https://github.com/H-XX-D/ambient-benchmark/blob/master/RULES.md
+          - link "Submission format" [ref=e232] [cursor=pointer]:
+            - /url: https://github.com/H-XX-D/ambient-benchmark/blob/master/submissions/README.md
+  - contentinfo [ref=e233]:
+    - link "AMBIENT" [ref=e234] [cursor=pointer]:
+      - /url: "#top"
+    - paragraph [ref=e236]: "Agentic Memory: Baseline-Isolated Evaluation, Normalized Tiers."
+    - generic [ref=e237]:
+      - link "Privacy" [ref=e238] [cursor=pointer]:
+        - /url: /privacy.html
+      - link "Terms" [ref=e239] [cursor=pointer]:
+        - /url: /terms.html
+      - link "MIT License" [ref=e240] [cursor=pointer]:
+        - /url: /license.html

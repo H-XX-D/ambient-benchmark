@@ -6,7 +6,7 @@
 // from outside the model without the system citing itself. An answer scores only when
 // it is correct AND the harness watched a store call supply the support (see
 // docs/ATTRIBUTION.md and RULES.md). Per-item provenance below is recommended, not
-// required.
+// required; the watched adapter boundary is the minimum external-origin proof.
 
 /**
  * @typedef {Object} ProvenanceItem
@@ -22,9 +22,9 @@
 /**
  * @typedef {Object} Served
  * @property {string[]} support             context passages/facts served for the question
- * @property {ProvenanceItem[]} provenance  where each served item originated.
- *   REQUIRED: without external-origin provenance a correct answer cannot complete
- *   a segment.
+ * @property {ProvenanceItem[]} [provenance] where each served item originated.
+ *   Optional diagnostic metadata. A watched query returning non-empty support is
+ *   sufficient unless the adapter explicitly marks every item as model-origin.
  */
 
 export class MemoryAdapter {
@@ -39,7 +39,7 @@ export class MemoryAdapter {
   }
 
   /**
-   * answer-support for a question, WITH provenance marking external vs model origin.
+   * answer-support for a question, optionally with per-item provenance.
    * @returns {Promise<Served>}  MANDATORY. This is the entry requirement.
    */
   async query(question) {
@@ -67,11 +67,15 @@ export class MemoryAdapter {
  * model-origin support is UNTRACED (shadow/model knowledge), not credited to the
  * memory. Wrong or unserved is MISSED.
  *
- * @param {{ correct: boolean, served: Served }} attempt
+ * @param {{ correct: boolean, storeCall?: boolean, served: Served }} attempt
  * @returns {"COMPLETED"|"UNTRACED"|"MISSED"}
  */
-export function scoreSegment({ correct, served }) {
+export function scoreSegment({ correct, storeCall = true, served }) {
   if (!correct) return "MISSED";
-  const external = served?.provenance?.some((p) => p.origin === "external");
+  const support = Array.isArray(served?.support) ? served.support : [];
+  const provenance = Array.isArray(served?.provenance) ? served.provenance : [];
+  const external = storeCall && support.length > 0 && (
+    provenance.length === 0 || provenance.some((p) => p.origin === "external")
+  );
   return external ? "COMPLETED" : "UNTRACED";
 }

@@ -11,8 +11,9 @@ not mechanism.
 The one entry requirement is traceability. The harness must observe a **store
 call** for any answer that claims memory helped: information went out to the
 store the system built, came back, and the model used it. The model does not have
-to self-attribute, and no per-item provenance metadata is required. The harness
-routes the call and records that it happened (RULES.md Rule 1, docs/ATTRIBUTION.md).
+to self-attribute. The harness routes the call, records that it happened, and
+captures the exact served context plus per-item provenance where available
+(RULES.md Rule 1, docs/ATTRIBUTION.md).
 
 ## How the suite scores
 
@@ -45,8 +46,9 @@ Each answer gets one verdict:
   misleading or absent input that it should have pushed back on or asked to
   clarify.
 
-Per tier the suite reports completion (correct / n), gullible rate, and the
-attribution deltas T2, T4, T3 against T1, plus the interaction term
+Per tier the suite reports answer accuracy (semantic correct / n), memory completion
+(correct with non-empty external support / n), gullible, untraced, and not-served
+rates, plus attribution deltas T2, T4, T3 against T1 and the interaction term
 `T3 - (T2 + T4)` (does combining the two memory paths add or interfere).
 
 ## Abilities in the corpus
@@ -95,7 +97,7 @@ trend-scaling time-decay edge.
 ## Reading a result
 
 Runs land in `results/` as `transcript-<source>-<size>-<adapter>.jsonl` (the raw
-model answers plus the store-call trace) and, after judging,
+model answers, exact served context, per-item provenance, and source trace) and, after judging,
 `verdicts-<...>.jsonl` with a `-summary.json` holding the per-tier completion and
 deltas. Two adapters run against the same reader and corpus produce directly
 comparable tables: same questions, same model, different memory substrate.

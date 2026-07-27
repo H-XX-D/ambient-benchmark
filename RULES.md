@@ -20,13 +20,15 @@ A system that exposes no such call cannot be traced and is ineligible, not score
 zero. Everything else is optional: per-item provenance, push surfacing, staleness,
 calibration are all a bonus or graded, none mandatory.
 
-## Rule 2: same corpus, same questions, same model
+## Rule 2: same corpus, same questions, same controlled semantic components
 
 Every system is given the same information to build its store, asked the same
 questions through the same adapter interface, and read by the same fixed model.
-The model is held constant so any score difference is attributable to the memory
-layer, not the model. A system that needs a stronger model to look good is
-measuring the model, not the memory.
+For an architecture-only comparison, the capture classifier, representation model,
+reranker, judge, prompts, budgets, tier ordering, and repeat count are also pinned.
+Fixing only the answer reader is not enough: an undisclosed adapter-side model is a
+confounder. The run manifest records these controls and the isolation gate compares
+them before publication.
 
 ## Rule 3: ingest, then question; score correct, wrong, or gullible
 
@@ -61,7 +63,7 @@ off:
 
 | tier | auto-capture | curated store | isolates |
 |------|--------------|---------------|----------|
-| T1 baseline     | off | off | raw model capability |
+| T1 baseline     | off | off | instructed no-context control |
 | T2 auto only    | on  | off | automatic capture alone |
 | T3 auto + custom| on  | on  | full stack |
 | T4 custom only  | off | on  | curated memory alone |
@@ -101,6 +103,16 @@ reader, adapter provenance for each served item, and whether support came throug
 a memory DB query or the reader model/API path. Structural claims are graded by
 deterministic code with sha256-recomputable proofs, never through the model. A
 number nobody else can reproduce is not published.
+
+## Rule 8: architecture and native-system results never share a ranking
+
+The controlled architecture track disallows adapter-side generative calls and
+requires identical declared representation and reranker models. It estimates an
+architecture treatment under those controls. The native-system track permits a
+product's complete capture and retrieval stack and measures end-to-end usefulness.
+Both are valuable; they answer different questions. A native-system score must not be
+presented as evidence that the storage or graph architecture alone caused the result.
+See `docs/EVALUATION_PROTOCOL.md`.
 
 ## What a system implements
 

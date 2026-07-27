@@ -6,15 +6,14 @@ system is judged on how many segments it completes.
 
 ## A segment is completed when both hold
 
-1. The answer is correct.
-2. The information came from a store call the harness observed (query, information
-   back, response), not from the model's weights. The harness traces the call; the
-   system does not self-cite and need not return per-item sources.
+1. The answer is semantically correct.
+2. A store call observed by the harness returned non-empty context that was served to
+   the reader. The system does not self-cite and need not return per-item sources.
 
-Both are required. A correct answer the system cannot trace to an external source
-does not complete the segment, because the memory has not been shown to do
-anything: the model may have known it. A trace with a wrong answer does not complete
-it either. Only correct-and-externally-traced counts.
+Both are required. A correct answer the system cannot trace to non-empty external
+support does not complete the segment, because the model may have known it. A query
+that returned no context proves the store was checked but supplied no answer support.
+Only correct-and-externally-supported counts.
 
 ## Why "outside the model" is the decisive test
 
@@ -28,8 +27,7 @@ unprovable and no segment can be honestly credited.
 
 ## The verdicts
 
-After the harness confirms whether the support was traced outside the model, every
-answer is one of three:
+The model judge first assigns a semantic verdict:
 
 1. CORRECT: right answer, support traced outside the model. The only verdict that
    scores for the memory (a completed segment).
@@ -41,17 +39,24 @@ answer is one of three:
    than WRONG: credulity, not a miss. The contradiction-resolution and abstention
    segments draw it out.
 
-Two orthogonal flags refine these for diagnostics:
+The model-free attribution gate then assigns one outcome:
 
-- UNTRACED: a CORRECT answer the system cannot trace outside the model. The model
-  knew it, so it is not credited to the memory (shadow or model knowledge), reported
-  separately so a system cannot bank the model's competence as its own.
-- NOT-SERVED: the needed context never appeared, so a WRONG here is a memory gap, not
-  a model failure.
+- COMPLETED: semantically correct with at least one externally served support item.
+- UNTRACED: semantically correct without a store call, or with only explicitly
+  model-origin/unknown support.
+- NOT-SERVED: semantically correct, but the watched store call returned no context.
+- WRONG or GULLIBLE: the semantic failure remains the final outcome.
 
-Only CORRECT-and-traced advances the score. WRONG, GULLIBLE, and UNTRACED are kept
-distinct so a review sees whether a system is mistaken, credulous, or leaning on the
-model.
+Abstention and known/common-knowledge control rows cannot earn positive memory
+completion from ordinary retrieved passages. Positive context does not prove absence,
+and known facts do not isolate memory from model knowledge. A future typed
+negative-evidence receipt could make absence attributable; an empty or unrelated
+retrieval cannot.
+
+Reports keep answer accuracy (`correct / n`) separate from memory completion
+(`completed / n`). T1 can have reader accuracy but, by construction, has zero memory
+completion. This lets a review distinguish reader knowledge, retrieval gaps, missing
+attribution, ordinary mistakes, and credulity.
 
 ## Model held fixed
 

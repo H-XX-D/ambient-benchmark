@@ -3,7 +3,36 @@
 // env. No key is ever committed; it is read from AMBIENT_API_KEY or a local key file
 // outside the repo. See model/README.md and docs/ATTRIBUTION.md.
 
+import { createHash } from "node:crypto";
+
 const ENV = (k, d) => globalThis.process?.env?.[k] ?? d;
+
+export const MODEL_REQUEST_PARAMS = Object.freeze({
+  temperature: 0,
+});
+
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+export function publicModelSpec(config, role) {
+  const spec = {
+    role,
+    backend: config.backend,
+    endpoint: config.endpoint,
+    model: config.model || "local",
+    temperature: MODEL_REQUEST_PARAMS.temperature,
+    noThink: Boolean(ENV("AMBIENT_NO_THINK", "")),
+  };
+  return {
+    ...spec,
+    fingerprint: createHash("sha256").update(stableJson(spec)).digest("hex"),
+  };
+}
 
 export function resolveBackend() {
   const backend = ENV("AMBIENT_MODEL_BACKEND", "local");
@@ -46,7 +75,7 @@ async function complete(cfg, turn) {
     body: JSON.stringify({
       model: cfg.model || "local",
       messages,
-      temperature: 0,
+      temperature: MODEL_REQUEST_PARAMS.temperature,
       max_tokens: turn.maxTokens ?? 128,
     }),
   });
@@ -68,4 +97,47 @@ export async function ask(turn) {
 // askClassifier - the ingest firewall's relation classifier. Same shape as ask, but its own backend.
 export async function askClassifier(turn) {
   return complete(resolveClassifier(), turn);
+}
+
+// Prove a fresh local-reader boundary when llama-server exposes its slot API.
+// A new HTTP request alone does not prove that server-side KV state was erased.
+// Online APIs remain request-isolated but their slot state is not observable.
+export async function resetReaderSession(options = {}) {
+  const cfg = resolveBackend();
+  const requireProof = options.requireProof ?? ENV("AMBIENT_REQUIRE_SLOT_RESET", "") === "1";
+  if (cfg.backend !== "local") {
+    if (requireProof) {
+      throw new Error("slot-reset proof is only available for a local llama-server backend");
+    }
+    return {
+      mode: "fresh-http-request",
+      proven: false,
+      reason: "online backend slot state is not observable",
+    };
+  }
+
+  const origin = new URL(cfg.endpoint).origin;
+  try {
+    const listed = await fetch(`${origin}/slots`);
+    if (!listed.ok) throw new Error(`slot listing returned ${listed.status}`);
+    const payload = await listed.json();
+    const slots = Array.isArray(payload) ? payload : payload?.slots ?? [];
+    const ids = slots
+      .map((slot) => slot?.id ?? slot?.slot_id)
+      .filter((id) => id !== undefined && id !== null);
+    if (ids.length === 0) throw new Error("slot listing returned no slot IDs");
+
+    const erased = [];
+    for (const id of ids) {
+      const response = await fetch(`${origin}/slots/${encodeURIComponent(id)}?action=erase`, {
+        method: "POST",
+      });
+      if (!response.ok) throw new Error(`erase slot ${id} returned ${response.status}`);
+      erased.push(id);
+    }
+    return { mode: "llama-slot-erase", proven: erased.length === ids.length, listed: ids, erased };
+  } catch (error) {
+    if (requireProof) throw new Error(`fresh-session proof failed: ${error.message}`);
+    return { mode: "fresh-http-request", proven: false, reason: error.message };
+  }
 }

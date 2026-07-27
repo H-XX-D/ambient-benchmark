@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f2f0ea" />
+    <meta name="description" content="Run the AMBIENT memory-architecture benchmark through Hugging Face Inference Providers." />
+    <title>Run the benchmark — AMBIENT</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='16' fill='%23141414'/%3E%3Cpath d='M5 20 16 9l11 11' fill='none' stroke='%23f2f0ea' stroke-width='2'/%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="runner-page">
+    <a class="skip-link" href="#main">Skip to main content</a>
+    <header class="site-header">
+      <a class="wordmark" href="/"><span class="wordmark-mark" aria-hidden="true"></span>AMBIENT</a>
+      <nav aria-label="Primary navigation">
+        <a href="/">Method</a>
+        <a href="/leaderboard.html">Results</a>
+        <a href="https://github.com/H-XX-D/ambient-benchmark">Repository ↗</a>
+      </nav>
+    </header>
+
+    <main class="runner-main" id="main">
+      <header class="runner-intro">
+        <p class="eyebrow">Run AMBIENT</p>
+        <h1>Download it.<br />Or run it in the Space.</h1>
+        <p class="runner-lede">The GitHub repository is the complete benchmark and canonical protocol. The Hugging Face Space is the hosted runner. This website documents the method and publishes results.</p>
+      </header>
+
+      <div class="runner-layout">
+        <aside class="runner-method" aria-labelledby="runner-method-title">
+          <p class="eyebrow">What is being tested</p>
+          <h2 id="runner-method-title">The memory architecture—not model rank.</h2>
+          <ol>
+            <li><span>01</span><p>The same reader answers the same questions in four controlled memory conditions.</p></li>
+            <li><span>02</span><p>T4 bespoke-memory completion minus T1 no-memory completion is the architecture signal.</p></li>
+            <li><span>03</span><p>A different judge requires a served-evidence trace before granting memory credit.</p></li>
+          </ol>
+          <div class="runner-boundary">
+            <h3>Account boundary</h3>
+            <p>This website never receives a Hugging Face token. Beyond Hugging Face’s standard <code>openid profile</code> sign-in scopes, the Space requests only <code>inference-api</code>, and Gradio supplies the short-lived token directly to the run.</p>
+          </div>
+          <div class="runner-boundary">
+            <h3>Cost and duration</h3>
+            <p>Inference usage is billed against the signed-in participant’s Hugging Face credits or account. Each unique question can produce four reader answers and four judge calls, plus ingestion and checking work; start with the 10-question smoke.</p>
+            <a href="https://huggingface.co/docs/inference-providers/en/pricing">Read Hugging Face pricing ↗</a>
+          </div>
+        </aside>
+
+        <section class="runner-form runner-options" aria-labelledby="run-options-title">
+          <h2 id="run-options-title">Two execution paths.</h2>
+          <article>
+            <span class="option-index">01</span>
+            <div>
+              <h3>Download from GitHub</h3>
+              <p>Clone the MIT-licensed repository to inspect the protocol, run locally, add an adapter, or submit an evidence bundle.</p>
+              <a class="runner-submit" href="https://github.com/H-XX-D/ambient-benchmark">Open GitHub repository ↗</a>
+            </div>
+          </article>
+          <article>
+            <span class="option-index">02</span>
+            <div>
+              <h3>Run in Hugging Face</h3>
+              <p>Use the hosted Space. Sign in with Hugging Face, select the memory and models there, and run inference under your Hugging Face account.</p>
+              <a class="runner-submit runner-submit-dark" href="https://tjhendrix-ambient-benchmark.hf.space" target="_blank" rel="noopener noreferrer">Open Hugging Face Space ↗</a>
+            </div>
+          </article>
+          <p class="field-note">No configuration or API credentials are collected by this website.</p>
+        </section>
+      </div>
+    </main>
+
+    <footer>
+      <a class="wordmark" href="/"><span class="wordmark-mark" aria-hidden="true"></span>AMBIENT</a>
+      <p>Agentic Memory: Baseline-Isolated Evaluation, Normalized Tiers.</p>
+      <div class="footer-links"><a href="/leaderboard.html">Results</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/license.html">MIT License</a></div>
+    </footer>
+  </body>
+</html>

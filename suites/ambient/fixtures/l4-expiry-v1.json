@@ -1,0 +1,70 @@
+{
+  "schema": "ambient.l4-expiry-policy.v1",
+  "version": "l4-expiry.v1",
+  "semantics": {
+    "clock": "UTC",
+    "expiredPredicate": "expiresAt <= evaluationTime",
+    "monthPhrase": "expires at the final millisecond of the named calendar month",
+    "implicitYear": "use the UTC year of createdAt when the text names no year",
+    "quarterPhrase": "Q1 and Q2 expire at the final millisecond of their final month",
+    "timelessPhrase": "no recognized temporal scope yields no expiry"
+  },
+  "extractionCases": [
+    {
+      "id": "implicit-june-created-year",
+      "text": "training for the June marathon",
+      "createdAt": "2023-06-28T00:00:00.000Z",
+      "expected": "2023-06-30T23:59:59.999Z"
+    },
+    {
+      "id": "explicit-leap-february",
+      "text": "attending the February 2024 conference",
+      "createdAt": "2023-12-01T00:00:00.000Z",
+      "expected": "2024-02-29T23:59:59.999Z"
+    },
+    {
+      "id": "explicit-q2",
+      "text": "Q2 2025 budget freeze in effect",
+      "createdAt": "2025-04-01T00:00:00.000Z",
+      "expected": "2025-06-30T23:59:59.999Z"
+    },
+    {
+      "id": "inclusive-through-month",
+      "text": "subscribed through December 2023",
+      "createdAt": "2023-06-01T00:00:00.000Z",
+      "expected": "2023-12-31T23:59:59.999Z"
+    },
+    {
+      "id": "timeless",
+      "text": "is vegetarian",
+      "createdAt": "2023-05-01T00:00:00.000Z",
+      "expected": null
+    }
+  ],
+  "decisionCases": [
+    {
+      "id": "equal-boundary-is-expired",
+      "expiresAt": "2023-06-30T23:59:59.999Z",
+      "evaluationTime": "2023-06-30T23:59:59.999Z",
+      "expected": true
+    },
+    {
+      "id": "one-ms-before-is-current",
+      "expiresAt": "2023-07-01T00:00:00.000Z",
+      "evaluationTime": "2023-06-30T23:59:59.999Z",
+      "expected": false
+    },
+    {
+      "id": "one-ms-after-is-expired",
+      "expiresAt": "2023-06-30T23:59:59.999Z",
+      "evaluationTime": "2023-07-01T00:00:00.000Z",
+      "expected": true
+    },
+    {
+      "id": "timeless-is-current",
+      "expiresAt": null,
+      "evaluationTime": "2033-07-01T00:00:00.000Z",
+      "expected": false
+    }
+  ]
+}

@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f2f0ea" />
+    <meta name="description" content="AMBIENT is a controlled evaluation protocol for measuring what a memory architecture adds to a fixed agent model." />
+    <meta property="og:title" content="AMBIENT — Agentic Memory Benchmark" />
+    <meta property="og:description" content="Baseline-isolated evaluation with normalized tiers and evidence-gated community results." />
+    <title>AMBIENT — Agentic Memory Benchmark</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='16' fill='%23141414'/%3E%3Cpath d='M5 20 16 9l11 11' fill='none' stroke='%23f2f0ea' stroke-width='2'/%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header" data-header>
+      <a class="wordmark" href="#top" aria-label="AMBIENT home"><span class="wordmark-mark" aria-hidden="true"></span>AMBIENT</a>
+      <nav aria-label="Primary navigation">
+        <a href="#measures">Method</a>
+        <a href="/leaderboard.html">Results</a>
+        <a href="#run">Run / download</a>
+        <a href="https://github.com/H-XX-D/ambient-benchmark">Repository ↗</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="publication-hero" id="top">
+        <div class="publication-meta">
+          <p>Open benchmark</p>
+          <dl>
+            <div><dt>Release</dt><dd>0.1 pre-release</dd></div>
+            <div><dt>Scope</dt><dd>Memory architecture</dd></div>
+            <div><dt>Execution</dt><dd>Hosted or local</dd></div>
+            <div><dt>License</dt><dd>MIT</dd></div>
+          </dl>
+        </div>
+        <div class="publication-title">
+          <p class="kicker">Agentic<br />Memory</p>
+          <h1>Baseline-Isolated<br />Evaluation,<br />Normalized Tiers.</h1>
+          <p class="abstract">A controlled protocol for estimating what a memory architecture adds while the reader, judge, corpus, prompts, budgets, and run design remain fixed.</p>
+          <div class="publication-links">
+            <a href="https://github.com/H-XX-D/ambient-benchmark">GitHub repository</a>
+            <a href="#run">Run or download</a>
+            <a href="https://github.com/H-XX-D/ambient-benchmark/blob/master/docs/EVALUATION_PROTOCOL.md">Evaluation protocol</a>
+            <a href="/leaderboard.html">Leaderboard</a>
+          </div>
+        </div>
+
+      </section>
+
+      <section class="protocol-scroll" data-protocol aria-labelledby="protocol-title">
+        <div class="protocol-stage">
+          <figure class="protocol-visual" aria-describedby="protocol-caption">
+            <div class="protocol-images" aria-hidden="true">
+              <img class="protocol-image is-active" data-protocol-image="0" src="/assets/ambient-architecture.png" alt="" width="1376" height="650" />
+              <img class="protocol-image" data-protocol-image="1" src="/assets/ambient-architecture.png" alt="" width="1376" height="650" />
+              <img class="protocol-image" data-protocol-image="2" src="/assets/ambient-architecture.png" alt="" width="1376" height="650" />
+              <img class="protocol-image" data-protocol-image="3" src="/assets/ambient-architecture.png" alt="" width="1376" height="650" />
+              <div class="protocol-scan"></div>
+            </div>
+            <div class="protocol-annotation">
+              <span data-protocol-label>T1 / Control</span>
+              <span data-protocol-state>Capture off · Memory off</span>
+            </div>
+            <figcaption id="protocol-caption"><span>Figure 01</span><p>One reader traversed under four controlled memory conditions.</p></figcaption>
+          </figure>
+
+          <div class="protocol-panel">
+            <div class="protocol-heading">
+              <div><span>Protocol</span><b>2 × 2 isolation</b></div>
+              <p id="protocol-title">The subject is the memory architecture—not the model.</p>
+              <span class="protocol-year">2026</span>
+            </div>
+            <div class="protocol-steps" role="list" aria-label="Benchmark tier sequence">
+              <article class="protocol-step is-active" data-protocol-step="0" role="listitem">
+                <span>01 / T1</span>
+                <div><h2>No memory</h2><p>The no-context control. Correct answers are not credited to a memory system.</p></div>
+                <small>Capture off · Bespoke memory off</small>
+              </article>
+              <article class="protocol-step" data-protocol-step="1" role="listitem">
+                <span>02 / T2</span>
+                <div><h2>Reference capture</h2><p>Shared automatic capture is enabled while the bespoke agentic memory remains absent.</p></div>
+                <small>Capture on · Bespoke memory off</small>
+              </article>
+              <article class="protocol-step" data-protocol-step="2" role="listitem">
+                <span>03 / T3</span>
+                <div><h2>Full composition</h2><p>Both layers operate together, exposing positive or negative interaction effects.</p></div>
+                <small>Capture on · Bespoke memory on</small>
+              </article>
+              <article class="protocol-step" data-protocol-step="3" role="listitem">
+                <span>04 / T4</span>
+                <div><h2>Bespoke agentic memory isolated</h2><p>The bespoke agentic memory operates without reference capture; T4−T1 is the primary contrast.</p></div>
+                <small>Capture off · Bespoke memory on</small>
+              </article>
+            </div>
+            <div class="protocol-progress" aria-hidden="true"><i data-protocol-progress></i><span>Scroll to traverse</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="research-section" id="measures">
+        <div class="section-index"><span>01</span><p>Measure inventory</p></div>
+        <div class="section-body">
+          <h2>Fifteen reported abilities</h2>
+          <p>These abilities describe the behaviors a dependable memory system should make possible, from declining unsupported answers to preserving provenance, chronology, and set integrity. AMBIENT tests the observable result of each ability—not the internal mechanism a system uses to produce it.</p>
+          <div class="measure-directory">
+            <article><span>01</span><h3>Abstention</h3><p>Declines when the record cannot support an answer instead of inventing one.</p></article>
+            <article><span>02</span><h3>Adoption</h3><p>Routes new memories into the governed store so they remain available later.</p></article>
+            <article><span>03</span><h3>Anteriority</h3><p>Establishes that one record existed before another without inventing time evidence.</p></article>
+            <article><span>04</span><h3>Calibration</h3><p>Keeps confidence proportional to evidence and resists confidence laundering.</p></article>
+            <article><span>05</span><h3>Concurrency</h3><p>Preserves simultaneous writes without silent loss, corruption, or cross-talk.</p></article>
+            <article><span>06</span><h3>Contradiction resolution</h3><p>Surfaces incompatible claims instead of choosing a convenient side as fact.</p></article>
+            <article><span>07</span><h3>Enumeration</h3><p>Returns the complete requested set without omissions, duplicates, or unrelated members.</p></article>
+            <article><span>08</span><h3>Expiry</h3><p>Stops treating a claim as current after its declared or semantic validity ends.</p></article>
+            <article><span>09</span><h3>Federation</h3><p>Combines independent stores while preserving origin and exposing cross-store conflicts.</p></article>
+            <article><span>10</span><h3>Holonomy</h3><p>Detects cyclic ordering contradictions such as A before B before C before A.</p></article>
+            <article><span>11</span><h3>Modality</h3><p>Keeps hypothetical, proposed, and actual events from being mistaken for one another.</p></article>
+            <article><span>12</span><h3>Provenance</h3><p>Preserves where a remembered claim came from and which evidence supports it.</p></article>
+            <article><span>13</span><h3>Reactivity</h3><p>Updates dependent conclusions when supporting memory changes or is superseded.</p></article>
+            <article><span>14</span><h3>Reader independence</h3><p>Shows the memory supplies facts the fixed reader could not recover alone.</p></article>
+            <article><span>15</span><h3>Set integrity</h3><p>Proves served items belong to the recorded set and that its history is append-only.</p></article>
+          </div>
+          <a class="inline-link" href="https://github.com/H-XX-D/ambient-benchmark/blob/master/docs/10_AMBIENT_SUITE.md">Read the ability definitions</a>
+        </div>
+      </section>
+
+      <section class="run-choices" id="run" aria-labelledby="run-choices-title">
+        <div class="run-choices-heading">
+          <span>Run AMBIENT</span>
+          <h2 id="run-choices-title">Download it.<br />Or run it in the Space.</h2>
+          <p>The repository is the complete benchmark and canonical protocol. The Hugging Face Space is the hosted runner.</p>
+        </div>
+        <div class="run-choice-grid">
+          <article>
+            <span>01</span>
+            <h3>Download from GitHub</h3>
+            <p>Clone the MIT-licensed repository to inspect the protocol, run locally, add an adapter, or submit an evidence bundle.</p>
+            <a href="https://github.com/H-XX-D/ambient-benchmark">Open GitHub repository ↗</a>
+          </article>
+          <article>
+            <span>02</span>
+            <h3>Run in Hugging Face</h3>
+            <p>Use the hosted Space. Sign in with Hugging Face, select the memory and models there, and run inference under your account.</p>
+            <a href="https://tjhendrix-ambient-benchmark.hf.space" target="_blank" rel="noopener noreferrer">Open Hugging Face Space ↗</a>
+          </article>
+        </div>
+        <p class="run-boundary">No configuration or API credentials are collected by this website.</p>
+      </section>
+
+      <section class="instrument-scroll" data-instrument aria-labelledby="instrument-title">
+        <figure class="instrument-stage">
+          <div class="instrument-media">
+            <img src="/assets/ambient-four-channel.png" alt="A robotic tape library selecting one barcode-indexed record from a dense archival store." width="1376" height="650" />
+            <div class="instrument-notes">
+              <aside class="instrument-note is-active" data-instrument-note="0"><span>01 / Useful</span><p>Correct answer with evidence actually served by memory</p></aside>
+              <aside class="instrument-note" data-instrument-note="1"><span>02 / Harmful</span><p>Wrong or gullible answer caused by misleading memory</p></aside>
+              <aside class="instrument-note" data-instrument-note="2"><span>03 / Unproven</span><p>Correct answer without a trace showing memory supplied it</p></aside>
+            </div>
+          </div>
+          <figcaption>
+            <span>Figure 02</span>
+            <h2 id="instrument-title">Does the memory help?</h2>
+            <p>A useful system raises traced completion without increasing gullibility, unsupported correctness, or failures to serve needed evidence.</p>
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="research-section" id="reporting">
+        <div class="section-index"><span>02</span><p>Scoring examples</p></div>
+        <div class="section-body">
+          <div class="attribution-example">
+            <header><span>Memory attribution</span><h3>A correct answer is not enough.</h3><p>AMBIENT asks whether memory caused the correct answer—and whether bad memory caused harm.</p></header>
+            <div class="attribution-grid">
+              <article class="attribution-good">
+                <span>Memory deserves credit</span>
+                <h4>Correct because memory served it</h4>
+                <div class="attribution-cases">
+                  <section class="attribution-case" data-credit-example><h5><b>01</b>Schedule correction</h5><dl><div><dt>Question</dt><dd>When is the Atlas review?</dd></div><div><dt>Served memory</dt><dd>“The review moved from 12 May to 18 May.”</dd></div><div><dt>Answer</dt><dd>18 May</dd></div></dl><strong>Completed · traced memory credit</strong></section>
+                  <section class="attribution-case" data-credit-example><h5><b>02</b>Policy change</h5><dl><div><dt>Question</dt><dd>Which login method is now required?</dd></div><div><dt>Served memory</dt><dd>“Password login was replaced by passkeys on 4 June.”</dd></div><div><dt>Answer</dt><dd>Passkeys</dd></div></dl><strong>Completed · traced memory credit</strong></section>
+                  <section class="attribution-case" data-credit-example><h5><b>03</b>Ownership handoff</h5><dl><div><dt>Question</dt><dd>Who is the current incident lead?</dd></div><div><dt>Served memory</dt><dd>“Alex handed incident command to Noor at 14:20.”</dd></div><div><dt>Answer</dt><dd>Noor</dd></div></dl><strong>Completed · traced memory credit</strong></section>
+                </div>
+              </article>
+              <article class="attribution-bad">
+                <span>Memory does not deserve credit</span>
+                <h4>Wrong—or correct for another reason</h4>
+                <div class="attribution-cases">
+                  <section class="attribution-case" data-no-credit-example><h5><b>01</b>Outdated memory</h5><dl><div><dt>Question</dt><dd>When is the Atlas review?</dd></div><div><dt>Served memory</dt><dd>The superseded “12 May” record.</dd></div><div><dt>Answer</dt><dd>12 May</dd></div></dl><strong>Wrong / gullible · no memory credit</strong></section>
+                  <section class="attribution-case" data-no-credit-example><h5><b>02</b>Poisoned memory</h5><dl><div><dt>Question</dt><dd>Who owns the Orion release?</dd></div><div><dt>Served memory</dt><dd>An unverified note says Rowan; the governed record says Priya.</dd></div><div><dt>Answer</dt><dd>Rowan</dd></div></dl><strong>Gullible · no memory credit</strong></section>
+                  <section class="attribution-case" data-no-credit-example><h5><b>03</b>Correct but untraced</h5><dl><div><dt>Question</dt><dd>Which region hosts staging?</dd></div><div><dt>Served memory</dt><dd>No supporting record was served.</dd></div><div><dt>Answer</dt><dd>eu-west-1</dd></div></dl><strong>Correct but untraced · zero memory credit</strong></section>
+                </div>
+              </article>
+            </div>
+          </div>
+          <a class="inline-link" href="/leaderboard.html">Leaderboard definitions and results</a>
+        </div>
+      </section>
+
+      <section class="research-section distribution" id="distribution">
+        <div class="section-index"><span>04</span><p>Distribution</p></div>
+        <div class="section-body">
+          <h2>Bring the model. Choose the memory.</h2>
+          <p>The hosted runner lets each participant choose one reader and a separate judge through Hugging Face Inference Providers. Participants sign in with Hugging Face and authorize only inference access; the harness holds the reader fixed, changes the memory condition, and measures whether retrieved evidence lets that same reader complete questions it missed without memory.</p>
+          <p>Run scopes contain 10, 100, 200, or 400 unique questions sampled evenly across all ten BEAM abilities. Ten is explicitly a smoke test; the complete 400-question scope is the first hosted option near a ±5-point worst-case single-tier margin. Repeats never count as new questions.</p>
+          <p>The primary result is attributed memory lift: T4 memory-on completion minus T1 no-memory completion. The report also separates gullible answers, answers without traced support, and cases where the needed evidence was not served. This is not a model leaderboard.</p>
+          <p>Hosted runs produce an unreviewed evidence bundle. A complete 400-question run is automatically recorded on the separate hosted-results board after structural checks; only repository-reviewed bundles enter the verified architecture leaderboard. The GitHub repository remains the canonical protocol, full local runner, and evidence-review path.</p>
+          <div class="publication-links dark-links">
+            <a href="https://tjhendrix-ambient-benchmark.hf.space">Run in Hugging Face</a>
+            <a href="https://github.com/H-XX-D/ambient-benchmark">GitHub repository</a>
+            <a href="https://github.com/H-XX-D/ambient-benchmark/blob/master/RULES.md">Evaluation rules</a>
+            <a href="https://github.com/H-XX-D/ambient-benchmark/blob/master/submissions/README.md">Submission format</a>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer>
+      <a class="wordmark" href="#top"><span class="wordmark-mark" aria-hidden="true"></span>AMBIENT</a>
+      <p>Agentic Memory: Baseline-Isolated Evaluation, Normalized Tiers.</p>
+      <div class="footer-links"><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/license.html">MIT License</a></div>
+    </footer>
+  </body>
+</html>

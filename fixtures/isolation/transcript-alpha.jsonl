@@ -1,0 +1,12 @@
+{"runId":"fixture-alpha","replicate":0,"segId":"s1","tier":"T1","storeCall":false,"sourceTrace":{"answer":{"fingerprint":"reader-fixed"}}}
+{"runId":"fixture-alpha","replicate":0,"segId":"s1","tier":"T2","storeCall":true,"sourceTrace":{"answer":{"fingerprint":"reader-fixed"}}}
+{"runId":"fixture-alpha","replicate":0,"segId":"s1","tier":"T3","storeCall":true,"sourceTrace":{"answer":{"fingerprint":"reader-fixed"}}}
+{"runId":"fixture-alpha","replicate":0,"segId":"s1","tier":"T4","storeCall":true,"sourceTrace":{"answer":{"fingerprint":"reader-fixed"}}}
+{"runId":"fixture-alpha","replicate":1,"segId":"s1","tier":"T2","storeCall":true,"sourceTrace":{"answer":{"fingerprint":"reader-fixed"}}}
+{"runId":"fixture-alpha","replicate":1,"segId":"s1","tier":"T3","storeCall":true,"sourceTrace":{"answer":{"fingerprint":"reader-fixed"}}}
+{"runId":"fixture-alpha","replicate":1,"segId":"s1","tier":"T4","storeCall":true,"sourceTrace":{"answer":{"fingerprint":"reader-fixed"}}}
+{"runId":"fixture-alpha","replicate":1,"segId":"s1","tier":"T1","storeCall":false,"sourceTrace":{"answer":{"fingerprint":"reader-fixed"}}}
+{"runId":"fixture-alpha","replicate":2,"segId":"s1","tier":"T3","storeCall":true,"sourceTrace":{"answer":{"fingerprint":"reader-fixed"}}}
+{"runId":"fixture-alpha","replicate":2,"segId":"s1","tier":"T4","storeCall":true,"sourceTrace":{"answer":{"fingerprint":"reader-fixed"}}}
+{"runId":"fixture-alpha","replicate":2,"segId":"s1","tier":"T1","storeCall":false,"sourceTrace":{"answer":{"fingerprint":"reader-fixed"}}}
+{"runId":"fixture-alpha","replicate":2,"segId":"s1","tier":"T2","storeCall":true,"sourceTrace":{"answer":{"fingerprint":"reader-fixed"}}}
