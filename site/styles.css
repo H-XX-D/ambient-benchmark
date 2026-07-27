@@ -133,6 +133,7 @@ nav a:hover, .legal-header > a:last-child:hover { text-decoration: underline; te
 .attribution-grid > article { padding: clamp(1.5rem, 3vw, 2.5rem); }
 .attribution-grid > article + article { border-left: 1px solid var(--ink); }
 .attribution-grid article > span { color: var(--signal); font-size: .76rem; font-weight: 650; letter-spacing: .035em; text-transform: uppercase; }
+.attribution-grid .attribution-good > span { color: #277045; }
 .attribution-grid h4 { margin: 1.5rem 0 2rem; font-size: clamp(1.8rem, 3vw, 3rem); font-weight: 600; letter-spacing: -.045em; line-height: 1; }
 .attribution-cases { border-top: 1px solid var(--line); }
 .attribution-case { padding: 1.5rem 0; border-bottom: 1px solid var(--line); }

@@ -53,7 +53,7 @@ if (!measureSection.includes("Declines when the record cannot support an answer"
 if (!html.includes('href="#run"') || !html.includes('id="run"')) throw new Error("main-page run and download section is missing");
 const instrumentIndex = html.indexOf('class="instrument-scroll"');
 const runSection = html.slice(runIndex, instrumentIndex);
-if (!runSection.includes("Download it.") || !runSection.includes("Or run it from a HF Space.")) throw new Error("primary execution introduction is missing");
+if (!runSection.includes("Download it.<br />Or run it from<br />a HF Space.")) throw new Error("primary execution introduction or required line breaks are missing");
 const distributionIndex = html.indexOf('id="distribution"');
 const distributionSection = html.slice(distributionIndex, html.indexOf("</main>"));
 if (!(distributionIndex > html.indexOf('id="reporting"')) || !distributionSection.includes("Bring the model. Choose the memory.") || !distributionSection.includes("complete 400-question run") || !distributionSection.includes("canonical protocol, full local runner")) throw new Error("hosted-run explanation is not in the final distribution section");
@@ -91,6 +91,7 @@ const packageJson = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"))
 const styles = readFileSync(join(ROOT, "site/styles.css"), "utf8");
 if (!styles.includes(".publication-title .kicker") || !styles.includes("font-size: clamp(3.3rem, 7.4vw, 8rem)")) throw new Error("Agentic Memory is not scaled with the AMBIENT title stack");
 if (!styles.includes(".acronym-letter { color: var(--signal); font-weight: 800; }") || !styles.includes("font-size: clamp(1.8rem, 9.4vw, 3.1rem)")) throw new Error("AMBIENT acronym emphasis or mobile fit guard is missing");
+if (!styles.includes(".attribution-grid .attribution-good > span { color: #277045; }")) throw new Error("memory-credit label must use the positive green color");
 if (!privacy.includes("does not receive, proxy, or store a Hugging Face OAuth token") || !privacy.includes("inference-api") || !privacy.includes("AMBIENT_SUPABASE_SECRET_KEY")) throw new Error("hosted runner OAuth disclosure is missing");
 if (!privacy.includes("leaderboard reads public result rows from Supabase")) throw new Error("Supabase privacy disclosure is missing");
 if (!terms.includes("Hosted and local runs") || !terms.includes("MIT License")) throw new Error("terms distribution or license disclosure is missing");
