@@ -309,6 +309,7 @@ footer p { margin: 0; }
 
 @media (max-width: 560px) {
   .publication-title .kicker, .publication-title h1 { font-size: clamp(1.8rem, 9.4vw, 3.1rem); letter-spacing: -.055em; line-height: 1; }
+  .leaderboard-intro h1 { font-size: clamp(2.8rem, 14vw, 3.8rem); }
   .publication-links { display: grid; }
   .protocol-scroll { margin-inline: 0; border-inline: 0; }
   .protocol-visual { min-height: 78vw; }
