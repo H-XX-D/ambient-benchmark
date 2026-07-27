@@ -1,5 +1,7 @@
 node_modules/
 /results/*
+!/results/clean-verification.json
+!/results/cross-adapter-grade-pipeline-summary.json
 !/results/ambient-injection-hard-z6-qwen32-20260727-trial-1.json
 !/results/ambient-injection-hard-z6-qwen32-20260727-trial-2.json
 !/results/ambient-injection-hard-z6-qwen32-20260727-trial-3.json

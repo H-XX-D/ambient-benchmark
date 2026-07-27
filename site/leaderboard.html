@@ -21,9 +21,49 @@
     <main class="leaderboard-main" id="main">
       <section class="leaderboard-intro">
         <p class="eyebrow light">Result publication</p>
-        <h1>Leaderboard<br />definitions.</h1>
+        <h1>Leaderboard<br />qualifications.</h1>
         <p class="legal-lede">Completed hosted runs, evidence-verified architecture submissions, and native end-to-end submissions are displayed separately because they support different levels of confidence and different interpretations.</p>
         <div class="board-source" aria-live="polite"><span>Verified result source</span><strong data-board-status>Connecting to the live database…</strong></div>
+      </section>
+
+      <section class="qualification-section" aria-labelledby="qualification-title">
+        <div class="qualification-heading">
+          <p class="eyebrow">Entry gates</p>
+          <h2 id="qualification-title">What qualifies for each board</h2>
+          <p>A result appears only on the board whose evidence standard it meets. Passing a structural gate means the run is complete and inspectable; it does not turn an automatic hosted result into a reviewed architecture claim.</p>
+        </div>
+        <div class="qualification-grid">
+          <article>
+            <span>01 / Automatic</span>
+            <h3>Complete hosted run</h3>
+            <ul>
+              <li>All 400 unique BEAM-small questions across all four tiers.</li>
+              <li>1,600 judged rows, balanced sampling, paired uncertainty, and evidence fingerprints.</li>
+              <li>Zero judge errors and a passing automated structural check.</li>
+            </ul>
+            <strong>Hosted table only · unreviewed</strong>
+          </article>
+          <article>
+            <span>02 / Evidence reviewed</span>
+            <h3>Architecture track</h3>
+            <ul>
+              <li>A complete, hash-verified evidence bundle reviewed through the repository.</li>
+              <li>The same fixed reader, judge, classifier, prompts, corpus, budgets, and design across systems.</li>
+              <li>Every ability covered by at least 30 unique questions, balanced tier order, at least three repeats, and no adapter-side generative model.</li>
+            </ul>
+            <strong>Ranks T4 − T1 only within a matching control fingerprint</strong>
+          </article>
+          <article>
+            <span>03 / Full system</span>
+            <h3>Native system track</h3>
+            <ul>
+              <li>A complete, hash-verified evidence bundle with the product's full component stack disclosed.</li>
+              <li>All paired tiers present, zero run or judge errors, and a checked 95% interval.</li>
+              <li>Native capture, embeddings, rerankers, and query-time models are allowed.</li>
+            </ul>
+            <strong>Reports T3 completion · not architecture-only lift</strong>
+          </article>
+        </div>
       </section>
 
       <section class="board-section" aria-labelledby="hosted-board">

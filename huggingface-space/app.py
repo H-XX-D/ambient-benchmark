@@ -649,7 +649,13 @@ body, .gradio-container { background:var(--paper) !important; color:var(--white)
 .ambient-header { display:grid; grid-template-columns:1fr minmax(280px,.55fr); gap:32px; align-items:end; padding:24px 0 22px; border-bottom:1px solid var(--line); }
 .ambient-header span, .ambient-board span, .ambient-label { color:var(--signal) !important; font-size:.72rem; font-weight:750; letter-spacing:.09em; text-transform:uppercase; }
 .ambient-header h1 { margin:7px 0 0; color:var(--white) !important; font-size:clamp(2.1rem,4.7vw,4.6rem) !important; font-weight:620 !important; line-height:.95 !important; letter-spacing:-.055em !important; }
+.ambient-header .ambient-subtitle { margin:12px 0 0; max-width:720px; color:var(--white) !important; font-size:clamp(1rem,1.75vw,1.45rem) !important; font-weight:540 !important; line-height:1.18 !important; letter-spacing:-.025em !important; }
 .ambient-header p { margin:0; color:var(--muted) !important; font-size:.92rem !important; line-height:1.6 !important; }
+.ambient-intro { display:grid; grid-template-columns:180px 1fr; gap:28px; padding:24px 0 2px; }
+.ambient-intro h2 { margin:0; color:var(--white) !important; font-size:clamp(1.35rem,2.3vw,2.15rem) !important; font-weight:620 !important; letter-spacing:-.035em !important; line-height:1.08 !important; }
+.ambient-intro-copy { display:grid; grid-template-columns:1fr 1fr; gap:28px; }
+.ambient-intro p { margin:0; color:var(--muted) !important; font-size:.9rem !important; line-height:1.62 !important; }
+.ambient-intro strong { color:var(--white); font-weight:650; }
 #ambient-leaderboard { margin:0 !important; }
 .ambient-board { margin:22px 0; color:var(--ink); background:var(--white); border:1px solid var(--white); }
 .ambient-board-head { display:grid; grid-template-columns:1fr minmax(320px,.6fr); gap:28px; align-items:end; padding:24px 26px; border-bottom:1px solid #bebbb3; }
@@ -695,7 +701,7 @@ button.ambient-run:hover { background:var(--white) !important; color:var(--ink) 
 footer { display:none !important; }
 @media (max-width:800px) {
   #ambient-shell { padding:12px; }
-  .ambient-header, .ambient-board-head { grid-template-columns:1fr; }
+  .ambient-header, .ambient-board-head, .ambient-intro, .ambient-intro-copy { grid-template-columns:1fr; }
   .ambient-leader { grid-template-columns:1fr; }
   .ambient-leader > strong { justify-self:start; }
   .ambient-leader dl { grid-template-columns:1fr 1fr; }
@@ -709,7 +715,7 @@ footer { display:none !important; }
 """
 
 with gr.Blocks(
-    title="AMBIENT Runner",
+    title="AMBIENT Agentic memory baseline isolated evaluation w/ Neutral Tiers",
     analytics_enabled=False,
     delete_cache=(1800, 300),
     fill_width=True,
@@ -717,9 +723,19 @@ with gr.Blocks(
     with gr.Column(elem_id="ambient-shell"):
         gr.HTML("""
           <header class="ambient-header">
-            <div><span>AMBIENT / hosted runner</span><h1>Memory architecture benchmark</h1></div>
+            <div><span>AMBIENT / hosted runner</span><h1>AMBIENT</h1><p class="ambient-subtitle">Agentic memory baseline isolated evaluation w/ Neutral Tiers</p></div>
             <p>Complete runs are posted automatically after structural validation. Hosted results are unreviewed; repository review remains the verified publication path.</p>
           </header>
+        """)
+
+        gr.HTML("""
+          <section class="ambient-intro" aria-labelledby="ambient-intro-title">
+            <h2 id="ambient-intro-title">What is being measured</h2>
+            <div class="ambient-intro-copy">
+              <p>AMBIENT estimates what a <strong>memory architecture adds</strong> to one fixed reader. The same corpus, questions, reader, independent judge, prompts, and budgets are used while the memory condition changes across four neutral tiers.</p>
+              <p>A correct answer earns memory credit only when the harness recorded non-empty evidence crossing the adapter boundary. Correct-but-untraced answers remain reader accuracy; misleading memory, empty retrieval, and gullible answers are reported separately. <strong>This is not a model ranking.</strong></p>
+            </div>
+          </section>
         """)
 
         board_output = gr.HTML(hosted_leaderboard_html(), elem_id="ambient-leaderboard")
@@ -731,10 +747,12 @@ with gr.Blocks(
                   <h2>Controlled evaluation</h2>
                   <p>Select one memory architecture, a fixed reader, a different judge, and a scope. T4−T1 is reported as attributed memory lift.</p>
                   <ul class="ambient-facts">
-                    <li><b>10–200</b><span>Development runs. Results remain private to the exported bundle.</span></li>
-                    <li><b>400</b><span>Complete run. Posted automatically when every structural gate passes.</span></li>
-                    <li><b>OAuth</b><span>Inference uses the signed-in participant's Hugging Face account. No API key field.</span></li>
-                    <li><b>Ranking</b><span>Hosted and unreviewed. Compare architectures only when control keys match.</span></li>
+                    <li><b>Abilities</b><span>Abstention, contradiction resolution, event ordering, information extraction, instruction following, knowledge update, multi-session reasoning, preference following, summarization, and temporal reasoning.</span></li>
+                    <li><b>Isolation</b><span>Every question runs in T1 no-memory, T2 reference-capture, T3 capture-plus-selected-memory, and T4 selected-memory-only conditions.</span></li>
+                    <li><b>Retrieval</b><span>The harness checks whether the memory was queried and whether it served non-empty external evidence to the reader.</span></li>
+                    <li><b>Judgment</b><span>A separate model grades each answer correct, wrong, or gullible; it cannot create memory credit without a served-evidence trace.</span></li>
+                    <li><b>Attribution</b><span>Correct-and-traced becomes completed. Correct-but-untraced, not-served, wrong, and gullible remain separate outcomes.</span></li>
+                    <li><b>Integrity</b><span>A public 400-question run requires balanced sampling, 1,600 judged rows, zero reader or judge errors, uncertainty, and evidence fingerprints.</span></li>
                   </ul>
                 """)
 
@@ -748,12 +766,12 @@ with gr.Blocks(
                     elem_classes="ambient-fieldset",
                 )
                 reader_model_input = gr.Textbox(
-                    value="Qwen/Qwen3-32B:preferred",
+                    value="Qwen/Qwen3-32B",
                     label="Fixed reader model",
                     elem_classes="ambient-fieldset",
                 )
                 judge_model_input = gr.Textbox(
-                    value="openai/gpt-oss-120b:preferred",
+                    value="openai/gpt-oss-120b",
                     label="Independent judge model",
                     elem_classes="ambient-fieldset",
                 )
