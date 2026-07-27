@@ -31,9 +31,11 @@ for (const path of required) {
 const html = readFileSync(join(ROOT, "site/index.html"), "utf8");
 const status = JSON.parse(readFileSync(join(ROOT, "site/data/status.json"), "utf8"));
 const leaderboard = JSON.parse(readFileSync(join(ROOT, "site/data/leaderboard.json"), "utf8"));
-if (!html.includes('aria-label="Baseline-Isolated Evaluation, Normalized Tiers."')) throw new Error("publication title is missing");
+if (!html.includes('aria-label="Baseline Isolated Evaluation, Normalized Tiers."')) throw new Error("publication title is missing");
 if ((html.match(/class="acronym-letter"/g) || []).length !== 7) throw new Error("AMBIENT title must expose seven emphasized acronym letters");
-if (!html.includes("Agentic Memory: Baseline-Isolated Evaluation, Normalized Tiers.")) throw new Error("AMBIENT expansion is missing");
+if ((html.match(/class="acronym-line"/g) || []).length !== 7) throw new Error("AMBIENT title must align all seven words on separate lines");
+if (!html.includes("Agentic Memory: Baseline Isolated Evaluation, Normalized Tiers.")) throw new Error("AMBIENT expansion is missing");
+if (html.includes("Baseline-Isolated") || html.includes("Baseline-isolated")) throw new Error("retired hyphenated AMBIENT expansion remains");
 if (html.includes("One reader. Four conditions.") || html.includes("Current public evidence")) throw new Error("retired redundant design or evidence section remains");
 if (!html.includes("GitHub repository") || !html.includes("canonical protocol, full local runner")) throw new Error("GitHub repository distribution is missing");
 if (!html.includes('<a href="/leaderboard.html">Board</a>') || html.includes('<a href="/leaderboard.html">Results</a>')) throw new Error("primary navigation must label the leaderboard as Board");
@@ -100,6 +102,7 @@ if (!boardHtml.includes("T4 bespoke agentic memory minus T1 no-memory baseline")
 if (!boardHtml.includes("Complete hosted runs") || !boardHtml.includes("automatic and unreviewed")) throw new Error("hosted leaderboard disclosure is missing");
 if (!boardJs.includes("textContent") || boardJs.includes("innerHTML")) throw new Error("leaderboard renderer must use safe text nodes");
 if (!runHtml.includes("Download from GitHub") || !runHtml.includes("Run in Hugging Face") || !runHtml.includes("github.com/H-XX-D/ambient-benchmark") || !runHtml.includes("tjhendrix-ambient-benchmark.hf.space")) throw new Error("GitHub download or Hugging Face execution path is missing");
+if (runHtml.includes("Baseline-Isolated")) throw new Error("retired hyphenated AMBIENT expansion remains on the run page");
 if (runHtml.includes('type="password"') || runHtml.includes("API key or token") || runHtml.includes("credential_consent") || runHtml.includes("/run.js")) throw new Error("manual credential collection remains in the public runner page");
 if (!boardJs.includes("sb_publishable_") || !boardJs.includes("publication_status")) throw new Error("live Supabase leaderboard configuration is missing");
 if (boardJs.includes("sb_secret_") || boardJs.includes("service_role")) throw new Error("privileged Supabase credentials must not appear in browser code");
