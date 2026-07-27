@@ -112,6 +112,86 @@
         <p>A submission includes a hashed manifest, transcript, verdicts, summary, declared track, source commit, and uncertainty interval. Validation rejects missing pairs, reader drift, mock output, judge errors, unsafe paths, metric disagreement, and hash mismatches.</p>
         <a class="text-link" href="https://github.com/H-XX-D/ambient-benchmark/blob/master/submissions/README.md">Submission specification</a>
       </section>
+
+      <section class="test-spec-section" aria-labelledby="test-spec-title">
+        <header class="test-spec-heading">
+          <p class="eyebrow">Before you enter</p>
+          <h2 id="test-spec-title">What a leaderboard run involves</h2>
+          <p>AMBIENT is a controlled, evidence-producing evaluation—not a single prompt or a model popularity contest. Entrants should expect four memory conditions, independent judging, trace inspection, and a publishable artifact bundle.</p>
+        </header>
+
+        <div class="run-spec-grid">
+          <article>
+            <span>01 / Connect</span>
+            <h3>Expose an observable memory query</h3>
+            <p>The adapter must return the exact external context served for each question. If the harness cannot observe a non-empty store response, the answer cannot earn memory credit.</p>
+          </article>
+          <article>
+            <span>02 / Execute</span>
+            <h3>Run every question four ways</h3>
+            <p>T1 disables memory, T2 enables reference capture, T3 combines both paths, and T4 isolates the selected memory. A complete hosted run is 400 unique questions and 1,600 judged tier rows.</p>
+          </article>
+          <article>
+            <span>03 / Prove</span>
+            <h3>Keep the full evidence trail</h3>
+            <p>Expect manifests, raw transcripts, served context, verdicts, summaries, fingerprints, and SHA-256 checks. Missing pairs, drift, mock output, or any reader, adapter, or judge error blocks publication.</p>
+          </article>
+          <article>
+            <span>04 / Compare</span>
+            <h3>Match the right board</h3>
+            <p>Hosted results are automatic and unreviewed. Architecture claims require fixed controls, balanced order, at least three repeats, and 30 unique questions per ability. Native systems are reported separately.</p>
+          </article>
+        </div>
+
+        <header class="test-spec-heading test-spec-heading-secondary">
+          <p class="eyebrow">Inside the test</p>
+          <h2>Inside the 400-question hosted test</h2>
+          <p>BEAM-small contributes 40 unique questions in each of ten memory families. The harness asks every question under T1–T4, producing 1,600 judged rows. Each card explains the expected behavior and the failure pattern the family is designed to expose.</p>
+        </header>
+
+        <div class="test-difficulty-grid">
+          <article data-test-spec>
+            <header><span>01</span><h3>Knowledge update</h3></header>
+            <dl><div><dt>What it tests</dt><dd>Retrieves the newest valid value after a fact changes across sessions.</dd></div><div><dt>Why it’s difficult</dt><dd>Both old and new statements remain relevant; retrieval may serve the obsolete one or the reader may blend them together.</dd></div></dl>
+          </article>
+          <article data-test-spec>
+            <header><span>02</span><h3>Contradiction resolution</h3></header>
+            <dl><div><dt>What it tests</dt><dd>Recognizes incompatible statements and responds with uncertainty or clarification instead of choosing arbitrarily.</dd></div><div><dt>Why it’s difficult</dt><dd>Conflicts can be distant, paraphrased, and individually plausible; simple last-write-wins behavior can hide the disagreement.</dd></div></dl>
+          </article>
+          <article data-test-spec>
+            <header><span>03</span><h3>Multi-session reasoning</h3></header>
+            <dl><div><dt>What it tests</dt><dd>Combines evidence split across separate, distant conversations.</dd></div><div><dt>Why it’s difficult</dt><dd>No single retrieved passage is sufficient; the system must recover several supporting facts without letting distractors take over.</dd></div></dl>
+          </article>
+          <article data-test-spec>
+            <header><span>04</span><h3>Temporal reasoning</h3></header>
+            <dl><div><dt>What it tests</dt><dd>Answers time-relative and “as of” questions from timestamped events.</dd></div><div><dt>Why it’s difficult</dt><dd>Current truth and historical truth can differ, so event order, reference date, and temporal language must all be interpreted correctly.</dd></div></dl>
+          </article>
+          <article data-test-spec>
+            <header><span>05</span><h3>Event ordering</h3></header>
+            <dl><div><dt>What it tests</dt><dd>Reconstructs the correct sequence of events from the remembered record.</dd></div><div><dt>Why it’s difficult</dt><dd>Remembering the events is not enough; one omission, tie, or misplaced event can distort the entire chronology.</dd></div></dl>
+          </article>
+          <article data-test-spec>
+            <header><span>06</span><h3>Information extraction</h3></header>
+            <dl><div><dt>What it tests</dt><dd>Recovers a specific detail that was explicitly stated in the conversation history.</dd></div><div><dt>Why it’s difficult</dt><dd>The answer may be a small needle among many plausible near-matches and unrelated sessions.</dd></div></dl>
+          </article>
+          <article data-test-spec>
+            <header><span>07</span><h3>Preference following</h3></header>
+            <dl><div><dt>What it tests</dt><dd>Remembers an earlier user preference and applies it to a later response.</dd></div><div><dt>Why it’s difficult</dt><dd>The preference may be implicit or revised, and success requires changing the answer—not merely retrieving the preference verbatim.</dd></div></dl>
+          </article>
+          <article data-test-spec>
+            <header><span>08</span><h3>Instruction following</h3></header>
+            <dl><div><dt>What it tests</dt><dd>Applies a standing instruction that was issued earlier in the history.</dd></div><div><dt>Why it’s difficult</dt><dd>The instruction can be far from the question or revised later; the latest valid instruction must still control the response.</dd></div></dl>
+          </article>
+          <article data-test-spec>
+            <header><span>09</span><h3>Summarization</h3></header>
+            <dl><div><dt>What it tests</dt><dd>Condenses a long span while preserving the important facts and changes.</dd></div><div><dt>Why it’s difficult</dt><dd>Compression can erase chronology, qualifiers, contradictions, or the difference between old and current state.</dd></div></dl>
+          </article>
+          <article data-test-spec>
+            <header><span>10</span><h3>Abstention</h3></header>
+            <dl><div><dt>What it tests</dt><dd>Declines when the remembered record does not contain enough information to answer.</dd></div><div><dt>Why it’s difficult</dt><dd>There is no supporting passage to retrieve, while a fluent, plausible guess is still scored as gullible.</dd></div></dl>
+          </article>
+        </div>
+      </section>
     </main>
     <footer>
       <a class="wordmark" href="/"><span class="wordmark-mark" aria-hidden="true"></span> AMBIENT</a>
