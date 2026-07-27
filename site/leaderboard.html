@@ -144,51 +144,71 @@
         </div>
 
         <header class="test-spec-heading test-spec-heading-secondary">
-          <p class="eyebrow">Inside the test</p>
-          <h2>Inside the 400-question hosted test</h2>
-          <p>BEAM-small contributes 40 unique questions in each of ten memory families. The harness asks every question under T1–T4, producing 1,600 judged rows. Each card explains the expected behavior and the failure pattern the family is designed to expose.</p>
+          <p class="eyebrow">The reported abilities</p>
+          <h2>The fifteen abilities AMBIENT tests</h2>
+          <p>This is the same capability model shown on the benchmark page—not the ten source labels inside the BEAM corpus. Each card explains the observable behavior AMBIENT looks for and the failure pattern that makes the test difficult.</p>
         </header>
 
         <div class="test-difficulty-grid">
           <article data-test-spec>
-            <header><span>01</span><h3>Knowledge update</h3></header>
-            <dl><div><dt>What it tests</dt><dd>Retrieves the newest valid value after a fact changes across sessions.</dd></div><div><dt>Why it’s difficult</dt><dd>Both old and new statements remain relevant; retrieval may serve the obsolete one or the reader may blend them together.</dd></div></dl>
+            <header><span>01</span><h3>Abstention</h3></header>
+            <dl><div><dt>What it tests</dt><dd>Declines when the stored record cannot support an answer.</dd></div><div><dt>Why it’s difficult</dt><dd>Fluent readers tend to guess from prior knowledge, and an empty retrieval must not be presented as evidence.</dd></div></dl>
           </article>
           <article data-test-spec>
-            <header><span>02</span><h3>Contradiction resolution</h3></header>
-            <dl><div><dt>What it tests</dt><dd>Recognizes incompatible statements and responds with uncertainty or clarification instead of choosing arbitrarily.</dd></div><div><dt>Why it’s difficult</dt><dd>Conflicts can be distant, paraphrased, and individually plausible; simple last-write-wins behavior can hide the disagreement.</dd></div></dl>
+            <header><span>02</span><h3>Adoption</h3></header>
+            <dl><div><dt>What it tests</dt><dd>Routes a new memory into the correct governed store so it remains available later.</dd></div><div><dt>Why it’s difficult</dt><dd>Multi-project routing and fallback behavior can silently place data in the wrong store or an ungoverned side file.</dd></div></dl>
           </article>
           <article data-test-spec>
-            <header><span>03</span><h3>Multi-session reasoning</h3></header>
-            <dl><div><dt>What it tests</dt><dd>Combines evidence split across separate, distant conversations.</dd></div><div><dt>Why it’s difficult</dt><dd>No single retrieved passage is sufficient; the system must recover several supporting facts without letting distractors take over.</dd></div></dl>
+            <header><span>03</span><h3>Anteriority</h3></header>
+            <dl><div><dt>What it tests</dt><dd>Establishes that one record existed before another using verifiable ordering evidence.</dd></div><div><dt>Why it’s difficult</dt><dd>A self-reported timestamp is easy to invent; credible ordering requires evidence that survives reopening and independent inspection.</dd></div></dl>
           </article>
           <article data-test-spec>
-            <header><span>04</span><h3>Temporal reasoning</h3></header>
-            <dl><div><dt>What it tests</dt><dd>Answers time-relative and “as of” questions from timestamped events.</dd></div><div><dt>Why it’s difficult</dt><dd>Current truth and historical truth can differ, so event order, reference date, and temporal language must all be interpreted correctly.</dd></div></dl>
+            <header><span>04</span><h3>Calibration</h3></header>
+            <dl><div><dt>What it tests</dt><dd>Keeps confidence proportional to the quality and independence of supporting evidence.</dd></div><div><dt>Why it’s difficult</dt><dd>Repeated weak claims or many correlated sources can launder uncertainty into unjustified confidence.</dd></div></dl>
           </article>
           <article data-test-spec>
-            <header><span>05</span><h3>Event ordering</h3></header>
-            <dl><div><dt>What it tests</dt><dd>Reconstructs the correct sequence of events from the remembered record.</dd></div><div><dt>Why it’s difficult</dt><dd>Remembering the events is not enough; one omission, tie, or misplaced event can distort the entire chronology.</dd></div></dl>
+            <header><span>05</span><h3>Concurrency</h3></header>
+            <dl><div><dt>What it tests</dt><dd>Preserves simultaneous writes and keeps independent operations from corrupting one another.</dd></div><div><dt>Why it’s difficult</dt><dd>Lock races can silently drop updates, while write skew can leave individually valid writes jointly inconsistent.</dd></div></dl>
           </article>
           <article data-test-spec>
-            <header><span>06</span><h3>Information extraction</h3></header>
-            <dl><div><dt>What it tests</dt><dd>Recovers a specific detail that was explicitly stated in the conversation history.</dd></div><div><dt>Why it’s difficult</dt><dd>The answer may be a small needle among many plausible near-matches and unrelated sessions.</dd></div></dl>
+            <header><span>06</span><h3>Contradiction resolution</h3></header>
+            <dl><div><dt>What it tests</dt><dd>Surfaces incompatible claims and avoids treating either side as settled fact.</dd></div><div><dt>Why it’s difficult</dt><dd>Conflicts may be paraphrased or separated by time, and last-write-wins can hide uncertainty instead of resolving it.</dd></div></dl>
           </article>
           <article data-test-spec>
-            <header><span>07</span><h3>Preference following</h3></header>
-            <dl><div><dt>What it tests</dt><dd>Remembers an earlier user preference and applies it to a later response.</dd></div><div><dt>Why it’s difficult</dt><dd>The preference may be implicit or revised, and success requires changing the answer—not merely retrieving the preference verbatim.</dd></div></dl>
+            <header><span>07</span><h3>Enumeration</h3></header>
+            <dl><div><dt>What it tests</dt><dd>Returns the complete requested set without omissions, duplicates, or unrelated members.</dd></div><div><dt>Why it’s difficult</dt><dd>Top-k retrieval is optimized for a few relevant hits, not proof that every qualifying item was found exactly once.</dd></div></dl>
           </article>
           <article data-test-spec>
-            <header><span>08</span><h3>Instruction following</h3></header>
-            <dl><div><dt>What it tests</dt><dd>Applies a standing instruction that was issued earlier in the history.</dd></div><div><dt>Why it’s difficult</dt><dd>The instruction can be far from the question or revised later; the latest valid instruction must still control the response.</dd></div></dl>
+            <header><span>08</span><h3>Expiry</h3></header>
+            <dl><div><dt>What it tests</dt><dd>Stops serving a claim as current when its declared or semantic validity has ended.</dd></div><div><dt>Why it’s difficult</dt><dd>Temporal scope is often implicit in language, and stale records can remain highly relevant to a lexical search.</dd></div></dl>
           </article>
           <article data-test-spec>
-            <header><span>09</span><h3>Summarization</h3></header>
-            <dl><div><dt>What it tests</dt><dd>Condenses a long span while preserving the important facts and changes.</dd></div><div><dt>Why it’s difficult</dt><dd>Compression can erase chronology, qualifiers, contradictions, or the difference between old and current state.</dd></div></dl>
+            <header><span>09</span><h3>Federation</h3></header>
+            <dl><div><dt>What it tests</dt><dd>Reads across independent stores while preserving origin and cross-store disagreement.</dd></div><div><dt>Why it’s difficult</dt><dd>Deduplication, identifier collisions, or member order can erase one source or collapse a real conflict.</dd></div></dl>
           </article>
           <article data-test-spec>
-            <header><span>10</span><h3>Abstention</h3></header>
-            <dl><div><dt>What it tests</dt><dd>Declines when the remembered record does not contain enough information to answer.</dd></div><div><dt>Why it’s difficult</dt><dd>There is no supporting passage to retrieve, while a fluent, plausible guess is still scored as gullible.</dd></div></dl>
+            <header><span>10</span><h3>Holonomy</h3></header>
+            <dl><div><dt>What it tests</dt><dd>Detects cyclic ordering contradictions such as A before B, B before C, and C before A.</dd></div><div><dt>Why it’s difficult</dt><dd>Every pair can look locally plausible; the impossibility appears only when the full dependency cycle is evaluated.</dd></div></dl>
+          </article>
+          <article data-test-spec>
+            <header><span>11</span><h3>Modality</h3></header>
+            <dl><div><dt>What it tests</dt><dd>Keeps hypothetical, proposed, and actual events in distinct states.</dd></div><div><dt>Why it’s difficult</dt><dd>The same entities and actions appear in every version, so lexical similarity can make a possibility look like history.</dd></div></dl>
+          </article>
+          <article data-test-spec>
+            <header><span>12</span><h3>Provenance</h3></header>
+            <dl><div><dt>What it tests</dt><dd>Preserves who produced a claim, where it came from, and which evidence supports it.</dd></div><div><dt>Why it’s difficult</dt><dd>Summarization, merging, and retrieval can detach content from its origin and make dependent sources appear independent.</dd></div></dl>
+          </article>
+          <article data-test-spec>
+            <header><span>13</span><h3>Reactivity</h3></header>
+            <dl><div><dt>What it tests</dt><dd>Updates or alerts on dependent conclusions when supporting memory changes.</dd></div><div><dt>Why it’s difficult</dt><dd>The affected state may be several edges away, and cached conclusions can remain stale without explicit propagation.</dd></div></dl>
+          </article>
+          <article data-test-spec>
+            <header><span>14</span><h3>Reader independence</h3></header>
+            <dl><div><dt>What it tests</dt><dd>Shows that memory supplied information the fixed reader could not recover alone.</dd></div><div><dt>Why it’s difficult</dt><dd>A strong model may already know or guess the answer, so attribution requires a paired no-memory control and traceable facts.</dd></div></dl>
+          </article>
+          <article data-test-spec>
+            <header><span>15</span><h3>Set integrity</h3></header>
+            <dl><div><dt>What it tests</dt><dd>Proves that served items belong to the recorded set and that later history only appends.</dd></div><div><dt>Why it’s difficult</dt><dd>Ordinary logs can be rewritten; tamper detection needs reproducible membership and consistency proofs.</dd></div></dl>
           </article>
         </div>
       </section>
