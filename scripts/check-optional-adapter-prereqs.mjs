@@ -41,6 +41,13 @@ const TARGETS = [
     install: "npm install -g simple-memory-mcp",
   },
   {
+    id: "tree-ring-cli",
+    kind: "binary",
+    env: "AMBIENT_TREE_RING_BIN",
+    command: process.env.AMBIENT_TREE_RING_BIN || "tree-ring",
+    install: "clone TerminallyLazy/Tree_Ring_Memory, then cargo install --path /path/to/Tree_Ring_Memory/crates/tree-ring-memory-cli",
+  },
+  {
     id: "claude-memory-mcp-cli",
     kind: "binary",
     env: "AMBIENT_CLAUDE_MEMORY_BIN",

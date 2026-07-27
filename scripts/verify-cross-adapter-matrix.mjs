@@ -111,6 +111,13 @@ const OPTIONAL_ADAPTERS = [
     binDefault: "simple-memory",
   },
   {
+    id: "tree-ring-cli",
+    script: "adapters/tree-ring-cli-adapter.mjs",
+    rootPrefix: "ambient-cross-tree-ring-",
+    binEnv: "AMBIENT_TREE_RING_BIN",
+    binDefault: "tree-ring",
+  },
+  {
     id: "claude-memory-mcp-cli",
     script: "adapters/claude-memory-mcp-cli-adapter.mjs",
     rootPrefix: "ambient-cross-claude-memory-mcp-",
