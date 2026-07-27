@@ -16,10 +16,11 @@ hf_oauth_scopes:
 
 # AMBIENT hosted runner
 
-Choose a memory adapter, reader, independent judge, and run scope. The Space
-runs the same four-tier AMBIENT harness used by the public repository and
-returns a downloadable evidence bundle. The public website links directly to
-this authenticated runner.
+The Space opens with the public hosted-run leaderboard, ordered by reported
+T4−T1 attributed memory lift. Rows are automatic and unreviewed; architecture
+comparisons are valid only when their control keys match. The runner then asks
+for a memory adapter, fixed reader, independent judge, and run scope. Every run
+ends with one evidence-bundle export.
 
 Participants sign in with Hugging Face. Beyond Hugging Face's standard
 `openid profile` sign-in scopes, the Space requests only `inference-api`, and
@@ -34,10 +35,11 @@ browser. Hugging Face Inference uses the OpenAI-compatible
 `https://router.huggingface.co/v1` endpoint, so inference usage is charged to
 the signed-in participant's Hugging Face account rather than the Space owner.
 
-All runs remain unreviewed until their evidence bundle passes repository review.
-A complete 400-question run is also recorded automatically on a separate hosted
-results table after structural validation; it is never presented as a verified
-architecture submission.
+Development scopes remain private to their exported bundles. A complete
+400-question run is recorded automatically after balanced sampling, all 1,600
+rows, zero judge errors, paired uncertainty, and evidence fingerprints pass the
+publication gate. It remains a hosted, unreviewed result; repository review is
+still required for the verified architecture leaderboard.
 
 Run scopes use unique, seeded, stratified BEAM questions: 10 smoke (1 per
 ability), 100 pilot (10 per ability), 200 extended (20 per ability), or the

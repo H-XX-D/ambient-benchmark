@@ -30,6 +30,11 @@ if (!launcher.includes("gr.LoginButton") || !launcher.includes("oauth_token: gr.
 if (launcher.includes("Reader API key") || launcher.includes("Judge API key") || launcher.includes("reader_key_input") || launcher.includes("judge_key_input") || launcher.includes("credential_consent_input") || launcher.includes("PROVIDERS =")) throw new Error("manual credential path remains in the Space launcher");
 if (!launcher.includes('api_name="run_benchmark"')) throw new Error("named runner event is missing");
 if (!launcher.includes("check-cross-adapter-grades.mjs") || !launcher.includes('"--expect-rows", "1600"') || !launcher.includes("publish_hosted_run")) throw new Error("complete hosted-run publication gate is missing");
+if (!launcher.includes("def fetch_hosted_runs") || !launcher.includes("def hosted_leaderboard_html") || !launcher.includes("ambient_hosted_runs") || !launcher.includes("Current leader")) throw new Error("live hosted leaderboard is missing from the Space");
+if (!launcher.includes("demo.load(hosted_leaderboard_html") || !launcher.includes("return summary, str(bundle_path), hosted_leaderboard_html()")) throw new Error("leaderboard does not refresh after eligible runs publish");
+if (launcher.indexOf('board_output = gr.HTML') > launcher.indexOf('elem_id="ambient-workspace"')) throw new Error("leaderboard must appear before the runner controls");
+if (!launcher.includes('gr.DownloadButton("Export evidence bundle"') || launcher.includes("Technical run log") || launcher.includes("gr.Accordion")) throw new Error("result surface must end with one evidence export action and no technical-log panel");
+if (launcher.includes("ambient-hero") || launcher.includes("Hold the model fixed")) throw new Error("retired sales-style Space hero remains");
 if (!launcher.includes("def redact") || launcher.includes("print(payload)")) throw new Error("credential redaction boundary failed");
 if (launcher.includes("AMBIENT_READER_API_KEY") || launcher.includes("AMBIENT_JUDGE_API_KEY") || launcher.includes("HF_TOKEN")) throw new Error("operator model credentials must not be used by the Space");
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import html
 import json
 import os
 import platform
@@ -13,6 +14,8 @@ import tarfile
 import tempfile
 import threading
 import time
+import urllib.error
+import urllib.parse
 import urllib.request
 import uuid
 from pathlib import Path
@@ -67,6 +70,11 @@ MEMORIES = {
 }
 
 HF_INFERENCE_ENDPOINT = "https://router.huggingface.co/v1"
+SUPABASE_URL = os.getenv("AMBIENT_SUPABASE_URL", "https://nasxywilptctmfdbfpdw.supabase.co").strip().rstrip("/")
+SUPABASE_PUBLISHABLE_KEY = os.getenv(
+    "AMBIENT_SUPABASE_PUBLISHABLE_KEY",
+    "sb_publishable_4yW4erGxjwGNYzzJ-0c3Yg_QsYsBYFH",
+).strip()
 
 @spaces.GPU(duration=1)
 def _zerogpu_registration() -> str:
@@ -247,7 +255,7 @@ def full_run_publication_payload(
 
 
 def publish_hosted_run(payload: dict) -> str:
-    base_url = os.getenv("AMBIENT_SUPABASE_URL", "https://nasxywilptctmfdbfpdw.supabase.co").strip().rstrip("/")
+    base_url = SUPABASE_URL
     secret_key = os.getenv("AMBIENT_SUPABASE_SECRET_KEY", "").strip()
     if not base_url or not secret_key:
         return "not-configured"
@@ -269,6 +277,109 @@ def publish_hosted_run(payload: dict) -> str:
         if response.status not in (200, 201, 204):
             raise RuntimeError(f"Hosted-result publication returned HTTP {response.status}.")
     return "published"
+
+
+def fetch_hosted_runs(limit: int = 50) -> list[dict]:
+    """Read public, structurally gated hosted results through Supabase RLS."""
+    if not SUPABASE_URL.startswith("https://") or not SUPABASE_PUBLISHABLE_KEY:
+        raise RuntimeError("Hosted leaderboard is not configured.")
+    query = urllib.parse.urlencode({
+        "publication_status": "eq.hosted",
+        "select": (
+            "id,memory_name,reader_model,judge_model,item_count,score,lower95,upper95,"
+            "baseline,treatment,control_key,completed_at"
+        ),
+        "order": "score.desc,completed_at.asc",
+        "limit": str(max(1, min(int(limit), 100))),
+    })
+    request = urllib.request.Request(
+        f"{SUPABASE_URL}/rest/v1/ambient_hosted_runs?{query}",
+        headers={
+            "Accept": "application/json",
+            "apikey": SUPABASE_PUBLISHABLE_KEY,
+        },
+    )
+    with urllib.request.urlopen(request, timeout=15) as response:
+        if response.status != 200:
+            raise RuntimeError(f"Hosted leaderboard returned HTTP {response.status}.")
+        rows = json.loads(response.read().decode("utf-8"))
+    if not isinstance(rows, list):
+        raise RuntimeError("Hosted leaderboard returned an invalid payload.")
+    return [row for row in rows if isinstance(row, dict)]
+
+
+def points(value: object) -> str:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return "—"
+    return f"{number:+.1f} pp"
+
+
+def percent(value: object) -> str:
+    try:
+        return f"{float(value):.1f}%"
+    except (TypeError, ValueError):
+        return "—"
+
+
+def hosted_leaderboard_html() -> str:
+    """Render the public hosted-run board with the highest posted lift first."""
+    try:
+        rows = fetch_hosted_runs()
+    except (RuntimeError, OSError, urllib.error.URLError, json.JSONDecodeError):
+        return """
+          <section class="ambient-board ambient-board-empty">
+            <header><span>Hosted leaderboard</span><h2>Results unavailable</h2></header>
+            <p>The runner remains available. The hosted-results table could not be read.</p>
+          </section>
+        """
+
+    if not rows:
+        return """
+          <section class="ambient-board ambient-board-empty">
+            <header><span>Hosted leaderboard</span><h2>No complete runs yet</h2></header>
+            <p>The first eligible 400-question run will appear here automatically after the publication gate passes.</p>
+          </section>
+        """
+
+    leader = rows[0]
+    leader_memory = html.escape(str(leader.get("memory_name", "Unknown memory")))
+    leader_reader = html.escape(str(leader.get("reader_model", "Unknown reader")))
+    leader_judge = html.escape(str(leader.get("judge_model", "Unknown judge")))
+    leader_control = html.escape(str(leader.get("control_key", "—")))
+    leader_date = html.escape(str(leader.get("completed_at", ""))[:10])
+
+    table_rows: list[str] = []
+    for rank, row in enumerate(rows, start=1):
+        memory = html.escape(str(row.get("memory_name", "Unknown memory")))
+        reader = html.escape(str(row.get("reader_model", "Unknown reader")))
+        judge = html.escape(str(row.get("judge_model", "Unknown judge")))
+        control = html.escape(str(row.get("control_key", "—")))
+        completed = html.escape(str(row.get("completed_at", ""))[:10])
+        table_rows.append(
+            "<tr>"
+            f"<td>#{rank:02d}</td><td><strong>{memory}</strong></td><td class=\"score\">{points(row.get('score'))}</td>"
+            f"<td>{percent(row.get('baseline'))}</td><td>{percent(row.get('treatment'))}</td>"
+            f"<td><code>{reader}</code></td><td><code>{judge}</code></td>"
+            f"<td><code>{control}</code></td><td>{completed}</td>"
+            "</tr>"
+        )
+
+    return f"""
+      <section class="ambient-board">
+        <header class="ambient-board-head">
+          <div><span>Hosted leaderboard</span><h2>Complete public runs</h2></div>
+          <p>Automatic and unreviewed. Ordered by reported T4−T1 lift. Match control keys before comparing architectures.</p>
+        </header>
+        <article class="ambient-leader">
+          <div><span>Current leader</span><h3>{leader_memory}</h3><p>{leader_reader} · judged by {leader_judge}</p></div>
+          <strong>{points(leader.get('score'))}</strong>
+          <dl><div><dt>T1</dt><dd>{percent(leader.get('baseline'))}</dd></div><div><dt>T4</dt><dd>{percent(leader.get('treatment'))}</dd></div><div><dt>Control</dt><dd>{leader_control}</dd></div><div><dt>Completed</dt><dd>{leader_date}</dd></div></dl>
+        </article>
+        <div class="ambient-board-table"><table><thead><tr><th>Rank</th><th>Memory</th><th>Lift</th><th>T1</th><th>T4</th><th>Reader</th><th>Judge</th><th>Control</th><th>Date</th></tr></thead><tbody>{''.join(table_rows)}</tbody></table></div>
+      </section>
+    """
 
 
 def copy_if_repo_file(candidate: str | None, destination: Path) -> None:
@@ -518,7 +629,7 @@ def run_benchmark(
             "The hosted board reports completed runs; GitHub evidence review is still required for the verified architecture leaderboard."
         )
         progress(1.0, desc="Evidence bundle ready")
-        return summary, str(bundle_path), process_log[-6000:]
+        return summary, str(bundle_path), hosted_leaderboard_html()
     except gr.Error:
         raise
     except (ValueError, RuntimeError, subprocess.TimeoutExpired, OSError, json.JSONDecodeError) as error:
@@ -530,55 +641,68 @@ def run_benchmark(
 
 
 CSS = """
-:root { --ink:#f4f2ec; --paper:#101217; --white:#15181e; --muted:#b0b3bb; --line:#41454e; --signal:#ff614b; --reverse:#101217; --reverse-muted:#555860; }
+:root { --ink:#151515; --paper:#101217; --panel:#1b1e24; --white:#f1efe8; --muted:#aeb1b8; --line:#3c4049; --signal:#e14a34; }
 html, body { max-width:100%; overflow-x:hidden; }
-body, .gradio-container { background:var(--paper) !important; color:var(--ink) !important; }
+body, .gradio-container { background:var(--paper) !important; color:var(--white) !important; }
 .gradio-container { max-width:none !important; padding:0 !important; font-family:Inter,ui-sans-serif,system-ui,sans-serif !important; }
-#ambient-shell { width:100%; max-width:1240px; margin:0 auto; padding:24px; box-sizing:border-box; }
-.ambient-hero { display:grid; grid-template-columns:minmax(0,1.45fr) minmax(260px,.55fr); gap:48px; align-items:end; padding:42px 46px; color:var(--reverse); background:var(--ink); border:1px solid var(--ink); }
-.ambient-kicker, .ambient-label { font-size:.76rem; font-weight:750; line-height:1.2; letter-spacing:.105em; text-transform:uppercase; }
-.ambient-kicker { color:var(--reverse-muted) !important; }
-.ambient-method .ambient-label, #ambient-results .ambient-label { color:var(--muted) !important; }
-.ambient-hero h1 { margin:14px 0 0; max-width:780px; color:var(--reverse) !important; font-size:clamp(2.7rem,6vw,5.6rem) !important; font-weight:650 !important; line-height:.94 !important; letter-spacing:-.06em !important; }
-.ambient-hero h1 em { color:#ff614b !important; font-style:normal !important; }
-.ambient-hero p { margin:0; color:var(--reverse-muted) !important; font-size:1rem !important; font-weight:520 !important; line-height:1.65 !important; }
-#ambient-workspace { width:100%; gap:0 !important; margin:0 !important; align-items:stretch !important; }
+#ambient-shell { width:100%; max-width:1320px; margin:0 auto; padding:22px; box-sizing:border-box; }
+.ambient-header { display:grid; grid-template-columns:1fr minmax(280px,.55fr); gap:32px; align-items:end; padding:24px 0 22px; border-bottom:1px solid var(--line); }
+.ambient-header span, .ambient-board span, .ambient-label { color:var(--signal) !important; font-size:.72rem; font-weight:750; letter-spacing:.09em; text-transform:uppercase; }
+.ambient-header h1 { margin:7px 0 0; color:var(--white) !important; font-size:clamp(2.1rem,4.7vw,4.6rem) !important; font-weight:620 !important; line-height:.95 !important; letter-spacing:-.055em !important; }
+.ambient-header p { margin:0; color:var(--muted) !important; font-size:.92rem !important; line-height:1.6 !important; }
+#ambient-leaderboard { margin:0 !important; }
+.ambient-board { margin:22px 0; color:var(--ink); background:var(--white); border:1px solid var(--white); }
+.ambient-board-head { display:grid; grid-template-columns:1fr minmax(320px,.6fr); gap:28px; align-items:end; padding:24px 26px; border-bottom:1px solid #bebbb3; }
+.ambient-board h2 { margin:5px 0 0; color:var(--ink) !important; font-size:clamp(1.8rem,3.3vw,3.3rem) !important; font-weight:620 !important; letter-spacing:-.045em !important; }
+.ambient-board-head p, .ambient-board-empty > p { margin:0; color:#595a56 !important; font-size:.86rem !important; line-height:1.55 !important; }
+.ambient-board-empty { padding:24px 26px; }
+.ambient-board-empty header { margin-bottom:10px; }
+.ambient-leader { display:grid; grid-template-columns:1fr auto; gap:18px 34px; padding:28px 26px; color:var(--white); background:var(--ink); }
+.ambient-leader h3 { margin:5px 0 4px; color:var(--white) !important; font-size:clamp(2rem,4vw,4rem) !important; font-weight:620 !important; letter-spacing:-.05em !important; line-height:.95 !important; }
+.ambient-leader p { margin:0; color:#b4b5b0 !important; font-size:.84rem !important; }
+.ambient-leader > strong { align-self:center; color:var(--signal); font-size:clamp(2.1rem,5vw,5rem); font-weight:620; letter-spacing:-.055em; white-space:nowrap; }
+.ambient-leader dl { grid-column:1/-1; display:grid; grid-template-columns:repeat(4,1fr); margin:8px 0 0; border-top:1px solid #444; }
+.ambient-leader dl div { padding:13px 0 0; }
+.ambient-leader dt { color:#8f918d; font-size:.67rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; }
+.ambient-leader dd { margin:4px 0 0; color:var(--white); font-size:.86rem; }
+.ambient-board-table { overflow-x:auto; }
+.ambient-board table { width:100%; border-collapse:collapse; font-size:.78rem; }
+.ambient-board th, .ambient-board td { padding:12px 10px; text-align:left; border-bottom:1px solid #cecbc3; white-space:nowrap; }
+.ambient-board th { color:#666761; font-size:.66rem; letter-spacing:.06em; text-transform:uppercase; }
+.ambient-board td { color:#444540; }
+.ambient-board td:first-child, .ambient-board td.score { color:var(--signal); font-weight:750; }
+.ambient-board code { color:#444540; background:transparent; font-size:.74rem; }
+#ambient-workspace { width:100%; gap:0 !important; margin:22px 0 0 !important; align-items:stretch !important; }
 #ambient-workspace > div { min-width:0 !important; }
-.ambient-method, .ambient-form { min-width:0 !important; min-height:100%; color:var(--ink) !important; border:1px solid var(--ink) !important; border-top:0 !important; border-radius:0 !important; box-shadow:none !important; }
-.ambient-method { padding:34px 36px !important; background:#1d2026 !important; border-right:0 !important; }
-.ambient-form { padding:32px 34px 36px !important; background:var(--white) !important; }
-.ambient-method h2, .ambient-method strong, .ambient-form h2, .ambient-form strong, .ambient-boundary { color:var(--ink) !important; }
-.ambient-method h2, .ambient-form h2 { margin:8px 0 22px; font-size:1.65rem; line-height:1.05; letter-spacing:-.035em; }
-.ambient-method p, .ambient-method li, .ambient-form-copy { color:var(--muted) !important; font-size:.96rem; line-height:1.6; }
-.ambient-method ol { margin:28px 0; padding:0; list-style:none; counter-reset:method; border-top:1px solid var(--line); }
-.ambient-method li { counter-increment:method; display:grid; grid-template-columns:36px 1fr; gap:10px; padding:14px 0; border-bottom:1px solid var(--line); }
-.ambient-method li::before { content:"0" counter(method); color:var(--signal); font-size:.75rem; font-weight:800; letter-spacing:.06em; }
-.ambient-boundary { margin-top:30px; padding-top:18px; border-top:2px solid var(--ink); }
-.ambient-boundary strong { display:block; margin-bottom:7px; font-size:.82rem; letter-spacing:.04em; text-transform:uppercase; }
-.ambient-section { margin:0 0 13px; padding-top:22px; border-top:1px solid var(--line); }
-.ambient-section.first { padding-top:0; border-top:0; }
-.ambient-section span { display:block; margin-bottom:5px; color:var(--signal) !important; font-size:.7rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
-.ambient-section strong { display:block; font-size:1.06rem; }
-.ambient-section p { margin:4px 0 0; color:var(--muted) !important; font-size:.86rem; line-height:1.5; }
-.ambient-fieldset { margin:0 0 20px !important; padding:0 !important; border:0 !important; border-radius:0 !important; box-shadow:none !important; background:transparent !important; }
-.ambient-form label, .ambient-form .label-wrap { font-size:.88rem !important; font-weight:650 !important; }
-.ambient-form input, .ambient-form textarea, .ambient-form [role="combobox"] { min-height:46px !important; font-size:1rem !important; }
-.ambient-consent { margin:5px 0 17px !important; padding:14px !important; color:var(--ink) !important; background:#20242c !important; border:1px solid var(--line) !important; }
-.ambient-consent label, .ambient-consent span { color:var(--ink) !important; }
-button.ambient-run { min-height:54px !important; background:var(--ink) !important; color:var(--reverse) !important; border:1px solid var(--ink) !important; border-radius:0 !important; font-size:1rem !important; font-weight:750 !important; box-shadow:none !important; }
-button.ambient-run:hover { background:var(--signal) !important; color:var(--reverse) !important; border-color:var(--signal) !important; }
-#ambient-results { max-width:1240px; margin:0 auto; padding:0 24px 34px; }
-.ambient-result-head { padding:28px 0 10px; border-top:1px solid var(--ink); }
-.ambient-result-head h2 { margin:5px 0 0; color:var(--ink) !important; font-size:1.7rem; letter-spacing:-.035em; }
+.ambient-run-copy, .ambient-form { min-width:0 !important; min-height:100%; border:1px solid var(--line) !important; border-radius:0 !important; box-shadow:none !important; }
+.ambient-run-copy { padding:30px !important; background:var(--paper) !important; border-right:0 !important; }
+.ambient-form { padding:28px 30px 32px !important; background:var(--panel) !important; }
+.ambient-run-copy h2 { margin:8px 0 18px; color:var(--white) !important; font-size:clamp(1.8rem,3vw,3rem); font-weight:620; letter-spacing:-.045em; line-height:1; }
+.ambient-run-copy p, .ambient-form-copy { color:var(--muted) !important; font-size:.9rem; line-height:1.62; }
+.ambient-facts { margin:26px 0 0; padding:0; list-style:none; border-top:1px solid var(--line); }
+.ambient-facts li { display:grid; grid-template-columns:78px 1fr; gap:12px; padding:13px 0; color:var(--muted); border-bottom:1px solid var(--line); font-size:.82rem; line-height:1.45; }
+.ambient-facts b { color:var(--signal); font-size:.69rem; letter-spacing:.06em; text-transform:uppercase; }
+.ambient-fieldset { margin:0 0 16px !important; padding:0 !important; border:0 !important; border-radius:0 !important; box-shadow:none !important; background:transparent !important; }
+.ambient-form label, .ambient-form .label-wrap { color:var(--white) !important; font-size:.82rem !important; font-weight:650 !important; }
+.ambient-form input, .ambient-form textarea, .ambient-form [role="combobox"] { min-height:46px !important; color:var(--white) !important; background:#24272e !important; border-color:var(--line) !important; font-size:.94rem !important; }
+.ambient-login { margin-bottom:12px !important; }
+button.ambient-run { min-height:54px !important; background:var(--signal) !important; color:var(--white) !important; border:1px solid var(--signal) !important; border-radius:0 !important; font-size:.94rem !important; font-weight:750 !important; box-shadow:none !important; }
+button.ambient-run:hover { background:var(--white) !important; color:var(--ink) !important; border-color:var(--white) !important; }
+#ambient-results { max-width:1320px; margin:0 auto; padding:0 22px 34px; }
+.ambient-result-head { padding:28px 0 12px; border-top:1px solid var(--line); }
+.ambient-result-head h2 { margin:5px 0 0; color:var(--white) !important; font-size:1.8rem; letter-spacing:-.035em; }
+.ambient-export { min-height:52px !important; background:var(--white) !important; color:var(--ink) !important; border:1px solid var(--white) !important; border-radius:0 !important; font-weight:750 !important; }
 footer { display:none !important; }
 @media (max-width:800px) {
   #ambient-shell { padding:12px; }
-  .ambient-hero { min-width:0; grid-template-columns:minmax(0,1fr); gap:24px; padding:30px 24px; overflow:hidden; }
-  .ambient-hero > * { min-width:0; }
-  .ambient-hero h1 { font-size:clamp(2.35rem,13vw,4.2rem) !important; overflow-wrap:break-word; }
+  .ambient-header, .ambient-board-head { grid-template-columns:1fr; }
+  .ambient-leader { grid-template-columns:1fr; }
+  .ambient-leader > strong { justify-self:start; }
+  .ambient-leader dl { grid-template-columns:1fr 1fr; }
   #ambient-workspace { display:block !important; min-width:0 !important; }
-  #ambient-workspace > div, .ambient-method, .ambient-form { width:100% !important; max-width:100% !important; min-width:0 !important; box-sizing:border-box !important; }
-  .ambient-method, .ambient-form { padding:26px 22px !important; border:1px solid var(--ink) !important; border-top:0 !important; }
+  #ambient-workspace > div, .ambient-run-copy, .ambient-form { width:100% !important; max-width:100% !important; min-width:0 !important; box-sizing:border-box !important; }
+  .ambient-run-copy, .ambient-form { padding:24px 20px !important; border:1px solid var(--line) !important; }
+  .ambient-form { border-top:0 !important; }
   .ambient-form .form, .ambient-form .wrap, .ambient-form .container { min-width:0 !important; }
   #ambient-results { padding:0 12px 24px; }
 }
@@ -592,73 +716,47 @@ with gr.Blocks(
 ) as demo:
     with gr.Column(elem_id="ambient-shell"):
         gr.HTML("""
-          <header class="ambient-hero">
-            <div>
-              <span class="ambient-kicker">AMBIENT · hosted instrument</span>
-              <h1>Hold the model fixed.<br><em>Change the memory.</em></h1>
-            </div>
-            <p>A baseline-isolated evaluation of agentic memory. Choose the memory under test, one fixed reader, and a different judge. The result measures memory contribution—not model rank.</p>
+          <header class="ambient-header">
+            <div><span>AMBIENT / hosted runner</span><h1>Memory architecture benchmark</h1></div>
+            <p>Complete runs are posted automatically after structural validation. Hosted results are unreviewed; repository review remains the verified publication path.</p>
           </header>
         """)
 
+        board_output = gr.HTML(hosted_leaderboard_html(), elem_id="ambient-leaderboard")
+
         with gr.Row(elem_id="ambient-workspace"):
-            with gr.Column(scale=4, min_width=300, elem_classes="ambient-method"):
+            with gr.Column(scale=4, min_width=300, elem_classes="ambient-run-copy"):
                 gr.HTML("""
-                  <span class="ambient-label">Method</span>
-                  <h2>One controlled run.<br>Four paired conditions.</h2>
-                  <p>T1 serves no memory. T4 serves only the selected memory. Their attributed-completion difference is the architecture signal under this configuration.</p>
-                  <ol>
-                    <li>Build the same corpus under the declared memory condition.</li>
-                    <li>Ask the same reader every question in T1–T4.</li>
-                    <li>Grade with a separate model, then require traced external support.</li>
-                  </ol>
-                  <p>Scopes are seeded and balanced across all ten BEAM abilities. Repeats do not count as new questions.</p>
-                  <div class="ambient-boundary">
-                    <strong>Account boundary</strong>
-                    Sign in with Hugging Face. Beyond standard sign-in identity, this Space requests only inference permission and uses the resulting short-lived token only with Hugging Face Inference Providers. No API key is entered or stored here.
-                  </div>
-                  <div class="ambient-boundary">
-                    <strong>Publication boundary</strong>
-                    A complete 400-question run is recorded on the hosted-results board after strict structural checks. It remains unreviewed; only repository-reviewed evidence enters the verified leaderboard.
-                  </div>
+                  <span class="ambient-label">Run</span>
+                  <h2>Controlled evaluation</h2>
+                  <p>Select one memory architecture, a fixed reader, a different judge, and a scope. T4−T1 is reported as attributed memory lift.</p>
+                  <ul class="ambient-facts">
+                    <li><b>10–200</b><span>Development runs. Results remain private to the exported bundle.</span></li>
+                    <li><b>400</b><span>Complete run. Posted automatically when every structural gate passes.</span></li>
+                    <li><b>OAuth</b><span>Inference uses the signed-in participant's Hugging Face account. No API key field.</span></li>
+                    <li><b>Ranking</b><span>Hosted and unreviewed. Compare architectures only when control keys match.</span></li>
+                  </ul>
                 """)
 
             with gr.Column(scale=6, min_width=420, elem_classes="ambient-form"):
                 gr.LoginButton("Sign in with Hugging Face", elem_classes="ambient-login")
-                gr.HTML("""
-                  <p class="ambient-form-copy">Both models run through Hugging Face Inference Providers under the signed-in participant's account. Inference usage and quota belong to that account.</p>
-                """)
-                gr.HTML("""
-                  <div class="ambient-section first"><span>01</span><strong>Memory architecture</strong><p>The adapter whose contribution is being measured.</p></div>
-                """)
+                gr.HTML('<p class="ambient-form-copy">Reader and judge inference usage is charged to the signed-in account.</p>')
                 memory_input = gr.Dropdown(
                     choices=[(label, key) for key, label in MEMORIES.items()],
                     value="recall",
                     label="Memory under test",
                     elem_classes="ambient-fieldset",
                 )
-
-                gr.HTML("""
-                  <div class="ambient-section"><span>02</span><strong>Fixed reader</strong><p>Choose one Hugging Face Inference model and keep it fixed across every tier.</p></div>
-                """)
                 reader_model_input = gr.Textbox(
                     value="Qwen/Qwen3-32B:preferred",
-                    label="Reader model ID",
+                    label="Fixed reader model",
                     elem_classes="ambient-fieldset",
                 )
-
-                gr.HTML("""
-                  <div class="ambient-section"><span>03</span><strong>Independent judge</strong><p>Use a different model. It cannot grant memory credit without a served-evidence trace.</p></div>
-                """)
                 judge_model_input = gr.Textbox(
                     value="openai/gpt-oss-120b:preferred",
-                    label="Judge model ID",
+                    label="Independent judge model",
                     elem_classes="ambient-fieldset",
                 )
-
-                gr.HTML("""
-                  <div class="ambient-section"><span>04</span><strong>Run scope</strong><p>Four reader answers and four judge calls per unique question, plus ingest/checker calls.</p></div>
-                """)
                 sample_input = gr.Dropdown(
                     choices=[
                         ("10 · smoke · 1/ability · ~±31 points", 10),
@@ -670,14 +768,12 @@ with gr.Blocks(
                     label="Unique BEAM questions",
                     elem_classes="ambient-fieldset",
                 )
-                run_button = gr.Button("Run controlled evaluation", variant="primary", elem_classes="ambient-run")
+                run_button = gr.Button("Run evaluation", variant="primary", elem_classes="ambient-run")
 
     with gr.Column(elem_id="ambient-results"):
-        gr.HTML('<div class="ambient-result-head"><span class="ambient-label">Output</span><h2>Evidence bundle</h2></div>')
+        gr.HTML('<div class="ambient-result-head"><span class="ambient-label">Result</span><h2>Run summary</h2></div>')
         result_output = gr.Markdown()
-        bundle_output = gr.File(label="Download unreviewed evidence bundle", height=84)
-        with gr.Accordion("Technical run log", open=False):
-            log_output = gr.Textbox(lines=12, interactive=False)
+        bundle_output = gr.DownloadButton("Export evidence bundle", value=None, elem_classes="ambient-export")
 
     gpu_probe_button = gr.Button("ZeroGPU registration", visible=False)
     gpu_probe_output = gr.Textbox(visible=False)
@@ -691,11 +787,13 @@ with gr.Blocks(
             judge_model_input,
             sample_input,
         ],
-        outputs=[result_output, bundle_output, log_output],
+        outputs=[result_output, bundle_output, board_output],
         api_name="run_benchmark",
         concurrency_limit=1,
         concurrency_id="ambient-run",
     )
+
+    demo.load(hosted_leaderboard_html, outputs=board_output, api_name=False)
 
 if __name__ == "__main__":
     demo.queue(default_concurrency_limit=1, max_size=2).launch(css=CSS)
