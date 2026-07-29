@@ -55,6 +55,7 @@
     "site:check": "node scripts/check-site.mjs",
     "space:build": "npm run site:build && node scripts/build-hf-space.mjs",
     "space:check": "node scripts/check-hf-space.mjs",
+    "verify:external-space-url": "node scripts/verify-external-space-url.mjs",
     "verify:l4-policy": "node --disable-warning=ExperimentalWarning scripts/verify-l4-expiry-policy.mjs",
     "verify:mal:standing-programs": "node --disable-warning=ExperimentalWarning scripts/verify-named-standing-program-mal.mjs",
     "verify:mal:watchdogs": "npm run verify:mal:standing-programs",

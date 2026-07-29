@@ -19,6 +19,11 @@ for (const file of ["package.json", "package-lock.json", "LICENSE", "README.md",
 for (const directory of ["adapters", "model", "tiers", "scripts", "vendor/recall"]) {
   cpSync(join(ROOT, directory), join(OUTPUT, directory), { recursive: true });
 }
+cpSync(
+  join(ROOT, "examples", "huggingface-memory-space"),
+  join(OUTPUT, "examples", "huggingface-memory-space"),
+  { recursive: true },
+);
 rmSync(join(OUTPUT, "vendor", "recall", ".DS_Store"), { force: true });
 for (const file of ["docs/ATTRIBUTION.md", "docs/EVALUATION_PROTOCOL.md", "submissions/schema.json"]) {
   const destination = join(OUTPUT, file);

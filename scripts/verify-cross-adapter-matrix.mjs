@@ -16,6 +16,7 @@ import { tmpdir } from "node:os";
 import { dirname, isAbsolute, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { selectStratifiedSegments } from "../tiers/sampling.mjs";
+import { normalizeExternalSpaceUrl } from "../adapters/external-space-url.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SOURCE = arg("source", "beam");
@@ -34,6 +35,8 @@ const EXPECTED_ROWS = EXPECTED_SEGMENTS * 4 * REPEATS;
 const INCLUDE_OPTIONAL = hasFlag("include-optional");
 const ALLOW_SKIPS = hasFlag("allow-skips");
 const USE_EXTERNAL_MODEL = hasFlag("use-external-model");
+const EXTERNAL_ADAPTER_URL = arg("external-adapter-url", "");
+const ALLOW_INSECURE_EXTERNAL_ADAPTER = hasFlag("allow-insecure-external-adapter");
 // Some SQLite bridge packages have a cold first-run/import path that can exceed
 // 90 seconds on otherwise healthy machines. Keep the smoke gate bounded while
 // avoiding a false adapter failure during that one-time initialization.
@@ -141,7 +144,11 @@ const OPTIONAL_ADAPTERS = [
   },
 ];
 
-const ALL_ADAPTERS = [...DEFAULT_ADAPTERS, ...OPTIONAL_ADAPTERS];
+const ALL_ADAPTERS = [
+  ...DEFAULT_ADAPTERS,
+  ...OPTIONAL_ADAPTERS,
+  { id: "external-space", externalUrl: EXTERNAL_ADAPTER_URL },
+];
 
 function arg(name, def) {
   const i = process.argv.indexOf("--" + name);
@@ -232,6 +239,25 @@ async function waitForAdapter(port, timeoutMs = 5000) {
   throw lastErr || new Error("adapter did not start");
 }
 
+async function waitForExternalAdapter(base, timeoutMs = 15_000) {
+  const deadline = Date.now() + timeoutMs;
+  let lastErr;
+  while (Date.now() < deadline) {
+    try {
+      const res = await fetch(base + "/name", {
+        redirect: "error",
+        signal: AbortSignal.timeout(5000),
+      });
+      if (res.ok) return res.json();
+      lastErr = new Error(`external adapter /name ${res.status}`);
+    } catch (error) {
+      lastErr = error;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  throw lastErr || new Error("external adapter did not become ready");
+}
+
 async function checkTarget(target, healthPath = "/") {
   const url = target.replace(/\/$/, "") + healthPath;
   try {
@@ -295,9 +321,25 @@ async function stopProcess(child) {
 }
 
 async function runAdapter(adapter, modelPort) {
-  const port = await freePort();
+  const isExternal = adapter.id === "external-space";
+  let externalUrl = "";
+  if (isExternal) {
+    try {
+      externalUrl = normalizeExternalSpaceUrl(adapter.externalUrl, {
+        allowInsecureLoopback: ALLOW_INSECURE_EXTERNAL_ADAPTER,
+      });
+    } catch (error) {
+      return {
+        id: adapter.id,
+        status: "failed",
+        reason: "invalid-external-adapter-url",
+        error: error?.message || String(error),
+      };
+    }
+  }
+  const port = isExternal ? null : await freePort();
   const tempRoot = adapter.rootPrefix ? await mkdtemp(join(tmpdir(), adapter.rootPrefix)) : "";
-  const args = [adapter.script, "--port", String(port)];
+  const args = isExternal ? [] : [adapter.script, "--port", String(port)];
   if (tempRoot) args.push("--root", tempRoot);
 
   if (adapter.binEnv || adapter.binDefault) {
@@ -343,24 +385,29 @@ async function runAdapter(adapter, modelPort) {
     }
     args.push("--package-path", packagePath);
   }
-  const child = spawn(process.execPath, args, {
-    cwd: ROOT,
-    stdio: ["ignore", "pipe", "pipe"],
-  });
+  const child = isExternal ? null : spawn(process.execPath, args, {
+      cwd: ROOT,
+      stdio: ["ignore", "pipe", "pipe"],
+    });
   let adapterOutput = "";
-  child.stdout.on("data", (b) => { adapterOutput += b.toString(); });
-  child.stderr.on("data", (b) => { adapterOutput += b.toString(); });
+  child?.stdout.on("data", (b) => { adapterOutput += b.toString(); });
+  child?.stderr.on("data", (b) => { adapterOutput += b.toString(); });
 
   try {
-    const name = await waitForAdapter(port);
-    if (name.name !== adapter.id) {
+    const name = isExternal ? await waitForExternalAdapter(externalUrl) : await waitForAdapter(port);
+    if (!isExternal && name.name !== adapter.id) {
       throw new Error(`expected /name ${adapter.id}, got ${JSON.stringify(name)}`);
     }
+    if (isExternal && (typeof name?.name !== "string" || !name.name.trim())) {
+      throw new Error("external adapter /name must return a non-empty name");
+    }
+
+    const adapterUrl = isExternal ? externalUrl : `http://127.0.0.1:${port}`;
 
     const runnerArgs = [
       "tiers/runner.mjs",
       "--adapter-url",
-      `http://127.0.0.1:${port}`,
+      adapterUrl,
       "--source",
       SOURCE,
       "--size",
@@ -415,14 +462,17 @@ async function runAdapter(adapter, modelPort) {
     if (fileRows !== EXPECTED_ROWS) {
       throw new Error(`expected ${EXPECTED_ROWS} transcript rows for ${adapter.id}, file has ${fileRows}`);
     }
-    if (!new RegExp(`adapter=${adapter.id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:\\+auto)?`).test(output)) {
+    const expectedAdapter = isExternal
+      ? /adapter=[^\s|]+(?:\+auto)?/.test(output)
+      : new RegExp(`adapter=${adapter.id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:\\+auto)?`).test(output);
+    if (!expectedAdapter) {
       throw new Error(`runner output did not identify ${adapter.id}\n${output}`);
     }
     console.log(`matrix ${adapter.id}: passed ${fileRows} rows -> ${transcript.transcript}`);
     return {
       id: adapter.id,
       status: "passed",
-      adapterUrl: `http://127.0.0.1:${port}`,
+      adapterUrl,
       transcript: transcript.transcript,
       manifest,
       rows: fileRows,

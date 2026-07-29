@@ -21,7 +21,7 @@
       <a class="wordmark" href="#top" aria-label="AMBIENT home"><span class="wordmark-mark" aria-hidden="true"></span>AMBIENT</a>
       <nav aria-label="Primary navigation">
         <a href="#measures">Method</a>
-        <a href="/leaderboard.html">Board</a>
+        <a href="/leaderboard.html">Integrity</a>
         <a href="#run">Run / download</a>
         <a href="https://github.com/H-XX-D/ambient-benchmark">Repository ↗</a>
       </nav>
@@ -55,7 +55,7 @@
             <a href="https://github.com/H-XX-D/ambient-benchmark">GitHub repository</a>
             <a href="#run">Run or download</a>
             <a href="https://github.com/H-XX-D/ambient-benchmark/blob/master/docs/EVALUATION_PROTOCOL.md">Evaluation protocol</a>
-            <a href="/leaderboard.html">Leaderboard</a>
+            <a href="/leaderboard.html">Integrity</a>
           </div>
         </div>
 
@@ -204,21 +204,22 @@
               </article>
             </div>
           </div>
-          <a class="inline-link" href="/leaderboard.html">Leaderboard qualifications and results</a>
+          <a class="inline-link" href="/leaderboard.html">Integrity requirements and capability probes</a>
         </div>
       </section>
 
       <section class="research-section distribution" id="distribution">
         <div class="section-index"><span>04</span><p>Distribution</p></div>
         <div class="section-body">
-          <h2>Bring the model. Choose the memory.</h2>
-          <p>The hosted runner lets each participant choose one reader and a separate judge through Hugging Face Inference Providers. Participants sign in with Hugging Face and authorize only inference access; the harness holds the reader fixed, changes the memory condition, and measures whether retrieved evidence lets that same reader complete questions it missed without memory.</p>
+          <h2>Choose the memory.</h2>
+          <p>Participants connect their own public Hugging Face memory Space to the AMBIENT adapter contract. The runner fixes one reader and a separate judge through Hugging Face Inference Providers; the participant authorizes inference on their own account, and the harness changes only the memory condition.</p>
           <p>Run scopes contain 10, 100, 200, or 400 unique questions sampled evenly across all ten BEAM abilities. Ten is explicitly a smoke test; the complete 400-question scope is the first hosted option near a ±5-point worst-case single-tier margin. Repeats never count as new questions.</p>
           <p>The primary result is attributed memory lift: T4 memory-on completion minus T1 no-memory completion. The report also separates gullible answers, answers without traced support, and cases where the needed evidence was not served. This is not a model leaderboard.</p>
-          <p>Hosted runs produce an unreviewed evidence bundle. A complete 400-question run is automatically recorded on the separate hosted-results board after structural checks; only repository-reviewed bundles enter the verified architecture leaderboard. The GitHub repository remains the canonical protocol, full local runner, and evidence-review path.</p>
+          <p>Space runs produce an unreviewed evidence bundle and are never posted automatically. Participants may keep or share their own bundle through Hugging Face. The GitHub repository remains the canonical protocol, full local runner, and integrity-review path.</p>
           <div class="publication-links dark-links">
             <a href="https://tjhendrix-ambient-benchmark.hf.space">Run in Hugging Face</a>
             <a href="https://github.com/H-XX-D/ambient-benchmark">GitHub repository</a>
+            <a href="https://huggingface.co/spaces/tjhendrix/ambient-benchmark/tree/main/examples/huggingface-memory-space">Memory Space starter</a>
             <a href="https://github.com/H-XX-D/ambient-benchmark/blob/master/RULES.md">Evaluation rules</a>
             <a href="https://github.com/H-XX-D/ambient-benchmark/blob/master/submissions/README.md">Submission format</a>
           </div>

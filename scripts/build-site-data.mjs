@@ -207,24 +207,6 @@ entries.sort((a, b) => a.track.localeCompare(b.track) || a.corpus.localeCompare(
 let commit = null;
 try { commit = execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim(); }
 catch { /* Vercel source archives may omit .git. */ }
-const evidenceRef = commit || "master";
-const publicEntries = entries.map(({ bundlePath, ...entry }) => ({
-  ...entry,
-  evidenceUrl: `https://github.com/H-XX-D/ambient-benchmark/tree/${evidenceRef}/${bundlePath}`,
-}));
-
-const leaderboard = {
-  schema: "ambient.leaderboard.v1",
-  generatedAt: new Date().toISOString(),
-  sourceCommit: commit,
-  entryCount: publicEntries.length,
-  ranking: {
-    architecture: "paired T4 − T1 attributed completion; descending within a common control key",
-    nativeSystem: "T3 end-to-end attributed completion; descending and reported separately",
-  },
-  entries: publicEntries,
-};
-
 const status = {
   schema: "ambient.site-status.v1",
   generatedAt: new Date().toISOString(),
@@ -257,7 +239,7 @@ const status = {
   },
 };
 
-for (const [path, value] of [["site/data/status.json", status], ["site/data/leaderboard.json", leaderboard]]) {
+for (const [path, value] of [["site/data/status.json", status]]) {
   const out = join(ROOT, path);
   mkdirSync(dirname(out), { recursive: true });
   writeFileSync(out, `${JSON.stringify(value, null, 2)}\n`);

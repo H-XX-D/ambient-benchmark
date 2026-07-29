@@ -8,10 +8,22 @@
 //   POST /reset -> {ok}
 //   GET  /name -> {name}
 
-async function post(base, path, body) {
-  const res = await fetch(base + path, {
+import { randomUUID } from "node:crypto";
+
+const REQUEST_TIMEOUT_MS = 60_000;
+
+async function adapterFetch(url, init = {}) {
+  return fetch(url, {
+    ...init,
+    redirect: "error",
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  });
+}
+
+async function post(base, path, body, headers = {}) {
+  const res = await adapterFetch(base + path, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...headers },
     body: JSON.stringify(body || {}),
   });
   if (!res.ok) throw new Error(`adapter ${path} ${res.status}: ${(await res.text()).slice(0, 160)}`);
@@ -22,6 +34,7 @@ export class HttpAdapter {
   constructor(baseUrl) {
     this.base = baseUrl.replace(/\/$/, "");
     this._name = "http";
+    this.headers = { "X-AMBIENT-Run-ID": randomUUID() };
   }
 
   get name() {
@@ -30,7 +43,7 @@ export class HttpAdapter {
 
   async init() {
     try {
-      const r = await (await fetch(this.base + "/name")).json();
+      const r = await (await adapterFetch(this.base + "/name", { headers: this.headers })).json();
       if (r?.name) this._name = r.name;
     } catch {
       // name is cosmetic; ignore if unavailable
@@ -41,32 +54,32 @@ export class HttpAdapter {
   // Optional `store` names the target store (auto/custom/combined) for build-once/query-many.
   // Adapters that ignore it fall back to a single store (back-compat).
   async reset(store) {
-    return post(this.base, "/reset", store ? { store } : {});
+    return post(this.base, "/reset", store ? { store } : {}, this.headers);
   }
 
   async setAutoCapture(enabled) {
-    return post(this.base, "/setAutoCapture", { enabled });
+    return post(this.base, "/setAutoCapture", { enabled }, this.headers);
   }
 
   async write(fact, source = "ingest", store, edges) {
-    return post(this.base, "/write", { fact, source, store, edges });
+    return post(this.base, "/write", { fact, source, store, edges }, this.headers);
   }
 
   async query(question, topK = 8, store) {
-    return post(this.base, "/query", { question, top_k: topK, store });
+    return post(this.base, "/query", { question, top_k: topK, store }, this.headers);
   }
 
   // holonomy: register an ordering overlay; a closing edge is caught as a cycle (created at write).
   async dag(store, title, nodeIds, edges) {
-    return post(this.base, "/dag", { store, title, nodeIds, edges });
+    return post(this.base, "/dag", { store, title, nodeIds, edges }, this.headers);
   }
 
   // enumeration: register a collection of same-kind items; list/count queries get the whole set.
   async collection(store, keywords, members) {
-    return post(this.base, "/collection", { store, keywords, members });
+    return post(this.base, "/collection", { store, keywords, members }, this.headers);
   }
 
   async surface(newFact) {
-    return post(this.base, "/surface", { newFact });
+    return post(this.base, "/surface", { newFact }, this.headers);
   }
 }

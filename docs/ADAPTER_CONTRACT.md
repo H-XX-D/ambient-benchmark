@@ -18,6 +18,11 @@ Returning per-item provenance (id, source, write time) is recommended and sharpe
 diagnostics, but it is not the eligibility bar; the traced call is. A system that
 exposes no store call cannot be traced and is ineligible, not scored zero.
 
+HTTP adapters receive an opaque, random `X-AMBIENT-Run-ID` header on every request.
+Hosted adapters must include that value in their namespace so simultaneous participant
+runs cannot read, reset, or overwrite one another. It is a run-isolation identifier,
+not a user identity or credential.
+
 The runner writes that observation into every transcript row:
 
 - `servedContext`: exact budgeted context strings shown to the reader.

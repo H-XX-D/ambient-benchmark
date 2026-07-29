@@ -141,9 +141,11 @@ const repeats = argValue("--repeats", "1");
 const track = argValue("--track", "development");
 const tierOrder = argValue("--tier-order", "balanced");
 const adapterDeclaration = argValue("--adapter-declaration", "");
+const externalAdapterUrl = argValue("--external-adapter-url", "");
 const skipMatrix = hasFlag("--skip-matrix");
 const useExternalModel = hasFlag("--use-external-model");
 const useExternalJudge = hasFlag("--use-external-judge");
+const allowInsecureExternalAdapter = hasFlag("--allow-insecure-external-adapter");
 const judgeModel = argValue("--judge-model", process.env.AMBIENT_JUDGE_MODEL || "gpt-5.4-nano");
 const judgeEndpoint = process.env.AMBIENT_JUDGE_ENDPOINT || "https://api.openai.com/v1";
 const judgeKey = process.env.AMBIENT_JUDGE_KEY || process.env.OPENAI_API_KEY || "";
@@ -175,6 +177,8 @@ if (!skipMatrix) {
   ];
   if (Number(perAbility)) matrixArgs.push("--per-ability", perAbility);
   if (adapterDeclaration) matrixArgs.push("--adapter-declaration", adapterDeclaration);
+  if (externalAdapterUrl) matrixArgs.push("--external-adapter-url", externalAdapterUrl);
+  if (allowInsecureExternalAdapter) matrixArgs.push("--allow-insecure-external-adapter");
   if (useExternalModel) matrixArgs.push("--use-external-model");
   await runStep(
     "cross-adapter matrix",

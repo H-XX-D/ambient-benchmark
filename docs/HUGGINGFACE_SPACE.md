@@ -3,25 +3,29 @@
 Live Space: <https://huggingface.co/spaces/tjhendrix/ambient-benchmark>
 
 AMBIENT uses a **Gradio Space around the Node harness** as an ephemeral execution backend. A visitor
-opens the Space, signs in with Hugging Face, and chooses the memory adapter,
-reader, independent judge, and run scope. Gradio injects the participant's
+opens the Space, signs in with Hugging Face, connects a public Hugging Face
+memory Space, and chooses a run scope. The reader and independent judge remain fixed controls. Gradio injects the participant's
 short-lived OAuth token into the callback. The Space executes the same four-tier
 harness as the repository and returns a downloadable evidence bundle.
 
+The connected memory Space must implement `docs/ADAPTER_CONTRACT.md`. The runner
+accepts only a root `https://…hf.space` origin, blocks redirects, and sends an
+opaque `X-AMBIENT-Run-ID` header for per-run namespace isolation. It never
+executes uploaded code and never forwards the participant's OAuth token to the
+memory Space. A working Gradio/FastAPI starter is in
+`examples/huggingface-memory-space/`.
+
 ## Hosting split
 
-- **Vercel:** protocol, evidence disclosures, public leaderboard UI, and a direct link to the Space.
-- **Supabase:** verified submissions and a separate complete-hosted-run table.
-  Browser access is read-only under Row Level Security.
+- **Vercel:** protocol, evidence disclosures, and a direct link to the Space.
 - **Hugging Face Spaces:** transient benchmark execution and bundle download.
 - **GitHub:** canonical harness, protocol, adapter contract, evidence bundles,
-  review, and publication history.
+  and integrity review.
 
-Every hosted bundle is marked `unreviewed`. A complete 400-question run is
-automatically inserted into the separately labeled hosted-results table only
-after all 1,600 tier rows pass the artifact validator with zero judge errors and
-the sampling manifest proves 40 unique items in each of ten abilities.
-Repository validation remains the gate for the verified architecture table.
+Every Space bundle is marked `unreviewed` and nothing is published automatically.
+A complete 400-question bundle is exported only after all 1,600 tier rows pass
+the artifact validator with zero judge errors and the sampling manifest proves
+40 unique items in each of ten BEAM question categories.
 
 The hosted scopes are 10, 100, 200, and 400 unique BEAM-small questions. Sampling
 is seeded and stratified over all ten abilities; the evidence manifest records
@@ -51,12 +55,8 @@ Routed inference uses the participant's Hugging Face account, credits, and
 quota. The Space owner supplies orchestration compute but no model-provider
 credential and does not fund participant inference calls.
 
-The server separately reads `AMBIENT_SUPABASE_SECRET_KEY` from a Hugging Face
-Space Secret for complete-run publication and the non-secret
-`AMBIENT_SUPABASE_URL` Variable. That operator secret never enters the browser.
 Completed job files are kept on the Space’s ephemeral disk for at most 30
-minutes. The public site uses a publishable Supabase key constrained by read-only
-Row Level Security policies.
+minutes.
 
 ## Why the Space is configured as Gradio
 
