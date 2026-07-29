@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-// No-dependency smoke for adapters/engram-cli-adapter.mjs.
+// Retrieval smoke for adapters/engram-cli-adapter.mjs.
 //
-// Creates a tiny mock `engram` executable, starts the AMBIENT bridge against it,
-// then verifies /write, /query, and reset ENGRAM_DATA_DIR isolation.
+// With no --bin, creates a tiny fixture executable. With --bin, drives a real
+// upstream Engram checkout. Both paths verify target selection, provenance,
+// namespace isolation, and reset behavior.
 
 import { createServer } from "node:http";
 import { spawn } from "node:child_process";
@@ -14,6 +15,11 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+
+function arg(name, fallback = "") {
+  const index = process.argv.indexOf(`--${name}`);
+  return index >= 0 && index + 1 < process.argv.length ? process.argv[index + 1] : fallback;
+}
 
 function listen(server) {
   return new Promise((resolve, reject) => {
@@ -128,7 +134,10 @@ async function waitForAdapter(port) {
 }
 
 async function main() {
-  const { bin } = await makeMockEngram();
+  const requestedBin = arg("bin");
+  const { bin, isMock } = requestedBin
+    ? { bin: requestedBin, isMock: false }
+    : { ...(await makeMockEngram()), isMock: true };
   const roots = await mkdtemp(join(tmpdir(), "ambient-engram-roots-"));
   const probe = createServer(async (req, res) => {
     await readJson(req);
@@ -160,27 +169,50 @@ async function main() {
     await post(base, "/reset", { store: "custom" });
     const write = await post(base, "/write", {
       store: "custom",
-      fact: "engram stores local coding-agent memories in SQLite with FTS search",
+      fact: "Project LANTERN's rollback key is COBALT-731 and its owner is Mira.",
       source: "smoke",
     });
-    const db = join(write.dataDir, "engram.json");
+    await post(base, "/write", {
+      store: "custom",
+      fact: "Project LANTERN's dashboard accent is amber and its owner is Mira.",
+      source: "smoke-distractor",
+    });
+    await post(base, "/write", {
+      store: "custom",
+      fact: "Project HARBOR's rollback key is SILVER-204 and its owner is Theo.",
+      source: "smoke-distractor",
+    });
+    const db = join(write.dataDir, isMock ? "engram.json" : "engram.db");
     if (!write.accepted || !existsSync(db)) {
-      throw new Error(`mock engram DB was not created: ${JSON.stringify(write)}`);
+      throw new Error(`engram DB was not created: ${JSON.stringify(write)}`);
     }
-    const stored = await readFile(db, "utf8");
-    if (!stored.includes("SQLite with FTS search")) throw new Error("mock engram DB was not written");
+    if (isMock) {
+      const stored = await readFile(db, "utf8");
+      if (!stored.includes("COBALT-731")) throw new Error("mock engram DB was not written");
+    }
 
-    const hit = await post(base, "/query", { store: "custom", question: "Which memory has FTS search?", top_k: 3 });
-    if (!hit.support.some((s) => s.includes("engram"))) {
-      throw new Error(`expected support missing: ${JSON.stringify(hit)}`);
+    const hit = await post(base, "/query", { store: "custom", question: "What is Project LANTERN's rollback key?", top_k: 3 });
+    if (!hit.support.length || !hit.support[0].includes("COBALT-731")) {
+      throw new Error(`target fact was not ranked first: ${JSON.stringify(hit)}`);
+    }
+    if (!Array.isArray(hit.provenance) || hit.provenance.length !== hit.support.length) {
+      throw new Error(`served support lacks aligned provenance: ${JSON.stringify(hit)}`);
+    }
+    if (hit.provenance[0]?.origin !== "external" || !String(hit.provenance[0]?.source || "").startsWith("engram:")) {
+      throw new Error(`target provenance is not external Engram evidence: ${JSON.stringify(hit)}`);
+    }
+
+    const isolated = await post(base, "/query", { store: "other", question: "Project LANTERN COBALT-731", top_k: 3 });
+    if (isolated.support.length) {
+      throw new Error(`memory crossed the store boundary: ${JSON.stringify(isolated)}`);
     }
 
     await post(base, "/reset", { store: "custom" });
-    const miss = await post(base, "/query", { store: "custom", question: "engram FTS search", top_k: 3 });
+    const miss = await post(base, "/query", { store: "custom", question: "Project LANTERN COBALT-731", top_k: 3 });
     if (miss.support.length) {
       throw new Error(`reset did not isolate ENGRAM_DATA_DIR: ${JSON.stringify(miss)}`);
     }
-    console.log("engram bridge smoke: write/query/reset isolated ENGRAM_DATA_DIR verified");
+    console.log(`engram retrieval smoke (${isMock ? "fixture" : "upstream binary"}): target ranking, external provenance, namespace isolation, and reset verified`);
   } finally {
     bridge.kill("SIGTERM");
     if (bridge.exitCode == null && !bridge.killed) bridge.kill("SIGKILL");
