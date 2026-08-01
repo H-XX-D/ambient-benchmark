@@ -23,15 +23,15 @@ memory Space. A working Gradio/FastAPI starter is in
   and integrity review.
 
 Every Space bundle is marked `unreviewed` and nothing is published automatically.
-A complete 400-question bundle is exported only after all 1,600 tier rows pass
+A complete 92-question bundle is exported only after all 368 tier rows pass
 the artifact validator with zero judge errors and the sampling manifest proves
-40 unique items in each of ten BEAM question categories.
+coverage of all fifteen AMBIENT abilities.
 
-The hosted scopes are 10, 100, 200, and 400 unique BEAM-small questions. Sampling
-is seeded and stratified over all ten abilities; the evidence manifest records
-the per-ability counts and selection hash. The 10-question scope is a smoke only.
-The 100- and 200-question scopes are progressively more informative development
-runs. The 400-question scope is the complete BEAM-small question set. None becomes
+The hosted scopes are 15, 45, and 92 unique questions from the authored AMBIENT
+areas corpus. Sampling is seeded and stratified over all fifteen abilities; the
+evidence manifest records the per-ability counts and selection hash. The 15-question
+scope is a smoke only, the 45-question scope is a pilot, and 92 is the complete
+areas corpus. None becomes
 publishable merely by being large: the architecture publication gate separately
 requires at least 30 unique questions per ability, three balanced repeats, a
 component declaration, a real independent judge, and a segment-cluster interval.

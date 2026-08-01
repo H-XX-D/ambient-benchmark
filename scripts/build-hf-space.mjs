@@ -8,7 +8,7 @@ const OUTPUT = join(ROOT, "dist", "hf-space");
 const SPACE_SOURCE = join(ROOT, "huggingface-space");
 
 if (!existsSync(join(SPACE_SOURCE, "README.md"))) throw new Error("Hugging Face Space card is missing");
-if (!existsSync(join(ROOT, "corpora", "out", "beam", "small", "segments.jsonl"))) throw new Error("hosted-runner corpus is missing");
+if (!existsSync(join(ROOT, "corpora", "out", "areas", "small", "segments.jsonl"))) throw new Error("new AMBIENT hosted-runner corpus is missing");
 
 rmSync(OUTPUT, { recursive: true, force: true });
 mkdirSync(OUTPUT, { recursive: true });
@@ -30,7 +30,7 @@ for (const file of ["docs/ATTRIBUTION.md", "docs/EVALUATION_PROTOCOL.md", "submi
   mkdirSync(dirname(destination), { recursive: true });
   cpSync(join(ROOT, file), destination);
 }
-cpSync(join(ROOT, "corpora", "out", "beam", "small"), join(OUTPUT, "corpora", "out", "beam", "small"), { recursive: true });
+cpSync(join(ROOT, "corpora", "out", "areas", "small"), join(OUTPUT, "corpora", "out", "areas", "small"), { recursive: true });
 cpSync(join(SPACE_SOURCE, "README.md"), join(OUTPUT, "README.md"));
 cpSync(join(SPACE_SOURCE, "app.py"), join(OUTPUT, "app.py"));
 

@@ -49,11 +49,28 @@ FIXED_READER_MODEL = "Qwen/Qwen3-32B"
 FIXED_JUDGE_MODEL = "openai/gpt-oss-120b"
 
 SAMPLE_SCOPES = {
-    10: {"label": "smoke", "per_ability": 1, "margin": 31.0},
-    100: {"label": "pilot", "per_ability": 10, "margin": 9.8},
-    200: {"label": "extended", "per_ability": 20, "margin": 6.9},
-    400: {"label": "full BEAM-small corpus", "per_ability": 40, "margin": 4.9},
+    15: {"label": "smoke", "per_ability": 1, "margin": 25.3},
+    45: {"label": "pilot", "per_ability": 3, "margin": 14.6},
+    92: {"label": "full AMBIENT areas corpus", "per_ability": 0, "margin": 10.2},
 }
+
+AMBIENT_ABILITIES = (
+    "adversarial robustness",
+    "anteriority",
+    "attribution",
+    "calibration",
+    "concurrency",
+    "contradiction",
+    "deep contradiction",
+    "endurance",
+    "federation",
+    "modality",
+    "reactivity",
+    "retrieval fidelity",
+    "set integrity",
+    "supersession",
+    "temporality",
+)
 
 MEMORIES = {
     "external-space": "My Hugging Face memory Space",
@@ -221,10 +238,10 @@ def run_benchmark(
     cleanup_jobs()
     if memory not in MEMORIES:
         raise gr.Error("Memory adapter is not supported.")
-    limit = int(sample_size)
-    if limit not in SAMPLE_SCOPES:
+    question_count = int(sample_size)
+    if question_count not in SAMPLE_SCOPES:
         raise gr.Error("Sample size is not supported.")
-    scope = SAMPLE_SCOPES[limit]
+    scope = SAMPLE_SCOPES[question_count]
     external_adapter_url = ""
     if memory == "external-space":
         try:
@@ -276,15 +293,17 @@ def run_benchmark(
             "--use-external-model",
             "--use-external-judge",
             "--adapters", memory,
-            "--source", "beam",
+            "--source", "areas",
             "--size", "small",
-            "--limit", str(limit),
+            "--limit", "0",
             "--matrix", str(matrix_path),
             "--out", str(grades_path),
             "--judge-model", judge["model"],
             "--matrix-timeout-ms", "21600000",
             "--judge-timeout-ms", "21600000",
         ]
+        if scope["per_ability"]:
+            command.extend(["--per-ability", str(scope["per_ability"])])
         if external_adapter_url:
             command.extend(["--external-adapter-url", external_adapter_url])
         progress(0.15, desc="Running T1–T4 with the fixed reader")
@@ -309,7 +328,7 @@ def run_benchmark(
         if not entry or not grade:
             raise RuntimeError("Harness completed without the selected adapter artifact.")
 
-        if limit == 400:
+        if question_count == 92:
             progress(0.90, desc="Checking complete-run integrity")
             gate = subprocess.run(
                 [
@@ -317,7 +336,7 @@ def run_benchmark(
                     "scripts/check-cross-adapter-grades.mjs",
                     "--artifact", str(grades_path),
                     "--expect-adapters", memory,
-                    "--expect-rows", "1600",
+                    "--expect-rows", "368",
                     "--require-all-passed",
                 ],
                 cwd=ROOT,
@@ -359,12 +378,14 @@ def run_benchmark(
             "memorySpaceUrl": external_adapter_url or None,
             "reader": {"provider": reader["id"], "endpoint": reader["endpoint"], "model": reader["model"]},
             "judge": {"provider": judge["id"], "endpoint": judge["endpoint"], "model": judge["model"]},
-            "source": "beam",
+            "source": "areas",
             "size": "small",
-            "limit": limit,
+            "questions": question_count,
+            "perAbility": scope["per_ability"] or None,
+            "abilities": list(AMBIENT_ABILITIES),
             "sampling": sampling,
-            "estimatedReaderAnswerCalls": 4 * limit,
-            "estimatedJudgeCalls": 4 * limit,
+            "estimatedReaderAnswerCalls": 4 * question_count,
+            "estimatedJudgeCalls": 4 * question_count,
             "credentialHandling": "Hugging Face OAuth; short-lived user token; excluded from logs and artifacts",
         }
         (evidence_dir / "space-run.json").write_text(json.dumps(space_run, indent=2) + "\n", encoding="utf-8")
@@ -392,7 +413,7 @@ def run_benchmark(
             f"{' · `' + external_adapter_url + '`' if external_adapter_url else ''}  \n"
             f"**Reader:** {reader['label']} / `{reader['model']}`  \n"
             f"**Judge:** {judge['label']} / `{judge['model']}`  \n\n"
-            f"**Scope:** {limit} unique questions · {sampling.get('selectedAbilities', '—')}/"
+            f"**Scope:** {question_count} unique questions · {sampling.get('selectedAbilities', '—')}/"
             f"{sampling.get('availableAbilities', '—')} abilities · {sampling.get('minPerAbility', '—')}–"
             f"{sampling.get('maxPerAbility', '—')} per ability  \n"
             f"**Approximate worst-case single-tier margin:** ±{scope['margin']} points  \n\n"
@@ -499,13 +520,13 @@ with gr.Blocks(
                   <p>Connect your own Hugging Face memory Space, choose a scope, and let the fixed harness run. The reader and judge are controls, and T4−T1 is reported as attributed memory lift.</p>
                   <ul class="ambient-facts">
                     <li><b>Bring yours</b><span>Your Space implements the AMBIENT HTTP adapter contract. The runner sends it writes and queries but never executes uploaded code.</span></li>
-                    <li><b>Questions</b><span>The BEAM runner covers 10 categories: abstention, contradiction resolution, event ordering, information extraction, instruction following, knowledge update, multi-session reasoning, preference following, summarization, and temporal reasoning.</span></li>
-                    <li><b>Qualification</b><span>AMBIENT’s separate architecture suite contains 15 capability probes. This hosted BEAM run does not claim to replace that suite.</span></li>
+                    <li><b>Questions</b><span>The new AMBIENT areas corpus contains 92 authored questions across all 15 abilities.</span></li>
+                    <li><b>Abilities</b><span>Adversarial robustness, anteriority, attribution, calibration, concurrency, contradiction, deep contradiction, endurance, federation, modality, reactivity, retrieval fidelity, set integrity, supersession, and temporality.</span></li>
                     <li><b>Isolation</b><span>Every question runs in T1 no-memory, T2 reference-capture, T3 capture-plus-selected-memory, and T4 selected-memory-only conditions.</span></li>
                     <li><b>Retrieval</b><span>The harness checks whether the memory was queried and whether it served non-empty external evidence to the reader.</span></li>
                     <li><b>Judgment</b><span>A separate model grades each answer correct, wrong, or gullible; it cannot create memory credit without a served-evidence trace.</span></li>
                     <li><b>Attribution</b><span>Correct-and-traced becomes completed. Correct-but-untraced, not-served, wrong, and gullible remain separate outcomes.</span></li>
-                    <li><b>Integrity</b><span>The 400-question bundle must contain balanced sampling, 1,600 judged rows, zero reader or judge errors, uncertainty, and evidence fingerprints.</span></li>
+                    <li><b>Integrity</b><span>The complete 92-question bundle must contain all 368 judged tier rows, zero reader or judge errors, uncertainty, and evidence fingerprints.</span></li>
                   </ul>
                 """)
 
@@ -526,13 +547,12 @@ with gr.Blocks(
                 )
                 sample_input = gr.Dropdown(
                     choices=[
-                        ("10 · smoke · 1/ability · ~±31 points", 10),
-                        ("100 · pilot · 10/ability · ~±9.8 points", 100),
-                        ("200 · extended · 20/ability · ~±6.9 points", 200),
-                        ("400 · full corpus · 40/ability · ~±4.9 points", 400),
+                        ("15 · smoke · 1 per ability · ~±25.3 points", 15),
+                        ("45 · pilot · 3 per ability · ~±14.6 points", 45),
+                        ("92 · complete AMBIENT areas corpus · ~±10.2 points", 92),
                     ],
-                    value=10,
-                    label="Unique BEAM questions",
+                    value=15,
+                    label="AMBIENT ability questions",
                     elem_classes="ambient-fieldset",
                 )
                 run_button = gr.Button("Run evaluation", variant="primary", elem_classes="ambient-run")
