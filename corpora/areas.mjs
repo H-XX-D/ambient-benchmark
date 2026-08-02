@@ -13,6 +13,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { PORTABLE_AREAS } from "./portable-areas.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SIZE = process.argv[2] || "small";
@@ -31,6 +32,9 @@ const CORPUS = join(OUT, "corpus");
 // "contradiction".
 const EXACT = {
   contradiction: "contradiction",
+  adoption: "adoption",
+  authority: "authority",
+  "reader-independence": "reader-independence",
   temporality: "temporality",
   "deep-contradiction": "deep-contradiction",
   "retrieval-fidelity": "retrieval-fidelity",
@@ -49,7 +53,8 @@ const EXACT = {
 // The frozen-spec area NUMBER is the unambiguous signal (the area free-text can contain
 // other areas' trap words, e.g. contradiction's blurb says "no supersession marker").
 const BY_NUM = {
-  1: "attribution", 2: "anteriority", 3: "attribution", 5: "contradiction",
+  0: "adoption", 1: "attribution", 2: "anteriority", 3: "authority",
+  4: "reader-independence", 5: "contradiction",
   6: "set-integrity", 7: "calibration", 8: "reactivity", 9: "concurrency",
   10: "supersession", 11: "temporality", 12: "deep-contradiction",
   13: "retrieval-fidelity", 14: "adversarial-robustness", 15: "endurance",
@@ -63,7 +68,7 @@ function abilityOf(key = "", area = "") {
   const num = (a.match(/\b(\d{1,2})\b/) || [])[1];
   if (num && BY_NUM[Number(num)]) return BY_NUM[Number(num)];
   // name-anchored fallback for numberless labels (SUPERSESSION-INTEGRITY, ATTRIBUTION..., ANTERIORITY, Calibration, Set-integrity)
-  const named = ["supersession", "attribution", "anteriority", "set-integrity", "calibration", "reactivity", "temporality", "modality", "concurrency", "endurance", "federation", "deep-contradiction", "retrieval-fidelity", "adversarial", "contradiction"];
+  const named = ["adoption", "attribution", "anteriority", "authority", "reader-independence", "supersession", "set-integrity", "calibration", "reactivity", "temporality", "modality", "concurrency", "endurance", "federation", "deep-contradiction", "retrieval-fidelity", "adversarial", "contradiction"];
   for (const n of named) if (a.startsWith(n) || k.includes(n)) return n === "adversarial" ? "adversarial-robustness" : n;
   return (k || a).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "area";
 }
@@ -86,6 +91,10 @@ for (const j of JOURNALS) areas.push(...readResults(j));
 if (!areas.length) {
   console.error("no area results found in journals (agents may still be running)");
   process.exit(2);
+}
+const authoredKeys = new Set(areas.map((area) => abilityOf(area.key, area.area)));
+for (const area of PORTABLE_AREAS) {
+  if (!authoredKeys.has(area.key)) areas.push(area);
 }
 
 // fresh output dir

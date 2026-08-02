@@ -23,14 +23,14 @@ memory Space. A working Gradio/FastAPI starter is in
   and integrity review.
 
 Every Space bundle is marked `unreviewed` and nothing is published automatically.
-A complete 92-question bundle is exported only after all 368 tier rows pass
+A complete 110-question bundle is exported only after all 440 tier rows pass
 the artifact validator with zero judge errors and the sampling manifest proves
-coverage of all fifteen AMBIENT abilities.
+coverage of all eighteen AMBIENT areas.
 
-The hosted scopes are 15, 45, and 92 unique questions from the authored AMBIENT
-areas corpus. Sampling is seeded and stratified over all fifteen abilities; the
-evidence manifest records the per-ability counts and selection hash. The 15-question
-scope is a smoke only, the 45-question scope is a pilot, and 92 is the complete
+The hosted scopes are 18, 54, and 110 unique questions from the authored AMBIENT
+areas corpus. Sampling is seeded and stratified over all eighteen areas; the
+evidence manifest records the per-area counts and selection hash. The 18-question
+scope is a smoke only, the 54-question scope is a pilot, and 110 is the complete
 areas corpus. None becomes
 publishable merely by being large: the architecture publication gate separately
 requires at least 30 unique questions per ability, three balanced repeats, a
@@ -39,6 +39,12 @@ component declaration, a real independent judge, and a segment-cluster interval.
 Each unique question produces four reader answers and four judge calls, plus
 ingest/checker calls. Large scopes can therefore be slow and expensive; the user
 is responsible for provider charges.
+
+The 18-area profile originated in Recall's memory architecture work because it
+captures the failures that matter in day-to-day AI use. Hosted AMBIENT expresses
+those areas as substrate-neutral conversations, questions, gold answers, and
+trace requirements. Other memory systems are graded on whether they solve the
+problem, never on whether they reproduce Recall's internal graph machinery.
 
 ## Authentication and token handling
 

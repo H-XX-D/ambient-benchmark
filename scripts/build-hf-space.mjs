@@ -31,6 +31,11 @@ for (const file of ["docs/ATTRIBUTION.md", "docs/EVALUATION_PROTOCOL.md", "submi
   cpSync(join(ROOT, file), destination);
 }
 cpSync(join(ROOT, "corpora", "out", "areas", "small"), join(OUTPUT, "corpora", "out", "areas", "small"), { recursive: true });
+for (const file of ["corpora/areas.mjs", "corpora/portable-areas.mjs"]) {
+  const destination = join(OUTPUT, file);
+  mkdirSync(dirname(destination), { recursive: true });
+  cpSync(join(ROOT, file), destination);
+}
 cpSync(join(SPACE_SOURCE, "README.md"), join(OUTPUT, "README.md"));
 cpSync(join(SPACE_SOURCE, "app.py"), join(OUTPUT, "app.py"));
 

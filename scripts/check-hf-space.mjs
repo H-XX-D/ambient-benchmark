@@ -17,6 +17,8 @@ const required = [
   "examples/huggingface-memory-space/requirements.txt",
   "tiers/runner.mjs",
   "tiers/judge.mjs",
+  "corpora/areas.mjs",
+  "corpora/portable-areas.mjs",
   "corpora/out/areas/small/segments.jsonl",
 ];
 for (const path of required) {
@@ -35,28 +37,28 @@ const starterApp = readFileSync(join(SPACE, "examples", "huggingface-memory-spac
 const starterReadme = readFileSync(join(SPACE, "examples", "huggingface-memory-space", "README.md"), "utf8");
 const starterRequirements = readFileSync(join(SPACE, "examples", "huggingface-memory-space", "requirements.txt"), "utf8");
 if (!card.startsWith("---\n") || !card.includes("sdk: gradio") || !card.includes("app_file: app.py") || !card.includes("license: mit")) throw new Error("invalid Hugging Face Space metadata");
-const expectedAbilities = ["adversarial-robustness", "anteriority", "attribution", "calibration", "concurrency", "contradiction", "deep-contradiction", "endurance", "federation", "modality", "reactivity", "retrieval-fidelity", "set-integrity", "supersession", "temporality"];
+const expectedAbilities = ["adoption", "adversarial-robustness", "anteriority", "attribution", "authority", "calibration", "concurrency", "contradiction", "deep-contradiction", "endurance", "federation", "modality", "reactivity", "reader-independence", "retrieval-fidelity", "set-integrity", "supersession", "temporality"];
 const packagedAbilities = [...new Set(areasSegments.map((segment) => segment.ability))].sort();
-if (areasSegments.length !== 92 || JSON.stringify(packagedAbilities) !== JSON.stringify(expectedAbilities)) throw new Error("packaged new AMBIENT corpus must contain 92 questions across the exact 15 abilities");
+if (areasSegments.length !== 110 || JSON.stringify(packagedAbilities) !== JSON.stringify(expectedAbilities)) throw new Error("packaged AMBIENT corpus must contain 110 questions across the exact 18 areas");
 if (!card.includes("hf_oauth: true") || !card.includes("hf_oauth_expiration_minutes: 720") || !card.includes("  - inference-api")) throw new Error("least-privilege Hugging Face OAuth metadata is missing");
-if (!card.includes("API-key fields") || !card.includes("does not operate a leaderboard") || !card.includes("complete 92-question") || !card.includes("participant-owned Hugging Face memory Space")) throw new Error("OAuth, bring-your-own-memory, no-leaderboard, or new-suite disclosure is missing from the Space card");
+if (!card.includes("API-key fields") || !card.includes("does not operate a leaderboard") || !card.includes("complete 110-question") || !card.includes("participant-owned Hugging Face memory Space")) throw new Error("OAuth, bring-your-own-memory, no-leaderboard, or 18-area disclosure is missing from the Space card");
 if (!launcher.includes('NODE_VERSION = "24.10.0"') || !launcher.includes("expected_sha256") || !launcher.includes("import gradio as gr") || !launcher.includes("@spaces.GPU") || !launcher.includes("subprocess.run")) throw new Error("free Space launcher must register ZeroGPU and execute the verified Node 24 harness");
 if (!launcher.includes('"publicationStatus": "unreviewed"') || !launcher.includes("Hugging Face OAuth; short-lived user token; excluded from logs and artifacts")) throw new Error("Gradio evidence boundary is missing");
 if (!launcher.includes('HF_INFERENCE_ENDPOINT = "https://router.huggingface.co/v1"') || !launcher.includes('FIXED_READER_MODEL = "Qwen/Qwen3-32B"') || !launcher.includes('FIXED_JUDGE_MODEL = "openai/gpt-oss-120b"')) throw new Error("fixed Hugging Face inference controls are missing");
 if (!launcher.includes("gr.LoginButton") || !launcher.includes("oauth_token: gr.OAuthToken") || !launcher.includes("Sign in with Hugging Face before starting a run")) throw new Error("authenticated Gradio runner boundary is missing");
 if (launcher.includes("Reader API key") || launcher.includes("Judge API key") || launcher.includes("reader_key_input") || launcher.includes("judge_key_input") || launcher.includes("credential_consent_input") || launcher.includes("PROVIDERS =")) throw new Error("manual credential path remains in the Space launcher");
 if (!launcher.includes('api_name="run_benchmark"')) throw new Error("named runner event is missing");
-if (!launcher.includes("check-cross-adapter-grades.mjs") || !launcher.includes('"--expect-rows", "368"') || !launcher.includes("Checking complete-run integrity")) throw new Error("complete-run integrity gate is missing");
+if (!launcher.includes("check-cross-adapter-grades.mjs") || !launcher.includes('"--expect-rows", "440"') || !launcher.includes("Checking complete-run integrity")) throw new Error("complete-run integrity gate is missing");
 if (launcher.includes("hosted_leaderboard") || launcher.includes("ambient_hosted_runs") || launcher.includes("SUPABASE") || launcher.includes("publish_hosted_run") || launcher.includes("board_output")) throw new Error("hosted leaderboard or automatic publication code remains in the Space");
 if (!launcher.includes("What is being measured") || !launcher.includes("This is not a model ranking") || !launcher.includes("does not operate a leaderboard or publish results automatically")) throw new Error("benchmark and no-publication explanation is missing");
 for (const testLabel of ["Bring yours", "Questions", "Abilities", "Isolation", "Retrieval", "Judgment", "Attribution", "Integrity"]) {
   if (!launcher.includes(`<b>${testLabel}</b>`)) throw new Error(`run test list is missing ${testLabel}`);
 }
-for (const ability of ["adversarial robustness", "anteriority", "attribution", "calibration", "concurrency", "contradiction", "deep contradiction", "endurance", "federation", "modality", "reactivity", "retrieval fidelity", "set integrity", "supersession", "temporality"]) {
+for (const ability of ["adoption", "attribution", "anteriority", "authority", "reader independence", "contradiction", "set integrity", "calibration", "reactivity", "concurrency", "supersession integrity", "temporality", "deep contradiction", "retrieval fidelity", "adversarial robustness", "endurance", "federation", "modality"]) {
   if (!launcher.includes(ability)) throw new Error(`AMBIENT ability disclosure is missing ${ability}`);
 }
 if (!launcher.includes('"--source", "areas"') || !launcher.includes('"--limit", "0"') || !launcher.includes('command.extend(["--per-ability", str(scope["per_ability"])])')) throw new Error("hosted runner is not wired to the new AMBIENT areas corpus");
-if (!launcher.includes('label="AMBIENT ability questions"') || launcher.includes("Unique BEAM questions") || launcher.includes("The BEAM runner covers 10 categories")) throw new Error("old BEAM runner UI remains");
+if (!launcher.includes('label="AMBIENT 18-area questions"') || launcher.includes("AMBIENT ability questions") || launcher.includes("Unique BEAM questions") || launcher.includes("The BEAM runner covers 10 categories")) throw new Error("old hosted runner UI remains");
 if (launcher.includes("reader_model_input") || launcher.includes("judge_model_input") || launcher.includes('label="Fixed reader model"') || launcher.includes('label="Independent judge model"')) throw new Error("model selectors remain in the memory-first runner");
 if (!launcher.includes("reader = oauth_provider_config(FIXED_READER_MODEL") || !launcher.includes("judge = oauth_provider_config(FIXED_JUDGE_MODEL") || !launcher.includes("inputs=[\n            memory_input,\n            memory_space_url_input,\n            sample_input,")) throw new Error("runner callback does not enforce fixed controls and memory-Space input");
 if (!launcher.includes('"external-space": "My Hugging Face memory Space"') || !launcher.includes('value="external-space"') || !launcher.includes('label="Your memory Space URL"') || !launcher.includes('command.extend(["--external-adapter-url", external_adapter_url])')) throw new Error("bring-your-own memory Space path is missing");

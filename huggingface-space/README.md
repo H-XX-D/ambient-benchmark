@@ -42,20 +42,21 @@ Hugging Face Inference uses the OpenAI-compatible
 the signed-in participant's Hugging Face account rather than the Space owner.
 
 All scopes remain private to their exported bundles unless the participant
-chooses to share one. A complete 92-question bundle is exported only after
-all 368 judged tier rows pass the integrity gate.
+chooses to share one. A complete 110-question bundle is exported only after
+all 440 judged tier rows pass the integrity gate.
 
-Run scopes use the new authored AMBIENT areas corpus: 15 smoke questions (one
-per ability), 45 pilot questions (three per ability), or the complete 92-question
+Run scopes use the authored AMBIENT areas corpus: 18 smoke questions (one
+per area), 54 pilot questions (three per area), or the complete 110-question
 corpus. The UI discloses the rough worst-case single-tier margin and call count.
 Repeating a question is not counted as a new datapoint.
 
-The fifteen abilities are adversarial robustness, anteriority, attribution,
-calibration, concurrency, contradiction, deep contradiction, endurance,
-federation, modality, reactivity, retrieval fidelity, set integrity,
-supersession, and temporality. This is the substrate-neutral suite for comparing
-participant memory systems; it is not the older ten-category BEAM run or the
-Recall-specific 18-area implementation diagnostic.
+The eighteen areas are adoption, attribution, anteriority, authority, reader
+independence, contradiction, set integrity, calibration, reactivity,
+concurrency, supersession integrity, temporality, deep contradiction, retrieval
+fidelity, adversarial robustness, endurance, federation, and modality. These
+are real memory problems that every participant system faces. The hosted corpus
+scores observable answers and traced support, not whether a system implements
+Recall's internal mechanisms.
 
 This Space uses a Gradio interface around the repository's Node 24 harness.
 `app.py` verifies a checksum-pinned official Node binary when the runtime does
