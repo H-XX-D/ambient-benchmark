@@ -145,12 +145,14 @@ const externalAdapterUrl = argValue("--external-adapter-url", "");
 const skipMatrix = hasFlag("--skip-matrix");
 const useExternalModel = hasFlag("--use-external-model");
 const useExternalJudge = hasFlag("--use-external-judge");
+const mechanicalHard = hasFlag("--mechanical-hard");
 const allowInsecureExternalAdapter = hasFlag("--allow-insecure-external-adapter");
 const judgeModel = argValue("--judge-model", process.env.AMBIENT_JUDGE_MODEL || "gpt-5.4-nano");
 const judgeEndpoint = process.env.AMBIENT_JUDGE_ENDPOINT || "https://api.openai.com/v1";
 const judgeKey = process.env.AMBIENT_JUDGE_KEY || process.env.OPENAI_API_KEY || "";
 const matrixTimeoutMs = Number(argValue("--matrix-timeout-ms", useExternalModel ? "7200000" : "600000"));
 const judgeTimeoutMs = Number(argValue("--judge-timeout-ms", useExternalJudge ? "1800000" : "120000"));
+const adapterTimeoutMs = argValue("--adapter-timeout-ms", "");
 
 if (!skipMatrix) {
   const matrixArgs = [
@@ -179,6 +181,7 @@ if (!skipMatrix) {
   if (adapterDeclaration) matrixArgs.push("--adapter-declaration", adapterDeclaration);
   if (externalAdapterUrl) matrixArgs.push("--external-adapter-url", externalAdapterUrl);
   if (allowInsecureExternalAdapter) matrixArgs.push("--allow-insecure-external-adapter");
+  if (adapterTimeoutMs) matrixArgs.push("--adapter-timeout-ms", adapterTimeoutMs);
   if (useExternalModel) matrixArgs.push("--use-external-model");
   await runStep(
     "cross-adapter matrix",
@@ -188,12 +191,20 @@ if (!skipMatrix) {
   );
 }
 
+if (mechanicalHard && source !== "hard") {
+  throw new Error("--mechanical-hard requires --source hard");
+}
+if (mechanicalHard && useExternalJudge) {
+  throw new Error("--mechanical-hard and --use-external-judge are mutually exclusive");
+}
 if (useExternalJudge && !judgeKey) {
   throw new Error("external judge needs AMBIENT_JUDGE_KEY or OPENAI_API_KEY in the environment");
 }
 
-const mockJudge = useExternalJudge ? null : await startMockJudge();
-const judgeEnv = useExternalJudge
+const mockJudge = useExternalJudge || mechanicalHard ? null : await startMockJudge();
+const judgeEnv = mechanicalHard
+  ? process.env
+  : useExternalJudge
   ? {
       ...process.env,
       AMBIENT_JUDGE_ENDPOINT: judgeEndpoint,
@@ -208,17 +219,19 @@ const judgeEnv = useExternalJudge
     };
 
 try {
+  const scoringArgs = [
+    "--disable-warning=ExperimentalWarning",
+    "scripts/judge-cross-adapter-matrix.mjs",
+    "--matrix",
+    matrixPath,
+    "--out",
+    outPath,
+    "--strict",
+  ];
+  if (mechanicalHard) scoringArgs.push("--mechanical-hard");
   await runStep(
-    "cross-adapter judge",
-    [
-      "--disable-warning=ExperimentalWarning",
-      "scripts/judge-cross-adapter-matrix.mjs",
-      "--matrix",
-      matrixPath,
-      "--out",
-      outPath,
-      "--strict",
-    ],
+    mechanicalHard ? "cross-adapter mechanical scoring" : "cross-adapter judge",
+    scoringArgs,
     judgeEnv,
     judgeTimeoutMs,
   );
@@ -235,7 +248,7 @@ try {
       "--expect-adapters",
       adapters,
       "--expect-model",
-      useExternalJudge ? judgeModel : "mock-judge",
+      mechanicalHard ? "ambient-mechanical-oracle-v2" : useExternalJudge ? judgeModel : "mock-judge",
       ...(expectedRows ? ["--expect-rows", expectedRows] : []),
       "--require-all-passed",
     ],

@@ -46,33 +46,27 @@ MODEL_PATTERN = re.compile(r"^[A-Za-z0-9._:/-]{1,160}$")
 ACTIVE_JOB: str | None = None
 ACTIVE_LOCK = threading.Lock()
 FIXED_READER_MODEL = "Qwen/Qwen3-32B"
-FIXED_JUDGE_MODEL = "openai/gpt-oss-120b"
 
 SAMPLE_SCOPES = {
-    18: {"label": "smoke", "per_ability": 1, "margin": 23.1},
-    54: {"label": "pilot", "per_ability": 3, "margin": 13.3},
-    110: {"label": "full AMBIENT areas corpus", "per_ability": 0, "margin": 9.3},
+    13: {"label": "calibration smoke", "size": "small", "per_ability": 1, "margin": 27.2},
+    52: {"label": "calibration set", "size": "small", "per_ability": 0, "margin": 13.6},
+    260: {"label": "candidate-frozen hard protocol", "size": "medium-confirmatory-v2", "per_ability": 0, "margin": 6.1},
 }
 
 AMBIENT_ABILITIES = (
-    "adoption",
-    "attribution",
-    "anteriority",
-    "authority",
-    "reader independence",
-    "contradiction",
-    "set integrity",
-    "calibration",
-    "reactivity",
-    "concurrency",
-    "supersession integrity",
-    "temporality",
-    "deep contradiction",
-    "retrieval fidelity",
-    "adversarial robustness",
-    "endurance",
-    "federation",
-    "modality",
+    "knowledge update",
+    "contradiction resolution",
+    "multi-session reasoning",
+    "temporal reasoning",
+    "event ordering",
+    "information extraction",
+    "preference following",
+    "instruction following",
+    "summarization",
+    "abstention",
+    "trust discrimination",
+    "belief-revision audit",
+    "poisoned-memory quarantine",
 )
 
 MEMORIES = {
@@ -255,10 +249,7 @@ def run_benchmark(
     secrets: list[str] = []
     try:
         reader = oauth_provider_config(FIXED_READER_MODEL, oauth_token, "reader")
-        judge = oauth_provider_config(FIXED_JUDGE_MODEL, oauth_token, "judge")
         secrets = [reader["key"]]
-        if reader["endpoint"] == judge["endpoint"] and reader["model"] == judge["model"]:
-            raise ValueError("The judge must be a different model from the reader.")
 
         job_id = str(uuid.uuid4())
         with ACTIVE_LOCK:
@@ -286,24 +277,20 @@ def run_benchmark(
             "AMBIENT_CHECKER_ENDPOINT": reader["endpoint"],
             "AMBIENT_CHECKER_MODEL": reader["model"],
             "AMBIENT_CHECKER_KEY": reader["key"],
-            "AMBIENT_JUDGE_ENDPOINT": judge["endpoint"],
-            "AMBIENT_JUDGE_MODEL": judge["model"],
-            "AMBIENT_JUDGE_KEY": judge["key"],
         })
         command = [
             str(NODE),
             "scripts/verify-cross-adapter-grade-pipeline.mjs",
             "--use-external-model",
-            "--use-external-judge",
+            "--mechanical-hard",
             "--adapters", memory,
-            "--source", "areas",
-            "--size", "small",
+            "--source", "hard",
+            "--size", scope["size"],
             "--limit", "0",
             "--matrix", str(matrix_path),
             "--out", str(grades_path),
-            "--judge-model", judge["model"],
+            "--adapter-timeout-ms", "21600000",
             "--matrix-timeout-ms", "21600000",
-            "--judge-timeout-ms", "21600000",
         ]
         if scope["per_ability"]:
             command.extend(["--per-ability", str(scope["per_ability"])])
@@ -331,7 +318,7 @@ def run_benchmark(
         if not entry or not grade:
             raise RuntimeError("Harness completed without the selected adapter artifact.")
 
-        if question_count == 110:
+        if question_count == 260:
             progress(0.90, desc="Checking complete-run integrity")
             gate = subprocess.run(
                 [
@@ -339,7 +326,7 @@ def run_benchmark(
                     "scripts/check-cross-adapter-grades.mjs",
                     "--artifact", str(grades_path),
                     "--expect-adapters", memory,
-                    "--expect-rows", "440",
+                    "--expect-rows", "1040",
                     "--require-all-passed",
                 ],
                 cwd=ROOT,
@@ -380,15 +367,15 @@ def run_benchmark(
             "memory": memory,
             "memorySpaceUrl": external_adapter_url or None,
             "reader": {"provider": reader["id"], "endpoint": reader["endpoint"], "model": reader["model"]},
-            "judge": {"provider": judge["id"], "endpoint": judge["endpoint"], "model": judge["model"]},
-            "source": "areas",
-            "size": "small",
+            "scorer": {"type": "deterministic", "model": "ambient-mechanical-oracle-v2"},
+            "source": "hard",
+            "size": scope["size"],
             "questions": question_count,
             "perAbility": scope["per_ability"] or None,
             "abilities": list(AMBIENT_ABILITIES),
             "sampling": sampling,
             "estimatedReaderAnswerCalls": 4 * question_count,
-            "estimatedJudgeCalls": 4 * question_count,
+            "estimatedJudgeCalls": 0,
             "credentialHandling": "Hugging Face OAuth; short-lived user token; excluded from logs and artifacts",
         }
         (evidence_dir / "space-run.json").write_text(json.dumps(space_run, indent=2) + "\n", encoding="utf-8")
@@ -415,7 +402,7 @@ def run_benchmark(
             f"**Memory:** {MEMORIES[memory]}"
             f"{' · `' + external_adapter_url + '`' if external_adapter_url else ''}  \n"
             f"**Reader:** {reader['label']} / `{reader['model']}`  \n"
-            f"**Judge:** {judge['label']} / `{judge['model']}`  \n\n"
+            "**Scorer:** deterministic AMBIENT mechanical oracle v2  \n\n"
             f"**Scope:** {question_count} unique questions · {sampling.get('selectedAbilities', '—')}/"
             f"{sampling.get('availableAbilities', '—')} abilities · {sampling.get('minPerAbility', '—')}–"
             f"{sampling.get('maxPerAbility', '—')} per ability  \n"
@@ -427,7 +414,7 @@ def run_benchmark(
             f"T4 memory isolated: {completion.get('T4', '—')}% · "
             f"T3 full composition: {completion.get('T3', '—')}%  \n"
             f"Gullible: {gullible} · Untraced: {untraced} · Needed evidence not served: {not_served} · "
-            f"Judge errors: {grade.get('judgeErrors', '—')}\n\n"
+            f"Scorer errors: {grade.get('judgeErrors', '—')}\n\n"
             "**Publication:** Nothing is posted automatically. Download the evidence bundle to keep or share this run."
         )
         progress(1.0, desc="Evidence bundle ready")
@@ -509,7 +496,7 @@ with gr.Blocks(
           <section class="ambient-intro" aria-labelledby="ambient-intro-title">
             <h2 id="ambient-intro-title">What is being measured</h2>
             <div class="ambient-intro-copy">
-              <p>AMBIENT estimates what a <strong>memory architecture adds</strong> to one fixed reader. The same corpus, questions, fixed reader, fixed independent judge, prompts, and budgets are used while only the memory condition changes across four neutral tiers.</p>
+              <p>AMBIENT estimates what a <strong>memory system adds</strong> to one fixed reader. The same private worlds, questions, fixed reader, exact scorer, prompts, and budgets are used while only the memory condition changes across four neutral tiers.</p>
               <p>A correct answer earns memory credit only when the harness recorded non-empty evidence crossing the adapter boundary. Correct-but-untraced answers remain reader accuracy; misleading memory, empty retrieval, and gullible answers are reported separately. <strong>This is not a model ranking.</strong></p>
             </div>
           </section>
@@ -520,22 +507,23 @@ with gr.Blocks(
                 gr.HTML("""
                   <span class="ambient-label">Run</span>
                   <h2>Controlled evaluation</h2>
-                  <p>Connect your own Hugging Face memory Space, choose a scope, and let the fixed harness run. The reader and judge are controls, and T4−T1 is reported as attributed memory lift.</p>
+                  <p>Connect your own Hugging Face memory Space, choose a scope, and let the hard evaluator run. The reader is fixed, answers are checked by exact mechanical oracles, and T4−T1 is reported as attributed memory lift.</p>
                   <ul class="ambient-facts">
                     <li><b>Bring yours</b><span>Your Space implements the AMBIENT HTTP adapter contract. The runner sends it writes and queries but never executes uploaded code.</span></li>
-                    <li><b>Questions</b><span>The AMBIENT areas corpus contains 110 authored questions across the full 18-area profile.</span></li>
-                    <li><b>Abilities</b><span>Adoption, attribution, anteriority, authority, reader independence, contradiction, set integrity, calibration, reactivity, concurrency, supersession integrity, temporality, deep contradiction, retrieval fidelity, adversarial robustness, endurance, federation, and modality.</span></li>
+                    <li><b>Worlds</b><span>The proper hard evaluator contains 52 calibration worlds or 260 candidate-frozen worlds across 13 reader-facing abilities. Every world has opaque private values, cover history, and an exact answer oracle.</span></li>
+                    <li><b>Abilities</b><span>Knowledge update, contradiction resolution, multi-session reasoning, temporal reasoning, event ordering, information extraction, preference following, instruction following, summarization, abstention, trust discrimination, belief-revision audit, and poisoned-memory quarantine.</span></li>
+                    <li><b>18 areas</b><span>Recall's full 18-area structural profile remains a separate AMBIENT axis. It is included in the downloadable benchmark and is never disguised here as prose questions or collapsed into the 13 hard abilities.</span></li>
                     <li><b>Isolation</b><span>Every question runs in T1 no-memory, T2 reference-capture, T3 capture-plus-selected-memory, and T4 selected-memory-only conditions.</span></li>
                     <li><b>Retrieval</b><span>The harness checks whether the memory was queried and whether it served non-empty external evidence to the reader.</span></li>
-                    <li><b>Judgment</b><span>A separate model grades each answer correct, wrong, or gullible; it cannot create memory credit without a served-evidence trace.</span></li>
+                    <li><b>Scoring</b><span>The generated oracle grades each answer correct, wrong, or gullible without an LLM judge; it cannot create memory credit without a served-evidence trace.</span></li>
                     <li><b>Attribution</b><span>Correct-and-traced becomes completed. Correct-but-untraced, not-served, wrong, and gullible remain separate outcomes.</span></li>
-                    <li><b>Integrity</b><span>The complete 110-question bundle must contain all 440 judged tier rows, zero reader or judge errors, uncertainty, and evidence fingerprints.</span></li>
+                    <li><b>Integrity</b><span>The complete 260-world bundle must contain all 1,040 mechanically scored tier rows, zero reader or scorer errors, uncertainty, and evidence fingerprints.</span></li>
                   </ul>
                 """)
 
             with gr.Column(scale=6, min_width=420, elem_classes="ambient-form"):
                 gr.LoginButton("Sign in with Hugging Face", elem_classes="ambient-login")
-                gr.HTML(f'<p class="ambient-form-copy"><strong>Fixed controls:</strong> reader <code>{FIXED_READER_MODEL}</code> · independent judge <code>{FIXED_JUDGE_MODEL}</code>. They cannot be changed in this runner. Inference usage is charged to the signed-in account.</p>')
+                gr.HTML(f'<p class="ambient-form-copy"><strong>Fixed control:</strong> reader <code>{FIXED_READER_MODEL}</code>. Scoring is local and deterministic; no judge-model calls are made. Reader inference usage is charged to the signed-in account.</p>')
                 memory_input = gr.Dropdown(
                     choices=[(label, key) for key, label in MEMORIES.items()],
                     value="external-space",
@@ -550,12 +538,12 @@ with gr.Blocks(
                 )
                 sample_input = gr.Dropdown(
                     choices=[
-                        ("18 · smoke · 1 per area · ~±23.1 points", 18),
-                        ("54 · pilot · 3 per area · ~±13.3 points", 54),
-                        ("110 · complete AMBIENT areas corpus · ~±9.3 points", 110),
+                        ("13 · calibration smoke · 1 per ability · ~±27.2 points", 13),
+                        ("52 · complete calibration set · 4 per ability · ~±13.6 points", 52),
+                        ("260 · candidate-frozen hard protocol · 20 per ability · ~±6.1 points", 260),
                     ],
-                    value=18,
-                    label="AMBIENT 18-area questions",
+                    value=13,
+                    label="AMBIENT hard worlds",
                     elem_classes="ambient-fieldset",
                 )
                 run_button = gr.Button("Run evaluation", variant="primary", elem_classes="ambient-run")

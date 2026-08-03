@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -8,7 +9,17 @@ const OUTPUT = join(ROOT, "dist", "hf-space");
 const SPACE_SOURCE = join(ROOT, "huggingface-space");
 
 if (!existsSync(join(SPACE_SOURCE, "README.md"))) throw new Error("Hugging Face Space card is missing");
-if (!existsSync(join(ROOT, "corpora", "out", "areas", "small", "segments.jsonl"))) throw new Error("new AMBIENT hosted-runner corpus is missing");
+for (const [outputSize, generatorSize, seedSet] of [
+  ["small", "small", "calibration-v1"],
+  ["medium-confirmatory-v2", "medium", "confirmatory-v2"],
+]) {
+  if (!existsSync(join(ROOT, "corpora", "out", "hard", outputSize, "segments.jsonl"))) {
+    execFileSync(process.execPath, [join(ROOT, "corpora", "build-hard-corpus.mjs"), generatorSize, "--seed-set", seedSet], {
+      cwd: ROOT,
+      stdio: "inherit",
+    });
+  }
+}
 
 rmSync(OUTPUT, { recursive: true, force: true });
 mkdirSync(OUTPUT, { recursive: true });
@@ -25,13 +36,15 @@ cpSync(
   { recursive: true },
 );
 rmSync(join(OUTPUT, "vendor", "recall", ".DS_Store"), { force: true });
-for (const file of ["docs/ATTRIBUTION.md", "docs/EVALUATION_PROTOCOL.md", "submissions/schema.json"]) {
+for (const file of ["docs/ATTRIBUTION.md", "docs/EVALUATION_PROTOCOL.md", "docs/HARD_QUESTION_DESIGN.md", "protocols/ambient-hard-hosted-v3.json", "submissions/schema.json"]) {
   const destination = join(OUTPUT, file);
   mkdirSync(dirname(destination), { recursive: true });
   cpSync(join(ROOT, file), destination);
 }
-cpSync(join(ROOT, "corpora", "out", "areas", "small"), join(OUTPUT, "corpora", "out", "areas", "small"), { recursive: true });
-for (const file of ["corpora/areas.mjs", "corpora/portable-areas.mjs"]) {
+for (const size of ["small", "medium-confirmatory-v2"]) {
+  cpSync(join(ROOT, "corpora", "out", "hard", size), join(OUTPUT, "corpora", "out", "hard", size), { recursive: true });
+}
+for (const file of ["corpora/build-hard-corpus.mjs", "corpora/hard-behavior-core.mjs"]) {
   const destination = join(OUTPUT, file);
   mkdirSync(dirname(destination), { recursive: true });
   cpSync(join(ROOT, file), destination);

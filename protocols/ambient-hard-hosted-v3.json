@@ -1,0 +1,82 @@
+{
+  "schema": "ambient.protocol-lock.v1",
+  "protocol": "ambient-hard-hosted-v3",
+  "status": "hosted-development-frozen",
+  "derivedFrom": {
+    "protocol": "ambient-hard-confirmatory-v2",
+    "worktree": "Desktop development checkout at 2c06cb9",
+    "manifestSha256": "56dcc468f8929444d78baf11c5438a86d7ef0ff9105192ce465c0a132f58ac93"
+  },
+  "purpose": "Run the canonical hard cross-system evaluator through participant-owned Hugging Face memory Spaces.",
+  "qualification": [
+    "external store call observed",
+    "at least one memory item returned and served",
+    "fixed reader answer captured"
+  ],
+  "corpus": {
+    "path": "corpora/out/hard/medium-confirmatory-v2",
+    "seedSet": "confirmatory-v2",
+    "size": "medium",
+    "abilities": 13,
+    "worldsPerAbility": 20,
+    "independentWorlds": 260,
+    "tierAnswers": 1040
+  },
+  "scoring": {
+    "schema": "ambient.mechanical-answer.v1",
+    "implementation": "tiers/score-hard-attributed.mjs",
+    "llmJudgeCalls": 0
+  },
+  "reader": {
+    "model": "Qwen/Qwen3-32B",
+    "mustBeFixedAcrossComparedSystemsAndTiers": true
+  },
+  "structuralProfile": {
+    "path": "suites/ambient/ambient-suite.mjs",
+    "areas": 18,
+    "hostedByThisProtocol": false,
+    "reason": "The 18-area structural profile remains a separate axis; systems tests such as concurrency and endurance are not converted into prose questions."
+  },
+  "publication": {
+    "automatic": false,
+    "spaceBundlesAreUnreviewed": true,
+    "postResultChangeRequiresVersionBump": true
+  },
+  "lockedFiles": [
+    "RULES.md",
+    "adapters/contract.mjs",
+    "adapters/external-space-url.mjs",
+    "adapters/http-client.mjs",
+    "corpora/build-hard-corpus.mjs",
+    "corpora/hard-behavior-core.mjs",
+    "model/backend.mjs",
+    "tiers/attribution.mjs",
+    "tiers/runner.mjs",
+    "tiers/score-hard-attributed.mjs",
+    "scripts/verify-cross-adapter-matrix.mjs",
+    "scripts/verify-cross-adapter-grade-pipeline.mjs",
+    "scripts/judge-cross-adapter-matrix.mjs",
+    "scripts/check-cross-adapter-grades.mjs",
+    "huggingface-space/app.py"
+  ],
+  "hashes": {
+    "files": {
+      "RULES.md": "06fa90f0206943741e5aa97980a3ca65ffa684d5e27ed8d587ee8ba6fdce8ee2",
+      "adapters/contract.mjs": "1aeae42e53a0ab6bdf1f28a685a4b22f7dccd5ef0e70b445a9e6a28fc4190bea",
+      "adapters/external-space-url.mjs": "63c1ef26a0f52f991aa42ee3eee2c33bf6a89dcbb5af948f9959d4f32325d562",
+      "adapters/http-client.mjs": "9efb891ea973ea47e6ea042f897f286f4b344be657e1294dfe7e36cea0b358d5",
+      "corpora/build-hard-corpus.mjs": "b673a0c995e7abf867ca88ce65794834844d780687716faf9fe97de4b4bc98fd",
+      "corpora/hard-behavior-core.mjs": "074ec62f7eeea688be988aedd6bee0c437d8bf74a30b7bf67df59cdf48f80592",
+      "model/backend.mjs": "d8ece6c3f255a66b86bf347bf026e566f167be6a8fe6849487fd4d95d5771ff7",
+      "tiers/attribution.mjs": "6d87aafb3079155a3c00d664403cec0cac90dca0ce60b3e8eed38740c006628a",
+      "tiers/runner.mjs": "6a2f5aa28cabbbece19d7e9a9886b27f7a9e20229b292392dc6fe60d834c8ef2",
+      "tiers/score-hard-attributed.mjs": "db76261708f6e2a9ffeb7427d51db812479b67df3aa8cccc58eda794c1c862d3",
+      "scripts/verify-cross-adapter-matrix.mjs": "0d9865d417bebbe96a8025e0d5ece6fef0fa9269ca35d6578560186cfa32126e",
+      "scripts/verify-cross-adapter-grade-pipeline.mjs": "fdda4b46cb85857e6771b2cc9da8e4680492face0b74c7e5df95f91c60538068",
+      "scripts/judge-cross-adapter-matrix.mjs": "b5b68cbac7b819422ea7e99b7e657b80259cbbc315ac06b8f1be1f8ae2e4ffdb",
+      "scripts/check-cross-adapter-grades.mjs": "e9247e79c1e9d6cee821f771cc9ea4c6c8c33d05f7abd109901fd44607b68b8b",
+      "huggingface-space/app.py": "2ce1ebfa11842a3a07d786b6d66d8e79709c4da0c9d25909b57be3009b7a7d7b"
+    },
+    "corpus": { "files": 261, "sha256": "5d14c5dbf0eb51d63be1b1cd1c9b6c20a2fa4b256f121b236dcc149addfd55ce" }
+  }
+}

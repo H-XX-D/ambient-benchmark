@@ -4,7 +4,8 @@ Live Space: <https://huggingface.co/spaces/tjhendrix/ambient-benchmark>
 
 AMBIENT uses a **Gradio Space around the Node harness** as an ephemeral execution backend. A visitor
 opens the Space, signs in with Hugging Face, connects a public Hugging Face
-memory Space, and chooses a run scope. The reader and independent judge remain fixed controls. Gradio injects the participant's
+memory Space, and chooses a run scope. The reader remains fixed and generated hard
+worlds are scored by exact mechanical oracles. Gradio injects the participant's
 short-lived OAuth token into the callback. The Space executes the same four-tier
 harness as the repository and returns a downloadable evidence bundle.
 
@@ -23,28 +24,27 @@ memory Space. A working Gradio/FastAPI starter is in
   and integrity review.
 
 Every Space bundle is marked `unreviewed` and nothing is published automatically.
-A complete 110-question bundle is exported only after all 440 tier rows pass
-the artifact validator with zero judge errors and the sampling manifest proves
-coverage of all eighteen AMBIENT areas.
+A complete 260-world bundle is exported only after all 1,040 tier rows pass
+the artifact validator with zero scorer errors and the sampling manifest proves
+coverage of all thirteen reader-facing hard abilities.
 
-The hosted scopes are 18, 54, and 110 unique questions from the authored AMBIENT
-areas corpus. Sampling is seeded and stratified over all eighteen areas; the
-evidence manifest records the per-area counts and selection hash. The 18-question
-scope is a smoke only, the 54-question scope is a pilot, and 110 is the complete
-areas corpus. None becomes
+The hosted scopes are 13 calibration-smoke worlds, all 52 calibration worlds,
+and the 260-world candidate-frozen hard protocol. Sampling is seeded and
+stratified over all thirteen abilities; the evidence manifest records the
+per-ability counts and selection hash. None becomes
 publishable merely by being large: the architecture publication gate separately
 requires at least 30 unique questions per ability, three balanced repeats, a
-component declaration, a real independent judge, and a segment-cluster interval.
+component declaration, a frozen reader identity, and a segment-cluster interval.
 
-Each unique question produces four reader answers and four judge calls, plus
-ingest/checker calls. Large scopes can therefore be slow and expensive; the user
-is responsible for provider charges.
+Each unique world produces four reader answers plus ingest/checker calls. Scoring
+is local and deterministic, so there are no judge-model calls. Large scopes can
+still be slow and expensive; the user is responsible for reader-provider charges.
 
 The 18-area profile originated in Recall's memory architecture work because it
-captures the failures that matter in day-to-day AI use. Hosted AMBIENT expresses
-those areas as substrate-neutral conversations, questions, gold answers, and
-trace requirements. Other memory systems are graded on whether they solve the
-problem, never on whether they reproduce Recall's internal graph machinery.
+captures the failures that matter in day-to-day AI use. It remains a separate
+structural AMBIENT axis in the downloadable suite. The hosted cross-system runner
+does not disguise structural concurrency, endurance, federation, or set-integrity
+checks as prose questions; it runs the proper hard reader-facing evaluator.
 
 ## Authentication and token handling
 

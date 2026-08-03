@@ -17,8 +17,8 @@ hf_oauth_scopes:
 # AMBIENT Space runner
 
 The Space asks for a participant-owned Hugging Face memory Space and a run
-scope. The reader and independent judge are fixed benchmark controls, not
-participant selections. Every run ends with one downloadable evidence bundle.
+scope. The reader is fixed and the generated hard worlds carry exact mechanical
+answer oracles. Every run ends with one downloadable evidence bundle.
 The Space does not operate a leaderboard or publish a participant's result
 automatically.
 
@@ -42,21 +42,26 @@ Hugging Face Inference uses the OpenAI-compatible
 the signed-in participant's Hugging Face account rather than the Space owner.
 
 All scopes remain private to their exported bundles unless the participant
-chooses to share one. A complete 110-question bundle is exported only after
-all 440 judged tier rows pass the integrity gate.
+chooses to share one. A complete 260-world bundle is exported only after
+all 1,040 mechanically scored tier rows pass the integrity gate.
 
-Run scopes use the authored AMBIENT areas corpus: 18 smoke questions (one
-per area), 54 pilot questions (three per area), or the complete 110-question
-corpus. The UI discloses the rough worst-case single-tier margin and call count.
-Repeating a question is not counted as a new datapoint.
+Run scopes use AMBIENT's hard evaluator from the development worktree: 13
+calibration-smoke worlds (one per ability), the complete 52-world calibration
+set, or the 260-world candidate-frozen protocol. Every independent world uses
+private opaque values, query-coupled cover history, a derivation proof, and an
+exact oracle. The UI discloses the rough worst-case single-tier margin and call
+count. Repeating a world is not counted as a new datapoint.
 
-The eighteen areas are adoption, attribution, anteriority, authority, reader
-independence, contradiction, set integrity, calibration, reactivity,
-concurrency, supersession integrity, temporality, deep contradiction, retrieval
-fidelity, adversarial robustness, endurance, federation, and modality. These
-are real memory problems that every participant system faces. The hosted corpus
-scores observable answers and traced support, not whether a system implements
-Recall's internal mechanisms.
+The thirteen reader-facing abilities are knowledge update, contradiction
+resolution, multi-session reasoning, temporal reasoning, event ordering,
+information extraction, preference following, instruction following,
+summarization, abstention, trust discrimination, belief-revision audit, and
+poisoned-memory quarantine. No LLM judge is used.
+
+Recall's eighteen-area structural profile remains the second AMBIENT capability
+axis and is included in the downloadable benchmark. It is kept separate because
+concurrency, endurance, federation, set integrity, and related systems behavior
+cannot honestly be converted into prose questions and called structural evidence.
 
 This Space uses a Gradio interface around the repository's Node 24 harness.
 `app.py` verifies a checksum-pinned official Node binary when the runtime does
