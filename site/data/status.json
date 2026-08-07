@@ -1,7 +1,7 @@
 {
   "schema": "ambient.site-status.v1",
-  "generatedAt": "2026-07-29T00:01:03.988Z",
-  "sourceCommit": "f10620be7fa7f6d3739686d342c6f141c931b118",
+  "generatedAt": "2026-08-07T22:06:03.086Z",
+  "sourceCommit": "b284641b953bcf36bd7585d5dc67327e53fe6522",
   "release": {
     "code": "verified-pre-release",
     "label": "Verified pre-release · 0 validated submissions"
