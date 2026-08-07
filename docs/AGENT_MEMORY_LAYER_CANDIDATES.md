@@ -5,6 +5,9 @@ adapter work. Filter: local or self-hostable, free/open-source license, and no
 hosted-only memory service requirement. Stars/forks are point-in-time GitHub API
 values and should be treated as discovery signals, not benchmark results.
 
+Live upstream retrieval evidence for Engram and projectmem is recorded in
+[`GITHUB_RETRIEVAL_SMOKE_2026-07-27.md`](GITHUB_RETRIEVAL_SMOKE_2026-07-27.md).
+
 | candidate | repo | shape | language | license | stars | adapter fit |
 |---|---|---|---|---|---:|---|
 | Mem0 | <https://github.com/mem0ai/mem0> | drop-in long-term memory layer for agents and apps | Python | Apache-2.0 | 60,228 | Bridge implemented in `adapters/mem0-http-adapter.mjs` (Memory.add/search, isolated by user_id, on-disk isolation with MEM0_CONFIG_JSON); needs OPENAI_API_KEY or a local backend. |

@@ -319,7 +319,15 @@ const SYS = [
   "If the answer is not in the context, reply exactly: I don't know.",
 ].join("\n");
 
-async function askSegment(base, seg, tier, runId, replicate) {
+function requiredSupportFor(seg, events) {
+  if (!Array.isArray(seg.supportIds)) return [];
+  const supportIds = new Set(seg.supportIds);
+  return events
+    .filter((event) => supportIds.has(event.seq))
+    .map((event) => `${event.role}: ${event.text}`);
+}
+
+async function askSegment(base, seg, tier, runId, replicate, events) {
   const memoryQueries = [];
   let servedItems = [];
   let storeCall = false;
@@ -373,7 +381,9 @@ async function askSegment(base, seg, tier, runId, replicate) {
     tier,
     question: seg.question,
     gold: seg.gold,
+    oracle: seg.oracle ?? null,
     supportIds: seg.supportIds ?? null,
+    requiredSupport: requiredSupportFor(seg, events),
     storeCall, // trace: did the harness route a store call for this answer
     servedCount: served.length,
     servedContext: served,
@@ -479,7 +489,7 @@ async function main() {
     for (let segmentIndex = 0; segmentIndex < segs.length; segmentIndex += 1) {
       const seg = segs[segmentIndex];
       for (const tier of tierSequence(segmentIndex, replicate)) {
-        transcript.push(await askSegment(base, seg, tier, runId, replicate));
+        transcript.push(await askSegment(base, seg, tier, runId, replicate, eventsByConv.get(seg.conversationId) || []));
         process.stdout.write(`\r  paired run ${++completed}/${expected}`);
       }
     }

@@ -91,6 +91,7 @@ const adapterFilter = argValue("--adapters", "")
   .map((part) => part.trim())
   .filter(Boolean);
 const strict = hasFlag("--strict");
+const mechanicalHard = hasFlag("--mechanical-hard");
 
 const matrix = await readJson(matrixPath);
 const selected = adapterFilter.length
@@ -103,7 +104,7 @@ if (adapterFilter.length && selected.length !== adapterFilter.length) {
   throw new Error(`matrix does not contain requested adapter(s): ${missing.join(", ")}`);
 }
 
-const judgeScript = path.join(ROOT, "tiers", "judge.mjs");
+const judgeScript = path.join(ROOT, "tiers", mechanicalHard ? "score-hard-attributed.mjs" : "judge.mjs");
 const entries = [];
 
 for (const entry of selected) {
@@ -158,7 +159,9 @@ for (const entry of selected) {
       signal: proc.signal,
       stdoutTail: tail(proc.stdout),
       stderrTail: tail(proc.stderr),
-      reason: proc.code !== 0 ? "judge process failed" : "judge summary or manifest was not written",
+      reason: proc.code !== 0
+        ? `${mechanicalHard ? "mechanical scorer" : "judge"} process failed`
+        : `${mechanicalHard ? "scorer" : "judge"} summary or manifest was not written`,
     });
     continue;
   }
@@ -201,8 +204,9 @@ const artifact = {
   matrix: repoRelative(matrixPath),
   matrixSchema: matrix.schema ?? null,
   judge: {
-    endpoint: process.env.AMBIENT_JUDGE_ENDPOINT ?? "http://localhost:8089/v1",
-    model: process.env.AMBIENT_JUDGE_MODEL ?? "judge",
+    endpoint: mechanicalHard ? "local://ambient-mechanical-oracle" : process.env.AMBIENT_JUDGE_ENDPOINT ?? "http://localhost:8089/v1",
+    model: mechanicalHard ? "ambient-mechanical-oracle-v2" : process.env.AMBIENT_JUDGE_MODEL ?? "judge",
+    type: mechanicalHard ? "deterministic-mechanical-oracle" : "model-judge",
   },
   strict,
   totals,

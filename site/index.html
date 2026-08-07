@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#f2f0ea" />
     <meta name="description" content="AMBIENT is a controlled evaluation protocol for measuring what a memory architecture adds to a fixed agent model." />
     <meta property="og:title" content="AMBIENT — Agentic Memory Benchmark" />
-    <meta property="og:description" content="Baseline-isolated evaluation with normalized tiers and evidence-gated community results." />
+    <meta property="og:description" content="Baseline isolated evaluation with normalized tiers and evidence-gated community results." />
     <title>AMBIENT — Agentic Memory Benchmark</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='16' fill='%23141414'/%3E%3Cpath d='M5 20 16 9l11 11' fill='none' stroke='%23f2f0ea' stroke-width='2'/%3E%3C/svg%3E" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -21,7 +21,7 @@
       <a class="wordmark" href="#top" aria-label="AMBIENT home"><span class="wordmark-mark" aria-hidden="true"></span>AMBIENT</a>
       <nav aria-label="Primary navigation">
         <a href="#measures">Method</a>
-        <a href="/leaderboard.html">Results</a>
+        <a href="/leaderboard.html">Integrity</a>
         <a href="#run">Run / download</a>
         <a href="https://github.com/H-XX-D/ambient-benchmark">Repository ↗</a>
       </nav>
@@ -39,14 +39,23 @@
           </dl>
         </div>
         <div class="publication-title">
-          <p class="kicker">Agentic<br />Memory</p>
-          <h1>Baseline-Isolated<br />Evaluation,<br />Normalized Tiers.</h1>
+          <p class="kicker" aria-label="Agentic Memory">
+            <span class="acronym-line"><strong class="acronym-letter">A</strong>gentic</span>
+            <span class="acronym-line"><strong class="acronym-letter">M</strong>emory</span>
+          </p>
+          <h1 aria-label="Baseline Isolated Evaluation, Normalized Tiers.">
+            <span class="acronym-line"><strong class="acronym-letter">B</strong>aseline</span>
+            <span class="acronym-line"><strong class="acronym-letter">I</strong>solated</span>
+            <span class="acronym-line"><strong class="acronym-letter">E</strong>valuation,</span>
+            <span class="acronym-line"><strong class="acronym-letter">N</strong>ormalized</span>
+            <span class="acronym-line"><strong class="acronym-letter">T</strong>iers.</span>
+          </h1>
           <p class="abstract">A controlled protocol for estimating what a memory architecture adds while the reader, judge, corpus, prompts, budgets, and run design remain fixed.</p>
           <div class="publication-links">
             <a href="https://github.com/H-XX-D/ambient-benchmark">GitHub repository</a>
             <a href="#run">Run or download</a>
             <a href="https://github.com/H-XX-D/ambient-benchmark/blob/master/docs/EVALUATION_PROTOCOL.md">Evaluation protocol</a>
-            <a href="/leaderboard.html">Leaderboard</a>
+            <a href="/leaderboard.html">Integrity</a>
           </div>
         </div>
 
@@ -124,14 +133,14 @@
             <article><span>14</span><h3>Reader independence</h3><p>Shows the memory supplies facts the fixed reader could not recover alone.</p></article>
             <article><span>15</span><h3>Set integrity</h3><p>Proves served items belong to the recorded set and that its history is append-only.</p></article>
           </div>
-          <a class="inline-link" href="https://github.com/H-XX-D/ambient-benchmark/blob/master/docs/10_AMBIENT_SUITE.md">Read the ability definitions</a>
+          <a class="inline-link" href="https://github.com/H-XX-D/ambient-benchmark/blob/master/docs/10_AMBIENT_SUITE.md">Read the ability guide</a>
         </div>
       </section>
 
       <section class="run-choices" id="run" aria-labelledby="run-choices-title">
         <div class="run-choices-heading">
           <span>Run AMBIENT</span>
-          <h2 id="run-choices-title">Download it.<br />Or run it in the Space.</h2>
+          <h2 id="run-choices-title">Download it.<br />Or run it from<br />a HF Space.</h2>
           <p>The repository is the complete benchmark and canonical protocol. The Hugging Face Space is the hosted runner.</p>
         </div>
         <div class="run-choice-grid">
@@ -195,21 +204,22 @@
               </article>
             </div>
           </div>
-          <a class="inline-link" href="/leaderboard.html">Leaderboard definitions and results</a>
+          <a class="inline-link" href="/leaderboard.html">Integrity requirements and capability probes</a>
         </div>
       </section>
 
       <section class="research-section distribution" id="distribution">
         <div class="section-index"><span>04</span><p>Distribution</p></div>
         <div class="section-body">
-          <h2>Bring the model. Choose the memory.</h2>
-          <p>The hosted runner lets each participant choose one reader and a separate judge through Hugging Face Inference Providers. Participants sign in with Hugging Face and authorize only inference access; the harness holds the reader fixed, changes the memory condition, and measures whether retrieved evidence lets that same reader complete questions it missed without memory.</p>
+          <h2>Choose the memory.</h2>
+          <p>Participants connect their own public Hugging Face memory Space to the AMBIENT adapter contract. The runner fixes one reader and a separate judge through Hugging Face Inference Providers; the participant authorizes inference on their own account, and the harness changes only the memory condition.</p>
           <p>Run scopes contain 10, 100, 200, or 400 unique questions sampled evenly across all ten BEAM abilities. Ten is explicitly a smoke test; the complete 400-question scope is the first hosted option near a ±5-point worst-case single-tier margin. Repeats never count as new questions.</p>
           <p>The primary result is attributed memory lift: T4 memory-on completion minus T1 no-memory completion. The report also separates gullible answers, answers without traced support, and cases where the needed evidence was not served. This is not a model leaderboard.</p>
-          <p>Hosted runs produce an unreviewed evidence bundle. A complete 400-question run is automatically recorded on the separate hosted-results board after structural checks; only repository-reviewed bundles enter the verified architecture leaderboard. The GitHub repository remains the canonical protocol, full local runner, and evidence-review path.</p>
+          <p>Space runs produce an unreviewed evidence bundle and are never posted automatically. Participants may keep or share their own bundle through Hugging Face. The GitHub repository remains the canonical protocol, full local runner, and integrity-review path.</p>
           <div class="publication-links dark-links">
             <a href="https://tjhendrix-ambient-benchmark.hf.space">Run in Hugging Face</a>
             <a href="https://github.com/H-XX-D/ambient-benchmark">GitHub repository</a>
+            <a href="https://huggingface.co/spaces/tjhendrix/ambient-benchmark/tree/main/examples/huggingface-memory-space">Memory Space starter</a>
             <a href="https://github.com/H-XX-D/ambient-benchmark/blob/master/RULES.md">Evaluation rules</a>
             <a href="https://github.com/H-XX-D/ambient-benchmark/blob/master/submissions/README.md">Submission format</a>
           </div>
@@ -220,7 +230,7 @@
 
     <footer>
       <a class="wordmark" href="#top"><span class="wordmark-mark" aria-hidden="true"></span>AMBIENT</a>
-      <p>Agentic Memory: Baseline-Isolated Evaluation, Normalized Tiers.</p>
+      <p>Agentic Memory: Baseline Isolated Evaluation, Normalized Tiers.</p>
       <div class="footer-links"><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/license.html">MIT License</a></div>
     </footer>
   </body>

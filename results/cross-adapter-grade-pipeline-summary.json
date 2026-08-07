@@ -1,0 +1,1521 @@
+{
+  "schema": "ambient.cross-adapter-grades.v2",
+  "generatedAt": "2026-07-10T20:58:14.442Z",
+  "matrix": "results/cross-adapter-matrix.json",
+  "matrixSchema": "ambient.cross-adapter-matrix.v1",
+  "judge": {
+    "endpoint": "http://127.0.0.1:65376/v1",
+    "model": "mock-judge"
+  },
+  "strict": true,
+  "totals": {
+    "adapters": 10,
+    "passed": 10,
+    "judgeError": 0,
+    "failed": 0,
+    "skipped": 0,
+    "judgeErrors": 0
+  },
+  "adapters": [
+    {
+      "id": "baseline-pull",
+      "matrixStatus": "passed",
+      "rows": 8,
+      "transcript": "results/transcript-beam-small-baseline-pull+auto.jsonl",
+      "status": "passed",
+      "verdicts": "results/verdicts-beam-small-baseline-pull+auto.jsonl",
+      "summary": "results/verdicts-beam-small-baseline-pull+auto-summary.json",
+      "judgeErrors": 0,
+      "completion": {
+        "T1": 0,
+        "T2": 0,
+        "T3": 50,
+        "T4": 50
+      },
+      "deltas": {
+        "T2": 0,
+        "T4": 50,
+        "T3": 50,
+        "interaction": 0
+      },
+      "answerAccuracy": {
+        "T1": 100,
+        "T2": 100,
+        "T3": 100,
+        "T4": 100
+      },
+      "accuracyDeltas": {
+        "T2": 0,
+        "T4": 0,
+        "T3": 0,
+        "interaction": 0
+      },
+      "byTier": {
+        "T1": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 0,
+          "untraced": 2,
+          "notServed": 0
+        },
+        "T2": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 0,
+          "untraced": 0,
+          "notServed": 2
+        },
+        "T3": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 1,
+          "untraced": 1,
+          "notServed": 0
+        },
+        "T4": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 1,
+          "untraced": 1,
+          "notServed": 0
+        }
+      },
+      "byAbility": {
+        "abstention": {
+          "T1": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T2": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 0,
+            "notServed": 1
+          },
+          "T3": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T4": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          }
+        },
+        "contradiction-resolution": {
+          "T1": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T2": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 0,
+            "notServed": 1
+          },
+          "T3": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 1,
+            "untraced": 0,
+            "notServed": 0
+          },
+          "T4": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 1,
+            "untraced": 0,
+            "notServed": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "total-agent-memory-sqlite",
+      "matrixStatus": "passed",
+      "rows": 8,
+      "transcript": "results/transcript-beam-small-total-agent-memory-sqlite+auto.jsonl",
+      "status": "passed",
+      "verdicts": "results/verdicts-beam-small-total-agent-memory-sqlite+auto.jsonl",
+      "summary": "results/verdicts-beam-small-total-agent-memory-sqlite+auto-summary.json",
+      "judgeErrors": 0,
+      "completion": {
+        "T1": 0,
+        "T2": 0,
+        "T3": 50,
+        "T4": 50
+      },
+      "deltas": {
+        "T2": 0,
+        "T4": 50,
+        "T3": 50,
+        "interaction": 0
+      },
+      "answerAccuracy": {
+        "T1": 100,
+        "T2": 100,
+        "T3": 100,
+        "T4": 100
+      },
+      "accuracyDeltas": {
+        "T2": 0,
+        "T4": 0,
+        "T3": 0,
+        "interaction": 0
+      },
+      "byTier": {
+        "T1": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 0,
+          "untraced": 2,
+          "notServed": 0
+        },
+        "T2": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 0,
+          "untraced": 0,
+          "notServed": 2
+        },
+        "T3": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 1,
+          "untraced": 1,
+          "notServed": 0
+        },
+        "T4": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 1,
+          "untraced": 1,
+          "notServed": 0
+        }
+      },
+      "byAbility": {
+        "abstention": {
+          "T1": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T2": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 0,
+            "notServed": 1
+          },
+          "T3": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T4": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          }
+        },
+        "contradiction-resolution": {
+          "T1": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T2": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 0,
+            "notServed": 1
+          },
+          "T3": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 1,
+            "untraced": 0,
+            "notServed": 0
+          },
+          "T4": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 1,
+            "untraced": 0,
+            "notServed": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "mcp-local-memory-sqlite",
+      "matrixStatus": "passed",
+      "rows": 8,
+      "transcript": "results/transcript-beam-small-mcp-local-memory-sqlite+auto.jsonl",
+      "status": "passed",
+      "verdicts": "results/verdicts-beam-small-mcp-local-memory-sqlite+auto.jsonl",
+      "summary": "results/verdicts-beam-small-mcp-local-memory-sqlite+auto-summary.json",
+      "judgeErrors": 0,
+      "completion": {
+        "T1": 0,
+        "T2": 50,
+        "T3": 50,
+        "T4": 50
+      },
+      "deltas": {
+        "T2": 50,
+        "T4": 50,
+        "T3": 50,
+        "interaction": -50
+      },
+      "answerAccuracy": {
+        "T1": 100,
+        "T2": 100,
+        "T3": 100,
+        "T4": 100
+      },
+      "accuracyDeltas": {
+        "T2": 0,
+        "T4": 0,
+        "T3": 0,
+        "interaction": 0
+      },
+      "byTier": {
+        "T1": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 0,
+          "untraced": 2,
+          "notServed": 0
+        },
+        "T2": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 1,
+          "untraced": 1,
+          "notServed": 0
+        },
+        "T3": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 1,
+          "untraced": 1,
+          "notServed": 0
+        },
+        "T4": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 1,
+          "untraced": 1,
+          "notServed": 0
+        }
+      },
+      "byAbility": {
+        "abstention": {
+          "T1": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T2": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T3": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T4": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          }
+        },
+        "contradiction-resolution": {
+          "T1": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T2": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 1,
+            "untraced": 0,
+            "notServed": 0
+          },
+          "T3": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 1,
+            "untraced": 0,
+            "notServed": 0
+          },
+          "T4": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 1,
+            "untraced": 0,
+            "notServed": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "sqlite-memory-mcp-sqlite",
+      "matrixStatus": "passed",
+      "rows": 8,
+      "transcript": "results/transcript-beam-small-sqlite-memory-mcp-sqlite+auto.jsonl",
+      "status": "passed",
+      "verdicts": "results/verdicts-beam-small-sqlite-memory-mcp-sqlite+auto.jsonl",
+      "summary": "results/verdicts-beam-small-sqlite-memory-mcp-sqlite+auto-summary.json",
+      "judgeErrors": 0,
+      "completion": {
+        "T1": 0,
+        "T2": 0,
+        "T3": 50,
+        "T4": 50
+      },
+      "deltas": {
+        "T2": 0,
+        "T4": 50,
+        "T3": 50,
+        "interaction": 0
+      },
+      "answerAccuracy": {
+        "T1": 100,
+        "T2": 100,
+        "T3": 100,
+        "T4": 100
+      },
+      "accuracyDeltas": {
+        "T2": 0,
+        "T4": 0,
+        "T3": 0,
+        "interaction": 0
+      },
+      "byTier": {
+        "T1": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 0,
+          "untraced": 2,
+          "notServed": 0
+        },
+        "T2": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 0,
+          "untraced": 0,
+          "notServed": 2
+        },
+        "T3": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 1,
+          "untraced": 1,
+          "notServed": 0
+        },
+        "T4": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 1,
+          "untraced": 1,
+          "notServed": 0
+        }
+      },
+      "byAbility": {
+        "abstention": {
+          "T1": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T2": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 0,
+            "notServed": 1
+          },
+          "T3": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T4": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          }
+        },
+        "contradiction-resolution": {
+          "T1": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T2": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 0,
+            "notServed": 1
+          },
+          "T3": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 1,
+            "untraced": 0,
+            "notServed": 0
+          },
+          "T4": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 1,
+            "untraced": 0,
+            "notServed": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "agent-memory-sqlite",
+      "matrixStatus": "passed",
+      "rows": 8,
+      "transcript": "results/transcript-beam-small-agent-memory-sqlite+auto.jsonl",
+      "status": "passed",
+      "verdicts": "results/verdicts-beam-small-agent-memory-sqlite+auto.jsonl",
+      "summary": "results/verdicts-beam-small-agent-memory-sqlite+auto-summary.json",
+      "judgeErrors": 0,
+      "completion": {
+        "T1": 0,
+        "T2": 0,
+        "T3": 50,
+        "T4": 50
+      },
+      "deltas": {
+        "T2": 0,
+        "T4": 50,
+        "T3": 50,
+        "interaction": 0
+      },
+      "answerAccuracy": {
+        "T1": 100,
+        "T2": 100,
+        "T3": 100,
+        "T4": 100
+      },
+      "accuracyDeltas": {
+        "T2": 0,
+        "T4": 0,
+        "T3": 0,
+        "interaction": 0
+      },
+      "byTier": {
+        "T1": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 0,
+          "untraced": 2,
+          "notServed": 0
+        },
+        "T2": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 0,
+          "untraced": 0,
+          "notServed": 2
+        },
+        "T3": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 1,
+          "untraced": 1,
+          "notServed": 0
+        },
+        "T4": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 1,
+          "untraced": 1,
+          "notServed": 0
+        }
+      },
+      "byAbility": {
+        "abstention": {
+          "T1": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T2": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 0,
+            "notServed": 1
+          },
+          "T3": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T4": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          }
+        },
+        "contradiction-resolution": {
+          "T1": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T2": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 0,
+            "notServed": 1
+          },
+          "T3": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 1,
+            "untraced": 0,
+            "notServed": 0
+          },
+          "T4": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 1,
+            "untraced": 0,
+            "notServed": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "mcp-memory-sqlite-personal",
+      "matrixStatus": "passed",
+      "rows": 8,
+      "transcript": "results/transcript-beam-small-mcp-memory-sqlite-personal+auto.jsonl",
+      "status": "passed",
+      "verdicts": "results/verdicts-beam-small-mcp-memory-sqlite-personal+auto.jsonl",
+      "summary": "results/verdicts-beam-small-mcp-memory-sqlite-personal+auto-summary.json",
+      "judgeErrors": 0,
+      "completion": {
+        "T1": 0,
+        "T2": 0,
+        "T3": 50,
+        "T4": 50
+      },
+      "deltas": {
+        "T2": 0,
+        "T4": 50,
+        "T3": 50,
+        "interaction": 0
+      },
+      "answerAccuracy": {
+        "T1": 100,
+        "T2": 100,
+        "T3": 100,
+        "T4": 100
+      },
+      "accuracyDeltas": {
+        "T2": 0,
+        "T4": 0,
+        "T3": 0,
+        "interaction": 0
+      },
+      "byTier": {
+        "T1": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 0,
+          "untraced": 2,
+          "notServed": 0
+        },
+        "T2": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 0,
+          "untraced": 0,
+          "notServed": 2
+        },
+        "T3": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 1,
+          "untraced": 1,
+          "notServed": 0
+        },
+        "T4": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 1,
+          "untraced": 1,
+          "notServed": 0
+        }
+      },
+      "byAbility": {
+        "abstention": {
+          "T1": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T2": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 0,
+            "notServed": 1
+          },
+          "T3": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T4": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          }
+        },
+        "contradiction-resolution": {
+          "T1": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T2": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 0,
+            "notServed": 1
+          },
+          "T3": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 1,
+            "untraced": 0,
+            "notServed": 0
+          },
+          "T4": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 1,
+            "untraced": 0,
+            "notServed": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "mcp-memory-keeper-sqlite",
+      "matrixStatus": "passed",
+      "rows": 8,
+      "transcript": "results/transcript-beam-small-mcp-memory-keeper-sqlite+auto.jsonl",
+      "status": "passed",
+      "verdicts": "results/verdicts-beam-small-mcp-memory-keeper-sqlite+auto.jsonl",
+      "summary": "results/verdicts-beam-small-mcp-memory-keeper-sqlite+auto-summary.json",
+      "judgeErrors": 0,
+      "completion": {
+        "T1": 0,
+        "T2": 0,
+        "T3": 50,
+        "T4": 50
+      },
+      "deltas": {
+        "T2": 0,
+        "T4": 50,
+        "T3": 50,
+        "interaction": 0
+      },
+      "answerAccuracy": {
+        "T1": 100,
+        "T2": 100,
+        "T3": 100,
+        "T4": 100
+      },
+      "accuracyDeltas": {
+        "T2": 0,
+        "T4": 0,
+        "T3": 0,
+        "interaction": 0
+      },
+      "byTier": {
+        "T1": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 0,
+          "untraced": 2,
+          "notServed": 0
+        },
+        "T2": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 0,
+          "untraced": 0,
+          "notServed": 2
+        },
+        "T3": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 1,
+          "untraced": 1,
+          "notServed": 0
+        },
+        "T4": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 1,
+          "untraced": 1,
+          "notServed": 0
+        }
+      },
+      "byAbility": {
+        "abstention": {
+          "T1": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T2": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 0,
+            "notServed": 1
+          },
+          "T3": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T4": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          }
+        },
+        "contradiction-resolution": {
+          "T1": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T2": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 0,
+            "notServed": 1
+          },
+          "T3": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 1,
+            "untraced": 0,
+            "notServed": 0
+          },
+          "T4": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 1,
+            "untraced": 0,
+            "notServed": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "local-memory-mcp-sqlite",
+      "matrixStatus": "passed",
+      "rows": 8,
+      "transcript": "results/transcript-beam-small-local-memory-mcp-sqlite+auto.jsonl",
+      "status": "passed",
+      "verdicts": "results/verdicts-beam-small-local-memory-mcp-sqlite+auto.jsonl",
+      "summary": "results/verdicts-beam-small-local-memory-mcp-sqlite+auto-summary.json",
+      "judgeErrors": 0,
+      "completion": {
+        "T1": 0,
+        "T2": 0,
+        "T3": 50,
+        "T4": 50
+      },
+      "deltas": {
+        "T2": 0,
+        "T4": 50,
+        "T3": 50,
+        "interaction": 0
+      },
+      "answerAccuracy": {
+        "T1": 100,
+        "T2": 100,
+        "T3": 100,
+        "T4": 100
+      },
+      "accuracyDeltas": {
+        "T2": 0,
+        "T4": 0,
+        "T3": 0,
+        "interaction": 0
+      },
+      "byTier": {
+        "T1": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 0,
+          "untraced": 2,
+          "notServed": 0
+        },
+        "T2": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 0,
+          "untraced": 0,
+          "notServed": 2
+        },
+        "T3": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 1,
+          "untraced": 1,
+          "notServed": 0
+        },
+        "T4": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 1,
+          "untraced": 1,
+          "notServed": 0
+        }
+      },
+      "byAbility": {
+        "abstention": {
+          "T1": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T2": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 0,
+            "notServed": 1
+          },
+          "T3": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T4": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          }
+        },
+        "contradiction-resolution": {
+          "T1": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T2": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 0,
+            "notServed": 1
+          },
+          "T3": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 1,
+            "untraced": 0,
+            "notServed": 0
+          },
+          "T4": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 1,
+            "untraced": 0,
+            "notServed": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "mcp-memory-sqlite",
+      "matrixStatus": "passed",
+      "rows": 8,
+      "transcript": "results/transcript-beam-small-mcp-memory-sqlite+auto.jsonl",
+      "status": "passed",
+      "verdicts": "results/verdicts-beam-small-mcp-memory-sqlite+auto.jsonl",
+      "summary": "results/verdicts-beam-small-mcp-memory-sqlite+auto-summary.json",
+      "judgeErrors": 0,
+      "completion": {
+        "T1": 0,
+        "T2": 0,
+        "T3": 50,
+        "T4": 50
+      },
+      "deltas": {
+        "T2": 0,
+        "T4": 50,
+        "T3": 50,
+        "interaction": 0
+      },
+      "answerAccuracy": {
+        "T1": 100,
+        "T2": 100,
+        "T3": 100,
+        "T4": 100
+      },
+      "accuracyDeltas": {
+        "T2": 0,
+        "T4": 0,
+        "T3": 0,
+        "interaction": 0
+      },
+      "byTier": {
+        "T1": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 0,
+          "untraced": 2,
+          "notServed": 0
+        },
+        "T2": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 0,
+          "untraced": 0,
+          "notServed": 2
+        },
+        "T3": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 1,
+          "untraced": 1,
+          "notServed": 0
+        },
+        "T4": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 1,
+          "untraced": 1,
+          "notServed": 0
+        }
+      },
+      "byAbility": {
+        "abstention": {
+          "T1": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T2": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 0,
+            "notServed": 1
+          },
+          "T3": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T4": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          }
+        },
+        "contradiction-resolution": {
+          "T1": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T2": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 0,
+            "notServed": 1
+          },
+          "T3": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 1,
+            "untraced": 0,
+            "notServed": 0
+          },
+          "T4": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 1,
+            "untraced": 0,
+            "notServed": 0
+          }
+        }
+      }
+    },
+    {
+      "id": "agent-memory-mcp-sqlite",
+      "matrixStatus": "passed",
+      "rows": 8,
+      "transcript": "results/transcript-beam-small-agent-memory-mcp-sqlite+auto.jsonl",
+      "status": "passed",
+      "verdicts": "results/verdicts-beam-small-agent-memory-mcp-sqlite+auto.jsonl",
+      "summary": "results/verdicts-beam-small-agent-memory-mcp-sqlite+auto-summary.json",
+      "judgeErrors": 0,
+      "completion": {
+        "T1": 0,
+        "T2": 50,
+        "T3": 50,
+        "T4": 50
+      },
+      "deltas": {
+        "T2": 50,
+        "T4": 50,
+        "T3": 50,
+        "interaction": -50
+      },
+      "answerAccuracy": {
+        "T1": 100,
+        "T2": 100,
+        "T3": 100,
+        "T4": 100
+      },
+      "accuracyDeltas": {
+        "T2": 0,
+        "T4": 0,
+        "T3": 0,
+        "interaction": 0
+      },
+      "byTier": {
+        "T1": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 0,
+          "untraced": 2,
+          "notServed": 0
+        },
+        "T2": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 1,
+          "untraced": 1,
+          "notServed": 0
+        },
+        "T3": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 1,
+          "untraced": 1,
+          "notServed": 0
+        },
+        "T4": {
+          "n": 2,
+          "correct": 2,
+          "wrong": 0,
+          "gullible": 0,
+          "completed": 1,
+          "untraced": 1,
+          "notServed": 0
+        }
+      },
+      "byAbility": {
+        "abstention": {
+          "T1": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T2": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T3": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T4": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          }
+        },
+        "contradiction-resolution": {
+          "T1": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 0,
+            "untraced": 1,
+            "notServed": 0
+          },
+          "T2": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 1,
+            "untraced": 0,
+            "notServed": 0
+          },
+          "T3": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 1,
+            "untraced": 0,
+            "notServed": 0
+          },
+          "T4": {
+            "n": 1,
+            "correct": 1,
+            "wrong": 0,
+            "gullible": 0,
+            "completed": 1,
+            "untraced": 0,
+            "notServed": 0
+          }
+        }
+      }
+    }
+  ]
+}
