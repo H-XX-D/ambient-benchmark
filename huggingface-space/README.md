@@ -19,8 +19,12 @@ hf_oauth_scopes:
 The Space asks for a participant-owned Hugging Face memory Space and a run
 scope. The reader is fixed and the generated hard worlds carry exact mechanical
 answer oracles. Every run ends with one downloadable evidence bundle.
-The Space does not operate a leaderboard or publish a participant's result
-automatically.
+The Space shows a read-only board of certified runs and never publishes a
+participant's result automatically. Every row has to clear the automated
+certifier first, which re-derives each published number from the raw artifacts
+rather than trusting the submitted summary. A run performed locally must also
+attest which corpus it used by supplying the frozen corpus SHA-256, which is
+compared against the digest pinned in the protocol lock.
 
 The participant's memory Space implements AMBIENT's small HTTP adapter contract.
 The runner calls that public `https://…hf.space` origin; it does not upload or

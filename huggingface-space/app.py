@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import html
 import json
 import os
 import platform
@@ -13,9 +14,11 @@ import tarfile
 import tempfile
 import threading
 import time
+import urllib.error
 import urllib.request
 import urllib.parse
 import uuid
+import zipfile
 from pathlib import Path
 
 import gradio as gr
@@ -43,6 +46,20 @@ NODE_CACHE = Path("/tmp/ambient-node")
 RUN_ROOT = Path("/tmp/ambient-space")
 JOB_TTL_SECONDS = 30 * 60
 MODEL_PATTERN = re.compile(r"^[A-Za-z0-9._:/-]{1,160}$")
+SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
+
+# Read-only public board. The publishable key is limited by Supabase RLS to the
+# rows that already passed the publication gate.
+SUPABASE_URL = os.getenv("AMBIENT_SUPABASE_URL", "https://nasxywilptctmfdbfpdw.supabase.co").strip().rstrip("/")
+SUPABASE_PUBLISHABLE_KEY = os.getenv(
+    "AMBIENT_SUPABASE_PUBLISHABLE_KEY",
+    "sb_publishable_4yW4erGxjwGNYzzJ-0c3Yg_QsYsBYFH",
+).strip()
+
+# Uploaded bundles are attacker-controlled input, so they are capped and
+# extracted defensively before the certifier ever looks at them.
+MAX_UPLOAD_BYTES = 64 * 1024 * 1024
+MAX_UPLOAD_ENTRIES = 5000
 ACTIVE_JOB: str | None = None
 ACTIVE_LOCK = threading.Lock()
 FIXED_READER_MODEL = "Qwen/Qwen3-32B"
@@ -430,40 +447,82 @@ def run_benchmark(
 
 
 CSS = """
-:root { --ink:#151515; --paper:#101217; --panel:#1b1e24; --white:#f1efe8; --muted:#aeb1b8; --line:#3c4049; --signal:#e14a34; }
+:root { --ink:#101217; --paper:#f2f0e9; --panel:#ffffff; --white:#ffffff; --fg:#101217; --muted:#64666d; --line:#c8c5bc; --signal:#e84732; --rule:#ddd9cf; }
 html, body { max-width:100%; overflow-x:hidden; }
-body, .gradio-container { background:var(--paper) !important; color:var(--white) !important; }
+body, .gradio-container { background:var(--paper) !important; color:var(--fg) !important; }
 .gradio-container { max-width:none !important; padding:0 !important; font-family:Inter,ui-sans-serif,system-ui,sans-serif !important; }
 #ambient-shell { width:100%; max-width:1320px; margin:0 auto; padding:22px; box-sizing:border-box; }
 .ambient-header { display:grid; grid-template-columns:1fr minmax(280px,.55fr); gap:32px; align-items:end; padding:24px 0 22px; border-bottom:1px solid var(--line); }
 .ambient-header span, .ambient-label { color:var(--signal) !important; font-size:.72rem; font-weight:750; letter-spacing:.09em; text-transform:uppercase; }
-.ambient-header h1 { margin:7px 0 0; color:var(--white) !important; font-size:clamp(2.1rem,4.7vw,4.6rem) !important; font-weight:620 !important; line-height:.95 !important; letter-spacing:-.055em !important; }
-.ambient-header .ambient-subtitle { margin:12px 0 0; max-width:720px; color:var(--white) !important; font-size:clamp(1rem,1.75vw,1.45rem) !important; font-weight:540 !important; line-height:1.18 !important; letter-spacing:-.025em !important; }
+.ambient-header h1 { margin:7px 0 0; color:var(--fg) !important; font-size:clamp(2.1rem,4.7vw,4.6rem) !important; font-weight:620 !important; line-height:.95 !important; letter-spacing:-.055em !important; }
+.ambient-header .ambient-subtitle { margin:12px 0 0; max-width:720px; color:var(--fg) !important; font-size:clamp(1rem,1.75vw,1.45rem) !important; font-weight:540 !important; line-height:1.18 !important; letter-spacing:-.025em !important; }
 .ambient-header p { margin:0; color:var(--muted) !important; font-size:.92rem !important; line-height:1.6 !important; }
 .ambient-intro { display:grid; grid-template-columns:180px 1fr; gap:28px; padding:24px 0 2px; }
-.ambient-intro h2 { margin:0; color:var(--white) !important; font-size:clamp(1.35rem,2.3vw,2.15rem) !important; font-weight:620 !important; letter-spacing:-.035em !important; line-height:1.08 !important; }
+.ambient-intro h2 { margin:0; color:var(--fg) !important; font-size:clamp(1.35rem,2.3vw,2.15rem) !important; font-weight:620 !important; letter-spacing:-.035em !important; line-height:1.08 !important; }
 .ambient-intro-copy { display:grid; grid-template-columns:1fr 1fr; gap:28px; }
 .ambient-intro p { margin:0; color:var(--muted) !important; font-size:.9rem !important; line-height:1.62 !important; }
-.ambient-intro strong { color:var(--white); font-weight:650; }
+.ambient-intro strong { color:var(--fg); font-weight:650; }
+#ambient-leaderboard { margin:0 !important; }
+.ambient-board { margin:22px 0; color:var(--ink); background:var(--white); border:1px solid var(--rule); }
+.ambient-board span { color:var(--signal) !important; font-size:.72rem; font-weight:750; letter-spacing:.09em; text-transform:uppercase; }
+.ambient-board-head { display:grid; grid-template-columns:1fr minmax(320px,.6fr); gap:28px; align-items:end; padding:24px 26px; border-bottom:1px solid var(--rule); }
+.ambient-board h2 { margin:5px 0 0; color:var(--ink) !important; font-size:clamp(1.8rem,3.3vw,3.3rem) !important; font-weight:620 !important; letter-spacing:-.045em !important; }
+.ambient-board-head p, .ambient-board-empty > p { margin:0; color:#595a56 !important; font-size:.86rem !important; line-height:1.55 !important; }
+.ambient-board-empty { padding:24px 26px; }
+.ambient-board-empty header { margin-bottom:10px; }
+.ambient-leader { display:grid; grid-template-columns:1fr auto; gap:18px 34px; padding:28px 26px; color:var(--white); background:var(--ink); }
+.ambient-leader span { color:#ff8a72 !important; }
+.ambient-leader h3 { margin:5px 0 4px; color:var(--white) !important; font-size:clamp(2rem,4vw,4rem) !important; font-weight:620 !important; letter-spacing:-.05em !important; line-height:.95 !important; }
+.ambient-leader p { margin:0; color:#b4b5b0 !important; font-size:.84rem !important; }
+.ambient-leader > strong { align-self:center; color:var(--signal); font-size:clamp(2.1rem,5vw,5rem); font-weight:620; letter-spacing:-.055em; white-space:nowrap; }
+.ambient-leader dl { grid-column:1/-1; display:grid; grid-template-columns:repeat(4,1fr); margin:8px 0 0; border-top:1px solid #444; }
+.ambient-leader dl div { padding:13px 0 0; }
+.ambient-leader dt { color:#8f918d; font-size:.67rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase; }
+.ambient-leader dd { margin:4px 0 0; color:var(--white); font-size:.86rem; }
+.ambient-board-table { overflow-x:auto; }
+.ambient-board table { width:100%; border-collapse:collapse; font-size:.78rem; }
+.ambient-board th, .ambient-board td { padding:12px 10px; text-align:left; border-bottom:1px solid var(--rule); white-space:nowrap; }
+.ambient-board th { color:#666761; font-size:.66rem; letter-spacing:.06em; text-transform:uppercase; }
+.ambient-board td { color:#444540; }
+.ambient-board td.score { color:var(--signal); font-weight:700; }
+#ambient-submit { max-width:1320px; margin:0 auto; padding:26px 22px 44px; }
+#ambient-submit > * { max-width:100%; }
+.ambient-submit-rule { max-width:1320px; margin:14px auto 0; padding:0 22px; }
+.ambient-submit-rule hr { margin:0; border:0; border-top:1px solid var(--line); }
+.ambient-submit-copy { margin:0 0 12px; max-width:900px; color:var(--muted) !important; font-size:.9rem !important; line-height:1.62 !important; }
+.ambient-submit-cmd { margin:0 0 18px; padding:14px 16px; overflow-x:auto; background:var(--ink); border:0; }
+.ambient-submit-cmd code { color:#f2f0e9; font-size:.78rem; }
+.ambient-certify { margin:18px 0 0; border:1px solid var(--rule); background:var(--white); }
+.ambient-certify header { padding:20px 22px 0; }
+.ambient-certify span { color:var(--signal) !important; font-size:.72rem; font-weight:750; letter-spacing:.09em; text-transform:uppercase; }
+.ambient-certify h3 { margin:5px 0 0; color:var(--ink) !important; font-size:1.5rem !important; font-weight:620 !important; letter-spacing:-.035em !important; }
+.ambient-certify p { margin:0; padding:14px 22px 20px; color:#595a56 !important; font-size:.86rem !important; }
+.ambient-certify ul { margin:14px 0 0; padding:0 22px; list-style:none; }
+.ambient-certify li { padding:11px 0; border-top:1px solid var(--rule); color:#444540; font-size:.82rem; }
+.ambient-certify li code { display:block; margin-bottom:3px; color:var(--signal); font-size:.72rem; font-weight:700; }
+.ambient-certify table { width:100%; margin:14px 0 0; border-collapse:collapse; font-size:.82rem; }
+.ambient-certify td { padding:11px 22px; border-top:1px solid var(--rule); color:#444540; }
+.ambient-certify-pass { border-left:3px solid #2f7d5a; }
+.ambient-certify-fail { border-left:3px solid var(--signal); }
 #ambient-workspace { width:100%; gap:0 !important; margin:22px 0 0 !important; align-items:stretch !important; }
 #ambient-workspace > div { min-width:0 !important; }
 .ambient-run-copy, .ambient-form { min-width:0 !important; min-height:100%; border:1px solid var(--line) !important; border-radius:0 !important; box-shadow:none !important; }
 .ambient-run-copy { padding:30px !important; background:var(--paper) !important; border-right:0 !important; }
 .ambient-form { padding:28px 30px 32px !important; background:var(--panel) !important; }
-.ambient-run-copy h2 { margin:8px 0 18px; color:var(--white) !important; font-size:clamp(1.8rem,3vw,3rem); font-weight:620; letter-spacing:-.045em; line-height:1; }
+.ambient-run-copy h2 { margin:8px 0 18px; color:var(--fg) !important; font-size:clamp(1.8rem,3vw,3rem); font-weight:620; letter-spacing:-.045em; line-height:1; }
 .ambient-run-copy p, .ambient-form-copy { color:var(--muted) !important; font-size:.9rem; line-height:1.62; }
 .ambient-facts { margin:26px 0 0; padding:0; list-style:none; border-top:1px solid var(--line); }
 .ambient-facts li { display:grid; grid-template-columns:78px 1fr; gap:12px; padding:13px 0; color:var(--muted); border-bottom:1px solid var(--line); font-size:.82rem; line-height:1.45; }
 .ambient-facts b { color:var(--signal); font-size:.69rem; letter-spacing:.06em; text-transform:uppercase; }
 .ambient-fieldset { margin:0 0 16px !important; padding:0 !important; border:0 !important; border-radius:0 !important; box-shadow:none !important; background:transparent !important; }
-.ambient-form label, .ambient-form .label-wrap { color:var(--white) !important; font-size:.82rem !important; font-weight:650 !important; }
-.ambient-form input, .ambient-form textarea, .ambient-form [role="combobox"] { min-height:46px !important; color:var(--white) !important; background:#24272e !important; border-color:var(--line) !important; font-size:.94rem !important; }
+.ambient-form label, .ambient-form .label-wrap { color:var(--fg) !important; font-size:.82rem !important; font-weight:650 !important; }
+.ambient-form input, .ambient-form textarea, .ambient-form [role="combobox"] { min-height:46px !important; color:var(--fg) !important; background:#ffffff !important; border-color:var(--line) !important; font-size:.94rem !important; }
 .ambient-login { margin-bottom:12px !important; }
-button.ambient-run { min-height:54px !important; background:var(--signal) !important; color:var(--white) !important; border:1px solid var(--signal) !important; border-radius:0 !important; font-size:.94rem !important; font-weight:750 !important; box-shadow:none !important; }
+button.ambient-run { min-height:54px !important; background:var(--signal) !important; color:var(--fg) !important; border:1px solid var(--signal) !important; border-radius:0 !important; font-size:.94rem !important; font-weight:750 !important; box-shadow:none !important; }
 button.ambient-run:hover { background:var(--white) !important; color:var(--ink) !important; border-color:var(--white) !important; }
 #ambient-results { max-width:1320px; margin:0 auto; padding:0 22px 34px; }
 .ambient-result-head { padding:28px 0 12px; border-top:1px solid var(--line); }
-.ambient-result-head h2 { margin:5px 0 0; color:var(--white) !important; font-size:1.8rem; letter-spacing:-.035em; }
+.ambient-result-head h2 { margin:5px 0 0; color:var(--fg) !important; font-size:1.8rem; letter-spacing:-.035em; }
 .ambient-export { min-height:52px !important; background:var(--white) !important; color:var(--ink) !important; border:1px solid var(--white) !important; border-radius:0 !important; font-weight:750 !important; }
 footer { display:none !important; }
 @media (max-width:800px) {
@@ -478,6 +537,230 @@ footer { display:none !important; }
 }
 """
 
+def fetch_hosted_runs(limit: int = 50) -> list[dict]:
+    """Read public, gate-passed hosted results through Supabase RLS."""
+    if not SUPABASE_URL.startswith("https://") or not SUPABASE_PUBLISHABLE_KEY:
+        raise RuntimeError("Hosted leaderboard is not configured.")
+    query = urllib.parse.urlencode({
+        "publication_status": "eq.hosted",
+        "select": (
+            "id,memory_name,reader_model,judge_model,item_count,score,lower95,upper95,"
+            "baseline,treatment,control_key,completed_at"
+        ),
+        "order": "score.desc,completed_at.asc",
+        "limit": str(max(1, min(int(limit), 100))),
+    })
+    request = urllib.request.Request(
+        f"{SUPABASE_URL}/rest/v1/ambient_hosted_runs?{query}",
+        headers={"Accept": "application/json", "apikey": SUPABASE_PUBLISHABLE_KEY},
+    )
+    with urllib.request.urlopen(request, timeout=15) as response:
+        if response.status != 200:
+            raise RuntimeError(f"Hosted leaderboard returned HTTP {response.status}.")
+        rows = json.loads(response.read().decode("utf-8"))
+    if not isinstance(rows, list):
+        raise RuntimeError("Hosted leaderboard returned an invalid payload.")
+    return [row for row in rows if isinstance(row, dict)]
+
+
+def points(value: object) -> str:
+    try:
+        return f"{float(value):+.1f} pp"
+    except (TypeError, ValueError):
+        return "—"
+
+
+def percent(value: object) -> str:
+    try:
+        return f"{float(value):.1f}%"
+    except (TypeError, ValueError):
+        return "—"
+
+
+def hosted_leaderboard_html() -> str:
+    """Render the public hosted-run board, highest reported lift first."""
+    try:
+        rows = fetch_hosted_runs()
+    except (RuntimeError, OSError, urllib.error.URLError, json.JSONDecodeError):
+        return """
+          <section class="ambient-board ambient-board-empty">
+            <header><span>Hosted leaderboard</span><h2>Results unavailable</h2></header>
+            <p>The runner remains available. The hosted-results table could not be read.</p>
+          </section>
+        """
+    if not rows:
+        return """
+          <section class="ambient-board ambient-board-empty">
+            <header><span>Hosted leaderboard</span><h2>No certified runs yet</h2></header>
+            <p>The first run to clear the automated certifier appears here. Complete a hosted run, or upload a locally-run bundle with its corpus attestation.</p>
+          </section>
+        """
+
+    leader = rows[0]
+    leader_memory = html.escape(str(leader.get("memory_name", "Unknown memory")))
+    leader_reader = html.escape(str(leader.get("reader_model", "Unknown reader")))
+    leader_control = html.escape(str(leader.get("control_key", "—")))
+    leader_date = html.escape(str(leader.get("completed_at", ""))[:10])
+
+    table_rows: list[str] = []
+    for rank, row in enumerate(rows, start=1):
+        memory = html.escape(str(row.get("memory_name", "Unknown memory")))
+        reader = html.escape(str(row.get("reader_model", "Unknown reader")))
+        control = html.escape(str(row.get("control_key", "—")))
+        completed = html.escape(str(row.get("completed_at", ""))[:10])
+        table_rows.append(
+            "<tr>"
+            f"<td>#{rank:02d}</td><td><strong>{memory}</strong></td>"
+            f"<td class=\"score\">{points(row.get('score'))}</td>"
+            f"<td>{percent(row.get('baseline'))}</td><td>{percent(row.get('treatment'))}</td>"
+            f"<td><code>{reader}</code></td><td><code>{control}</code></td><td>{completed}</td>"
+            "</tr>"
+        )
+
+    return f"""
+      <section class="ambient-board">
+        <header class="ambient-board-head">
+          <div><span>Hosted leaderboard</span><h2>Certified public runs</h2></div>
+          <p>Every row cleared the automated certifier. Ordered by reported T4−T1 lift. Match control keys before comparing architectures.</p>
+        </header>
+        <article class="ambient-leader">
+          <div><span>Current leader</span><h3>{leader_memory}</h3><p>{leader_reader}</p></div>
+          <strong>{points(leader.get('score'))}</strong>
+          <dl><div><dt>T1</dt><dd>{percent(leader.get('baseline'))}</dd></div><div><dt>T4</dt><dd>{percent(leader.get('treatment'))}</dd></div><div><dt>Control</dt><dd>{leader_control}</dd></div><div><dt>Completed</dt><dd>{leader_date}</dd></div></dl>
+        </article>
+        <div class="ambient-board-table"><table><thead><tr><th>Rank</th><th>Memory</th><th>Lift</th><th>T1</th><th>T4</th><th>Reader</th><th>Control</th><th>Date</th></tr></thead><tbody>{''.join(table_rows)}</tbody></table></div>
+      </section>
+    """
+
+
+def protocol_corpus_sha256() -> str:
+    """The frozen corpus digest a locally-run submission has to match."""
+    lock = json.loads((ROOT / "protocols" / "ambient-hard-hosted-v3.json").read_text(encoding="utf-8"))
+    return str(lock["hashes"]["corpus"]["sha256"])
+
+
+def extract_bundle(archive_path: Path, destination: Path) -> Path:
+    """Extract an uploaded bundle without letting it escape `destination`."""
+    destination.mkdir(parents=True, exist_ok=True)
+    if archive_path.stat().st_size > MAX_UPLOAD_BYTES:
+        raise ValueError("Bundle is larger than the 64 MB upload limit.")
+
+    root = destination.resolve()
+
+    def guard(name: str) -> Path:
+        target = (destination / name).resolve()
+        if target != root and not str(target).startswith(f"{root}{os.sep}"):
+            raise ValueError(f"Bundle entry escapes the extraction directory: {name}")
+        return target
+
+    if zipfile.is_zipfile(archive_path):
+        with zipfile.ZipFile(archive_path) as bundle:
+            entries = bundle.infolist()
+            if len(entries) > MAX_UPLOAD_ENTRIES:
+                raise ValueError("Bundle contains too many entries.")
+            if sum(entry.file_size for entry in entries) > MAX_UPLOAD_BYTES:
+                raise ValueError("Bundle expands beyond the 64 MB limit.")
+            for entry in entries:
+                guard(entry.filename)
+            bundle.extractall(destination)
+    else:
+        with tarfile.open(archive_path) as bundle:
+            members = bundle.getmembers()
+            if len(members) > MAX_UPLOAD_ENTRIES:
+                raise ValueError("Bundle contains too many entries.")
+            if sum(max(member.size, 0) for member in members) > MAX_UPLOAD_BYTES:
+                raise ValueError("Bundle expands beyond the 64 MB limit.")
+            for member in members:
+                if member.issym() or member.islnk():
+                    raise ValueError(f"Bundle contains a link entry: {member.name}")
+                guard(member.name)
+            bundle.extractall(destination)
+
+    # submission.json may sit at the root or one directory down.
+    direct = destination / "submission.json"
+    if direct.is_file():
+        return destination
+    for candidate in sorted(destination.rglob("submission.json")):
+        return candidate.parent
+    raise ValueError("Bundle does not contain submission.json.")
+
+
+def render_report(report: dict) -> str:
+    failed = [check for check in report.get("checks", []) if not check.get("passed")]
+    total = len(report.get("checks", []))
+    if report.get("ok"):
+        entry = report.get("entry") or {}
+        rows = "".join(
+            f"<tr><td>{html.escape(str(key))}</td><td><code>{html.escape(str(value))}</code></td></tr>"
+            for key, value in (
+                ("System", (entry.get("system") or {}).get("name", "—")),
+                ("Track", entry.get("track", "—")),
+                ("Score", entry.get("result", {}).get("score", "—")),
+                ("Control key", entry.get("controlKey", "—")),
+            )
+        )
+        return (
+            '<section class="ambient-certify ambient-certify-pass">'
+            f"<header><span>Certified</span><h3>All {total} checks passed</h3></header>"
+            f"<table>{rows}</table>"
+            "<p>This bundle is eligible for publication review.</p>"
+            "</section>"
+        )
+    items = "".join(
+        f"<li><code>{html.escape(str(check.get('name')))}</code>{html.escape(str(check.get('message')))}</li>"
+        for check in failed
+    )
+    return (
+        '<section class="ambient-certify ambient-certify-fail">'
+        f"<header><span>Not certified</span><h3>{len(failed)} of {total} checks failed</h3></header>"
+        f"<ul>{items}</ul>"
+        "<p>Nothing is submitted until every check passes.</p>"
+        "</section>"
+    )
+
+
+def certify_bundle(bundle_file: object, corpus_hash: str, progress=gr.Progress()) -> str:
+    """Run the automated certifier over an uploaded evidence bundle."""
+    if not bundle_file:
+        return (
+            '<section class="ambient-certify ambient-certify-idle">'
+            "<p>Upload a bundle (.zip or .tar.gz) to certify it.</p></section>"
+        )
+
+    supplied = str(corpus_hash or "").strip().lower()
+    if supplied and not SHA256_PATTERN.fullmatch(supplied):
+        return (
+            '<section class="ambient-certify ambient-certify-fail">'
+            "<header><span>Not certified</span><h3>Corpus attestation is malformed</h3></header>"
+            "<p>The corpus attestation must be a 64-character lowercase SHA-256 digest.</p></section>"
+        )
+
+    workspace = RUN_ROOT / f"certify-{uuid.uuid4().hex}"
+    try:
+        progress(0.2, desc="Extracting bundle")
+        source = Path(getattr(bundle_file, "name", bundle_file))
+        bundle_dir = extract_bundle(source, workspace)
+
+        progress(0.6, desc="Certifying evidence")
+        command = [str(NODE), "scripts/certify-submission.mjs", str(bundle_dir), "--json"]
+        if supplied:
+            command.extend(["--corpus-hash", supplied])
+        completed = subprocess.run(
+            command, cwd=ROOT, capture_output=True, text=True, timeout=900, check=False,
+        )
+        if not completed.stdout.strip():
+            raise RuntimeError(completed.stderr.strip()[-1200:] or "The certifier produced no output.")
+        return render_report(json.loads(completed.stdout))
+    except (ValueError, RuntimeError, OSError, tarfile.TarError, zipfile.BadZipFile, json.JSONDecodeError) as error:
+        return (
+            '<section class="ambient-certify ambient-certify-fail">'
+            "<header><span>Not certified</span><h3>The bundle could not be read</h3></header>"
+            f"<p>{html.escape(str(error))}</p></section>"
+        )
+    finally:
+        shutil.rmtree(workspace, ignore_errors=True)
+
+
 with gr.Blocks(
     title="AMBIENT Agentic memory baseline isolated evaluation w/ Neutral Tiers",
     analytics_enabled=False,
@@ -488,7 +771,7 @@ with gr.Blocks(
         gr.HTML("""
           <header class="ambient-header">
             <div><span>AMBIENT / hosted runner</span><h1>AMBIENT</h1><p class="ambient-subtitle">Agentic memory baseline isolated evaluation w/ Neutral Tiers</p></div>
-            <p>The Space runs a standardized memory test and returns an evidence bundle. It does not operate a leaderboard or publish results automatically.</p>
+            <p>The Space runs a standardized memory test, returns an evidence bundle, and certifies bundles for the board. It never publishes a result automatically: every row must clear the automated certifier first.</p>
           </header>
         """)
 
@@ -501,6 +784,8 @@ with gr.Blocks(
             </div>
           </section>
         """)
+
+        board_output = gr.HTML(elem_id="ambient-leaderboard")
 
         with gr.Row(elem_id="ambient-workspace"):
             with gr.Column(scale=4, min_width=300, elem_classes="ambient-run-copy"):
@@ -553,6 +838,29 @@ with gr.Blocks(
         result_output = gr.Markdown()
         bundle_output = gr.DownloadButton("Export evidence bundle", value=None, elem_classes="ambient-export")
 
+    gr.HTML('<div class="ambient-submit-rule"><hr /></div>')
+
+    with gr.Column(elem_id="ambient-submit"):
+        gr.HTML(f"""
+          <div class="ambient-result-head"><span class="ambient-label">Submit</span><h2>Certify a run</h2></div>
+          <p class="ambient-submit-copy">Upload an evidence bundle to run the automated certifier. It re-derives every published number from your raw artifacts instead of trusting the summary, and nothing reaches the leaderboard until all checks pass.</p>
+          <p class="ambient-submit-copy"><strong>Ran locally?</strong> You must attest which corpus you ran. Compute the frozen corpus digest and paste it below; it has to equal the digest pinned in the protocol lock. Runs completed here in the Space are attested automatically.</p>
+          <pre class="ambient-submit-cmd"><code>npm run certify -- ./my-bundle --corpus-hash {protocol_corpus_sha256()}</code></pre>
+        """)
+        bundle_upload = gr.File(
+            label="Evidence bundle (.zip or .tar.gz)",
+            file_types=[".zip", ".gz", ".tgz", ".tar"],
+            elem_classes="ambient-fieldset",
+        )
+        corpus_hash_input = gr.Textbox(
+            label="Frozen corpus SHA-256",
+            placeholder="64-character lowercase digest, required for locally-run submissions",
+            info="Leave blank only if this bundle was produced by this Space.",
+            elem_classes="ambient-fieldset",
+        )
+        certify_button = gr.Button("Certify bundle", elem_classes="ambient-run")
+        certify_output = gr.HTML()
+
     gpu_probe_button = gr.Button("ZeroGPU registration", visible=False)
     gpu_probe_output = gr.Textbox(visible=False)
     gpu_probe_button.click(_zerogpu_registration, outputs=gpu_probe_output, api_name=False)
@@ -569,6 +877,17 @@ with gr.Blocks(
         concurrency_limit=1,
         concurrency_id="ambient-run",
     )
+
+    certify_button.click(
+        certify_bundle,
+        inputs=[bundle_upload, corpus_hash_input],
+        outputs=certify_output,
+        api_name="certify_bundle",
+        concurrency_limit=1,
+        concurrency_id="ambient-certify",
+    )
+
+    demo.load(hosted_leaderboard_html, outputs=board_output, api_name=False)
 
 if __name__ == "__main__":
     demo.queue(default_concurrency_limit=1, max_size=2).launch(css=CSS)

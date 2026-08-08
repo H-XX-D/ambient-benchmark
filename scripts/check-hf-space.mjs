@@ -51,7 +51,7 @@ for (const [label, segments, expectedCount] of [["calibration", calibrationSegme
   if (segments.some((segment) => segment.oracle?.schema !== "ambient.mechanical-answer.v1" || !segment.proof?.rule)) throw new Error(`packaged ${label} hard corpus is missing an exact oracle or derivation proof`);
 }
 if (!card.includes("hf_oauth: true") || !card.includes("hf_oauth_expiration_minutes: 720") || !card.includes("  - inference-api")) throw new Error("least-privilege Hugging Face OAuth metadata is missing");
-if (!card.includes("API-key fields") || !card.includes("does not operate a leaderboard") || !card.includes("complete 260-world") || !card.includes("participant-owned Hugging Face memory Space")) throw new Error("OAuth, bring-your-own-memory, no-leaderboard, or hard-evaluator disclosure is missing from the Space card");
+if (!card.includes("API-key fields") || !card.includes("never publishes a\nparticipant's result automatically") || !card.includes("clear the automated\ncertifier") || !card.includes("complete 260-world") || !card.includes("participant-owned Hugging Face memory Space")) throw new Error("OAuth, bring-your-own-memory, certifier-gate, or hard-evaluator disclosure is missing from the Space card");
 if (!launcher.includes('NODE_VERSION = "24.10.0"') || !launcher.includes("expected_sha256") || !launcher.includes("import gradio as gr") || !launcher.includes("@spaces.GPU") || !launcher.includes("subprocess.run")) throw new Error("free Space launcher must register ZeroGPU and execute the verified Node 24 harness");
 if (!launcher.includes('"publicationStatus": "unreviewed"') || !launcher.includes("Hugging Face OAuth; short-lived user token; excluded from logs and artifacts")) throw new Error("Gradio evidence boundary is missing");
 if (!launcher.includes('HF_INFERENCE_ENDPOINT = "https://router.huggingface.co/v1"') || !launcher.includes('FIXED_READER_MODEL = "Qwen/Qwen3-32B"') || launcher.includes("FIXED_JUDGE_MODEL")) throw new Error("fixed reader or judge-free control is incorrect");
@@ -59,8 +59,17 @@ if (!launcher.includes("gr.LoginButton") || !launcher.includes("oauth_token: gr.
 if (launcher.includes("Reader API key") || launcher.includes("Judge API key") || launcher.includes("reader_key_input") || launcher.includes("judge_key_input") || launcher.includes("credential_consent_input") || launcher.includes("PROVIDERS =")) throw new Error("manual credential path remains in the Space launcher");
 if (!launcher.includes('api_name="run_benchmark"')) throw new Error("named runner event is missing");
 if (!launcher.includes("check-cross-adapter-grades.mjs") || !launcher.includes('"--expect-rows", "1040"') || !launcher.includes("Checking complete-run integrity")) throw new Error("complete-run integrity gate is missing");
-if (launcher.includes("hosted_leaderboard") || launcher.includes("ambient_hosted_runs") || launcher.includes("SUPABASE") || launcher.includes("publish_hosted_run") || launcher.includes("board_output")) throw new Error("hosted leaderboard or automatic publication code remains in the Space");
-if (!launcher.includes("What is being measured") || !launcher.includes("This is not a model ranking") || !launcher.includes("does not operate a leaderboard or publish results automatically")) throw new Error("benchmark and no-publication explanation is missing");
+// The Space may DISPLAY a certified leaderboard, but it must never write to
+// one. Enforce the property that actually matters: read-only access to the
+// results table, and no automatic publication path of any kind.
+if (launcher.includes("publish_hosted_run") || launcher.includes("post_hosted_run") || /requests?\.post|method\s*=\s*"POST"|"Prefer":/.test(launcher)) throw new Error("automatic publication path remains in the Space");
+if (launcher.includes("SUPABASE_SERVICE") || launcher.includes("SUPABASE_SECRET") || launcher.includes("service_role")) throw new Error("the Space must never hold a privileged Supabase key");
+if (!launcher.includes('"publication_status": "eq.hosted"') || !launcher.includes("SUPABASE_PUBLISHABLE_KEY")) throw new Error("hosted board must read gate-passed rows through the publishable key only");
+// The submission path is only trustworthy if the certifier is what gates it.
+if (!launcher.includes("certify-submission.mjs") || !launcher.includes('api_name="certify_bundle"')) throw new Error("submission certifier is not wired into the Space");
+if (!launcher.includes("protocol_corpus_sha256") || !launcher.includes("--corpus-hash")) throw new Error("locally-run corpus attestation is missing from the Space");
+if (!launcher.includes("extract_bundle") || !launcher.includes("escapes the extraction directory")) throw new Error("uploaded bundles must be extracted with a path-traversal guard");
+if (!launcher.includes("What is being measured") || !launcher.includes("This is not a model ranking") || !launcher.includes("never publishes a result automatically")) throw new Error("benchmark and no-publication explanation is missing");
 for (const testLabel of ["Bring yours", "Worlds", "Abilities", "18 areas", "Isolation", "Retrieval", "Scoring", "Attribution", "Integrity"]) {
   if (!launcher.includes(`<b>${testLabel}</b>`)) throw new Error(`run test list is missing ${testLabel}`);
 }
