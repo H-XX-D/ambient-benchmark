@@ -449,6 +449,14 @@ def run_benchmark(
 CSS = """
 :root { --ink:#101217; --paper:#f2f0e9; --panel:#ffffff; --white:#ffffff; --fg:#101217; --muted:#64666d; --line:#c8c5bc; --signal:#e84732; --rule:#ddd9cf; }
 html, body { max-width:100%; overflow-x:hidden; }
+/* Hugging Face embeds a Space in an iframe carrying scrolling="no" and
+   overflow-hidden, so the embedded document is not permitted to scroll and
+   Gradio's own container defaults to overflow-y:hidden. Together that leaves
+   no scrollable element at all: anything below the fold becomes unreachable,
+   which is exactly what happened once the submission panel made the page tall.
+   The app therefore owns its scrolling instead of relying on the embedder. */
+html, body { height:100%; }
+.gradio-container { max-height:100vh; overflow-y:auto !important; }
 body, .gradio-container { background:var(--paper) !important; color:var(--fg) !important; }
 .gradio-container { max-width:none !important; padding:0 !important; font-family:Inter,ui-sans-serif,system-ui,sans-serif !important; }
 #ambient-shell { width:100%; max-width:1320px; margin:0 auto; padding:22px; box-sizing:border-box; }

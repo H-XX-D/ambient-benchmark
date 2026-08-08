@@ -69,6 +69,11 @@ if (!launcher.includes('"publication_status": "eq.hosted"') || !launcher.include
 if (!launcher.includes("certify-submission.mjs") || !launcher.includes('api_name="certify_bundle"')) throw new Error("submission certifier is not wired into the Space");
 if (!launcher.includes("protocol_corpus_sha256") || !launcher.includes("--corpus-hash")) throw new Error("locally-run corpus attestation is missing from the Space");
 if (!launcher.includes("extract_bundle") || !launcher.includes("escapes the extraction directory")) throw new Error("uploaded bundles must be extracted with a path-traversal guard");
+// Hugging Face serves the Space in an iframe with scrolling="no", and Gradio's
+// container defaults to overflow-y:hidden, so without an explicit scroll owner
+// nothing below the fold can be reached. Verified by A/B: reverting these two
+// declarations leaves every scroll container at 0 and strands the submit panel.
+if (!/\.gradio-container\s*\{[^}]*max-height:\s*100vh/.test(launcher) || !/\.gradio-container\s*\{[^}]*overflow-y:\s*auto\s*!important/.test(launcher)) throw new Error("the Space must own its scrolling; Hugging Face embeds it in a scrolling=\"no\" iframe");
 if (!launcher.includes("What is being measured") || !launcher.includes("This is not a model ranking") || !launcher.includes("never publishes a result automatically")) throw new Error("benchmark and no-publication explanation is missing");
 for (const testLabel of ["Bring yours", "Worlds", "Abilities", "18 areas", "Isolation", "Retrieval", "Scoring", "Attribution", "Integrity"]) {
   if (!launcher.includes(`<b>${testLabel}</b>`)) throw new Error(`run test list is missing ${testLabel}`);
