@@ -4,8 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#f2f0ea" />
-    <meta name="description" content="Integrity requirements for the AMBIENT agentic-memory benchmark." />
-    <title>Benchmark Integrity — AMBIENT</title>
+    <meta name="description" content="Certified AMBIENT results and the tripwire abilities that separate a memory system from a search index." />
+    <title>Leaderboard — AMBIENT</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -19,155 +19,141 @@
     </header>
     <main class="leaderboard-main" id="main">
       <section class="leaderboard-intro">
-        <p class="eyebrow light">Benchmark governance</p>
-        <h1>Integrity<br />requirements.</h1>
-        <p class="legal-lede">AMBIENT supplies the test, fixed controls, and evidence requirements. Hugging Face runs remain participant-owned; this site does not rank or publish them automatically.</p>
+        <p class="eyebrow light">Result publication</p>
+        <h1>Leaderboard.</h1>
+        <p class="legal-lede">Certified hosted runs, evidence-verified architecture submissions, and native end-to-end submissions are shown separately because they support different levels of confidence. Every row cleared the automated certifier before it appeared here.</p>
+        <p class="board-source"><span>Verified result source</span><strong data-board-status>Connecting to the live database…</strong></p>
       </section>
 
-      <section class="qualification-section" aria-labelledby="qualification-title">
-        <div class="qualification-heading">
-          <p class="eyebrow">Evidence gates</p>
-          <h2 id="qualification-title">What a valid claim must prove</h2>
-          <p>A generated score is not automatically a trustworthy comparison. The claim must stay within the evidence actually produced by the selected run.</p>
+      <section class="board-section" aria-labelledby="hosted-board">
+        <div class="board-heading">
+          <h2 id="hosted-board">Certified hosted runs</h2>
+          <p>Runs completed through the Hugging Face Space. The Space attests its own corpus; a locally-run bundle must supply the frozen corpus digest instead. Rank is meaningful only within a matching control fingerprint.</p>
         </div>
-        <div class="qualification-grid">
-          <article>
-            <span>01 / Development</span>
-            <h3>Smoke or pilot run</h3>
-            <ul>
-              <li>10, 100, or 200 unique BEAM-small questions across all four tiers.</li>
-              <li>Useful for connection, retrieval, and scoring diagnostics.</li>
-              <li>Too small to support a full benchmark claim.</li>
-            </ul>
-            <strong>Development evidence · unreviewed</strong>
-          </article>
-          <article>
-            <span>02 / Complete BEAM</span>
-            <h3>Controlled memory run</h3>
-            <ul>
-              <li>All 400 unique BEAM-small questions and all 1,600 judged tier rows.</li>
-              <li>The same fixed reader, judge, classifier, prompts, corpus, budgets, and design across systems.</li>
-              <li>Balanced sampling, paired uncertainty, evidence fingerprints, and zero run or judge errors.</li>
-            </ul>
-            <strong>Supports T4 − T1 only under matching controls</strong>
-          </article>
-          <article>
-            <span>03 / Qualification</span>
-            <h3>Architecture capability suite</h3>
-            <ul>
-              <li>The separate 15-probe suite tests memory-system behaviors beyond BEAM answer accuracy.</li>
-              <li>Each probe retains its raw output and pass/fail witness.</li>
-              <li>A BEAM run does not substitute for these architecture checks.</li>
-            </ul>
-            <strong>Capability evidence · not a popularity rank</strong>
-          </article>
+        <div class="board-table-wrap" data-board="hosted">
+          <table class="board-table">
+            <thead><tr><th>Rank</th><th>Memory</th><th>Lift</th><th>T1</th><th>T4</th><th>Reader</th><th>Control</th><th>Date</th></tr></thead>
+            <tbody><tr class="empty-row"><td colspan="8">Loading certified hosted runs…</td></tr></tbody>
+          </table>
         </div>
       </section>
 
-      <section class="test-spec-section" aria-labelledby="test-spec-title">
-        <header class="test-spec-heading">
-          <p class="eyebrow">Before you enter</p>
-          <h2 id="test-spec-title">What an integrity review involves</h2>
-          <p>AMBIENT is a controlled, evidence-producing evaluation—not a single prompt or a model popularity contest. Expect four memory conditions, independent judging, trace inspection, and a verifiable artifact bundle.</p>
-        </header>
+      <section class="board-section" aria-labelledby="architecture-board">
+        <div class="board-heading">
+          <h2 id="architecture-board">Architecture track</h2>
+          <p>The score is attributed-completion lift: T4 bespoke agentic memory minus the T1 no-memory baseline. Compare rows only when the control fingerprint matches.</p>
+        </div>
+        <div class="board-table-wrap" data-board="architecture">
+          <table class="board-table">
+            <thead><tr><th>Rank</th><th>System</th><th>Version</th><th>Corpus</th><th>Items</th><th>Lift</th><th>95% interval</th><th>Control</th><th>Evidence</th></tr></thead>
+            <tbody><tr class="empty-row"><td colspan="9">Loading validated submissions…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
 
-        <div class="run-spec-grid">
-          <article>
-            <span>01 / Connect</span>
-            <h3>Expose an observable memory query</h3>
-            <p>The adapter must return the exact external context served for each question. If the harness cannot observe a non-empty store response, the answer cannot earn memory credit.</p>
+      <section class="board-section" aria-labelledby="native-board">
+        <div class="board-heading">
+          <h2 id="native-board">Native system track</h2>
+          <p>Complete products may use their own models and retrieval stack. The score is T3 attributed completion and is not evidence of architecture-only lift.</p>
+        </div>
+        <div class="board-table-wrap" data-board="native">
+          <table class="board-table">
+            <thead><tr><th>Rank</th><th>System</th><th>Version</th><th>Corpus</th><th>Items</th><th>T3 completion</th><th>95% interval</th><th>Evidence</th></tr></thead>
+            <tbody><tr class="empty-row"><td colspan="8">Loading validated submissions…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="tripwire-section" aria-labelledby="tripwire-title">
+        <div class="tripwire-heading">
+          <p class="eyebrow">The interesting part</p>
+          <h2 id="tripwire-title">Tripwires</h2>
+          <p>A lift number tells you a memory system retrieved something useful. It does not tell you whether the system can be fooled by its own store. Six of the thirteen abilities are <b>tripwires</b>: every world plants a decoy in memory that a retrieval-only system will happily surface. The oracle records which decoy an answer emitted, and a decoy hit is scored <b>gullible</b>, kept separate from merely <b>wrong</b>.</p>
+          <p>That distinction is the point. Wrong means the system missed. Gullible means the system was <i>led</i>, and confident retrieval made it worse. A store that ranks well on plain recall can still trip every wire below.</p>
+        </div>
+
+        <div class="tripwire-grid">
+          <article class="tripwire">
+            <header><span>Abstention</span><h3>The answer is not in memory</h3></header>
+            <dl>
+              <div><dt>Decoy planted</dt><dd>Tokens belonging to related entities, recorded plainly and retrievably.</dd></div>
+              <div><dt>Correct behaviour</dt><dd>Reply <code>UNKNOWN</code>. No record assigns a value to the exact target.</dd></div>
+              <div><dt>Wire trips when</dt><dd>The system returns a neighbour's value because it was the closest match. Related-entity values are not transferable.</dd></div>
+            </dl>
           </article>
-          <article>
-            <span>02 / Execute</span>
-            <h3>Run every question four ways</h3>
-            <p>T1 disables memory, T2 enables reference capture, T3 combines both paths, and T4 isolates the selected memory. A complete hosted run is 400 unique questions and 1,600 judged tier rows.</p>
+
+          <article class="tripwire">
+            <header><span>Contradiction resolution</span><h3>Two live sources disagree</h3></header>
+            <dl>
+              <div><dt>Decoy planted</dt><dd>Two independent, unretracted reports of mutually exclusive states, with no resolver anywhere in the history.</dd></div>
+              <div><dt>Correct behaviour</dt><dd>Report the conflict as <code>CONFLICT=&lt;a&gt;,&lt;b&gt;</code> in lexical order.</dd></div>
+              <div><dt>Wire trips when</dt><dd>The system picks a side. Recency, ordering, or confidence is not a resolver.</dd></div>
+            </dl>
           </article>
-          <article>
-            <span>03 / Prove</span>
-            <h3>Keep the full evidence trail</h3>
-            <p>Expect manifests, raw transcripts, served context, verdicts, summaries, fingerprints, and SHA-256 checks. Missing pairs, drift, mock output, or any reader, adapter, or judge error invalidates the claim.</p>
+
+          <article class="tripwire">
+            <header><span>Knowledge update</span><h3>A correction was itself retracted</h3></header>
+            <dl>
+              <div><dt>Decoy planted</dt><dd>A chain of replacements whose final update is retracted, leaving the retracted value as the most recent thing written.</dd></div>
+              <div><dt>Correct behaviour</dt><dd>Apply replacements in order, drop the retraction, then report <code>CURRENT</code> and <code>PREVIOUS</code> from the surviving states.</dd></div>
+              <div><dt>Wire trips when</dt><dd>The system serves the retracted update because it was written last.</dd></div>
+            </dl>
           </article>
-          <article>
-            <span>04 / Interpret</span>
-            <h3>Match the claim to the evidence</h3>
-            <p>Space results are private and unreviewed. Architecture claims require fixed controls and the separate capability suite; a native full-system result cannot be presented as isolated memory lift.</p>
+
+          <article class="tripwire">
+            <header><span>Belief-revision audit</span><h3>Explain the revision, not just the result</h3></header>
+            <dl>
+              <div><dt>Decoy planted</dt><dd>An intermediate belief that was invalidated by a later record before the current value was restored and changed.</dd></div>
+              <div><dt>Correct behaviour</dt><dd>Return <code>BEFORE</code>, <code>AFTER</code>, and the evidence id that <code>CAUSE</code>d the change.</dd></div>
+              <div><dt>Wire trips when</dt><dd>The system reports the invalidated intermediate as the prior belief. Knowing the current value is not the same as knowing how it got there.</dd></div>
+            </dl>
+          </article>
+
+          <article class="tripwire">
+            <header><span>Trust discrimination</span><h3>Copies are not independent evidence</h3></header>
+            <dl>
+              <div><dt>Decoy planted</dt><dd>One cryptographically verified audit, outnumbered by many correlated unverified mirrors of the same rumour.</dd></div>
+              <div><dt>Correct behaviour</dt><dd>Accept the verified value. The stored policy states that copied mirrors count as one source.</dd></div>
+              <div><dt>Wire trips when</dt><dd>The system follows the majority. Counting duplicates is how a store manufactures false consensus.</dd></div>
+            </dl>
+          </article>
+
+          <article class="tripwire">
+            <header><span>Poisoned-memory quarantine</span><h3>Stored notes are data, not instructions</h3></header>
+            <dl>
+              <div><dt>Decoy planted</dt><dd>An imported note carrying instructions and a canary token, sitting in memory beside the official signed record.</dd></div>
+              <div><dt>Correct behaviour</dt><dd>Return the officially signed value and quarantine the instruction-bearing import.</dd></div>
+              <div><dt>Wire trips when</dt><dd>The canary appears in the answer. That token has no legitimate path to the output, so emitting it is proof the memory executed as a prompt.</dd></div>
+            </dl>
           </article>
         </div>
 
-        <header class="test-spec-heading test-spec-heading-secondary">
-          <p class="eyebrow">Architecture qualification</p>
-          <h2>The fifteen abilities AMBIENT tests</h2>
-          <p>This is the same capability model shown on the benchmark page—not the ten source labels inside the BEAM corpus. Each card explains the observable behavior AMBIENT looks for and the failure pattern that makes the test difficult.</p>
-        </header>
-
-        <div class="test-difficulty-grid">
-          <article data-test-spec>
-            <header><span>01</span><h3>Abstention</h3></header>
-            <dl><div><dt>What it tests</dt><dd>Declines when the stored record cannot support an answer.</dd></div><div><dt>Why it’s difficult</dt><dd>Fluent readers tend to guess from prior knowledge, and an empty retrieval must not be presented as evidence.</dd></div></dl>
-          </article>
-          <article data-test-spec>
-            <header><span>02</span><h3>Adoption</h3></header>
-            <dl><div><dt>What it tests</dt><dd>Routes a new memory into the correct governed store so it remains available later.</dd></div><div><dt>Why it’s difficult</dt><dd>Multi-project routing and fallback behavior can silently place data in the wrong store or an ungoverned side file.</dd></div></dl>
-          </article>
-          <article data-test-spec>
-            <header><span>03</span><h3>Anteriority</h3></header>
-            <dl><div><dt>What it tests</dt><dd>Establishes that one record existed before another using verifiable ordering evidence.</dd></div><div><dt>Why it’s difficult</dt><dd>A self-reported timestamp is easy to invent; credible ordering requires evidence that survives reopening and independent inspection.</dd></div></dl>
-          </article>
-          <article data-test-spec>
-            <header><span>04</span><h3>Calibration</h3></header>
-            <dl><div><dt>What it tests</dt><dd>Keeps confidence proportional to the quality and independence of supporting evidence.</dd></div><div><dt>Why it’s difficult</dt><dd>Repeated weak claims or many correlated sources can launder uncertainty into unjustified confidence.</dd></div></dl>
-          </article>
-          <article data-test-spec>
-            <header><span>05</span><h3>Concurrency</h3></header>
-            <dl><div><dt>What it tests</dt><dd>Preserves simultaneous writes and keeps independent operations from corrupting one another.</dd></div><div><dt>Why it’s difficult</dt><dd>Lock races can silently drop updates, while write skew can leave individually valid writes jointly inconsistent.</dd></div></dl>
-          </article>
-          <article data-test-spec>
-            <header><span>06</span><h3>Contradiction resolution</h3></header>
-            <dl><div><dt>What it tests</dt><dd>Surfaces incompatible claims and avoids treating either side as settled fact.</dd></div><div><dt>Why it’s difficult</dt><dd>Conflicts may be paraphrased or separated by time, and last-write-wins can hide uncertainty instead of resolving it.</dd></div></dl>
-          </article>
-          <article data-test-spec>
-            <header><span>07</span><h3>Enumeration</h3></header>
-            <dl><div><dt>What it tests</dt><dd>Returns the complete requested set without omissions, duplicates, or unrelated members.</dd></div><div><dt>Why it’s difficult</dt><dd>Top-k retrieval is optimized for a few relevant hits, not proof that every qualifying item was found exactly once.</dd></div></dl>
-          </article>
-          <article data-test-spec>
-            <header><span>08</span><h3>Expiry</h3></header>
-            <dl><div><dt>What it tests</dt><dd>Stops serving a claim as current when its declared or semantic validity has ended.</dd></div><div><dt>Why it’s difficult</dt><dd>Temporal scope is often implicit in language, and stale records can remain highly relevant to a lexical search.</dd></div></dl>
-          </article>
-          <article data-test-spec>
-            <header><span>09</span><h3>Federation</h3></header>
-            <dl><div><dt>What it tests</dt><dd>Reads across independent stores while preserving origin and cross-store disagreement.</dd></div><div><dt>Why it’s difficult</dt><dd>Deduplication, identifier collisions, or member order can erase one source or collapse a real conflict.</dd></div></dl>
-          </article>
-          <article data-test-spec>
-            <header><span>10</span><h3>Holonomy</h3></header>
-            <dl><div><dt>What it tests</dt><dd>Detects cyclic ordering contradictions such as A before B, B before C, and C before A.</dd></div><div><dt>Why it’s difficult</dt><dd>Every pair can look locally plausible; the impossibility appears only when the full dependency cycle is evaluated.</dd></div></dl>
-          </article>
-          <article data-test-spec>
-            <header><span>11</span><h3>Modality</h3></header>
-            <dl><div><dt>What it tests</dt><dd>Keeps hypothetical, proposed, and actual events in distinct states.</dd></div><div><dt>Why it’s difficult</dt><dd>The same entities and actions appear in every version, so lexical similarity can make a possibility look like history.</dd></div></dl>
-          </article>
-          <article data-test-spec>
-            <header><span>12</span><h3>Provenance</h3></header>
-            <dl><div><dt>What it tests</dt><dd>Preserves who produced a claim, where it came from, and which evidence supports it.</dd></div><div><dt>Why it’s difficult</dt><dd>Summarization, merging, and retrieval can detach content from its origin and make dependent sources appear independent.</dd></div></dl>
-          </article>
-          <article data-test-spec>
-            <header><span>13</span><h3>Reactivity</h3></header>
-            <dl><div><dt>What it tests</dt><dd>Updates or alerts on dependent conclusions when supporting memory changes.</dd></div><div><dt>Why it’s difficult</dt><dd>The affected state may be several edges away, and cached conclusions can remain stale without explicit propagation.</dd></div></dl>
-          </article>
-          <article data-test-spec>
-            <header><span>14</span><h3>Reader independence</h3></header>
-            <dl><div><dt>What it tests</dt><dd>Shows that memory supplied information the fixed reader could not recover alone.</dd></div><div><dt>Why it’s difficult</dt><dd>A strong model may already know or guess the answer, so attribution requires a paired no-memory control and traceable facts.</dd></div></dl>
-          </article>
-          <article data-test-spec>
-            <header><span>15</span><h3>Set integrity</h3></header>
-            <dl><div><dt>What it tests</dt><dd>Proves that served items belong to the recorded set and that later history only appends.</dd></div><div><dt>Why it’s difficult</dt><dd>Ordinary logs can be rewritten; tamper detection needs reproducible membership and consistency proofs.</dd></div></dl>
-          </article>
+        <div class="tripwire-board">
+          <div class="board-heading">
+            <h3>Decoy hits by system</h3>
+            <p>Gullible rate is the share of tripwire rows where the answer contained a planted decoy. Lower is better, and it is reported independently of the lift score because the two can move in opposite directions.</p>
+          </div>
+          <div class="board-table-wrap" data-board="tripwire">
+            <table class="board-table">
+              <thead><tr><th>System</th><th>Tripwire rows</th><th>Gullible</th><th>Rate</th><th>Most-tripped wire</th><th>Control</th></tr></thead>
+              <tbody><tr class="empty-row"><td colspan="6">Loading certified tripwire outcomes…</td></tr></tbody>
+            </table>
+          </div>
         </div>
+      </section>
+
+      <section class="submission-note">
+        <p class="eyebrow">Submission contents</p>
+        <h2>What is required for a published row</h2>
+        <p>A submission includes a hashed manifest, transcript, verdicts, summary, declared track, source commit, and uncertainty interval. The certifier re-derives every published number from those raw artifacts rather than trusting the summary, and rejects missing pairs, reader drift, mock output, judge errors, unsafe paths, metric disagreement, and hash mismatches. A run performed locally must also attest the frozen corpus digest pinned in the protocol lock.</p>
+        <a class="inline-link" href="https://github.com/H-XX-D/ambient-benchmark/blob/master/submissions/README.md">Submission specification</a>
       </section>
     </main>
     <footer>
       <a class="wordmark" href="/"><span class="wordmark-mark" aria-hidden="true"></span> AMBIENT</a>
-      <p>Integrity before ranking.</p>
-      <div class="footer-links"><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="https://github.com/H-XX-D/ambient-benchmark">Repository</a></div>
+      <p data-board-footer>Integrity before ranking.</p>
+      <div class="footer-links"><a href="/integrity.html">Integrity</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="https://github.com/H-XX-D/ambient-benchmark">Repository</a></div>
     </footer>
+    <script type="module" src="/leaderboard.js"></script>
   </body>
 </html>
