@@ -108,7 +108,9 @@
     "bench:1b-hard": "node --disable-warning=ExperimentalWarning suites/ambient/ambient-1b-hard.mjs",
     "certify": "node scripts/certify-submission.mjs",
     "test:certify": "node --test tests/certify-submission.test.mjs",
-    "test:leaderboard": "node --test tests/leaderboard-tripwires.test.mjs"
+    "test:leaderboard": "node --test tests/leaderboard-tripwires.test.mjs",
+    "test:publisher": "node --test tests/tripwire-publisher.test.mjs",
+    "publish:tripwires": "node scripts/publish-tripwire-outcomes.mjs"
   },
   "dependencies": {},
   "devDependencies": {}

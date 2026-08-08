@@ -72,12 +72,16 @@ export function buildFixtureBundle(target, options = {}) {
           served: tier !== "T1",
           sourceTrace: { answer: { model: READER.model, fingerprint: READER.fingerprint } },
         });
+        // Mirrors the real attributed-scorer verdict shape: ability and the
+        // oracle's protected-token trail ride along with every verdict.
         verdicts.push({
           runId,
           segId: seg.segId,
           tier,
           replicate,
+          ability: seg.ability,
           verdict: isCompleted ? "completed" : "wrong",
+          oracle: { protectedHits: [] },
         });
       }
     }
