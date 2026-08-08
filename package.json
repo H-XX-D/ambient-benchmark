@@ -105,7 +105,9 @@
     "verify:adapter:claude-memory-ruby": "node --disable-warning=ExperimentalWarning scripts/verify-claude-memory-ruby-adapter-bridge.mjs",
     "verify:adapter:mcp-memory-sqlite-personal": "node --disable-warning=ExperimentalWarning scripts/verify-mcp-memory-sqlite-personal-adapter-bridge.mjs",
     "bench:suite:1b": "node --disable-warning=ExperimentalWarning suites/ambient/ambient-suite-1b.mjs",
-    "bench:1b-hard": "node --disable-warning=ExperimentalWarning suites/ambient/ambient-1b-hard.mjs"
+    "bench:1b-hard": "node --disable-warning=ExperimentalWarning suites/ambient/ambient-1b-hard.mjs",
+    "certify": "node scripts/certify-submission.mjs",
+    "test:certify": "node --test tests/certify-submission.test.mjs"
   },
   "dependencies": {},
   "devDependencies": {}
