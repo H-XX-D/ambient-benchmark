@@ -10,6 +10,9 @@ const required = [
   "site/styles.css",
   "site/app.js",
   "site/leaderboard.html",
+  "site/leaderboard.js",
+  "site/integrity.html",
+  "site/data/leaderboard.json",
   "site/assets/ambient-architecture.png",
   "site/assets/ambient-four-channel.png",
   "site/data/status.json",
@@ -35,7 +38,8 @@ if (!html.includes("Agentic Memory: Baseline Isolated Evaluation, Normalized Tie
 if (html.includes("Baseline-Isolated") || html.includes("Baseline-isolated")) throw new Error("retired hyphenated AMBIENT expansion remains");
 if (html.includes("One reader. Four conditions.") || html.includes("Current public evidence")) throw new Error("retired redundant design or evidence section remains");
 if (!html.includes("GitHub repository") || !html.includes("canonical protocol, full local runner")) throw new Error("GitHub repository distribution is missing");
-if (!html.includes('<a href="/leaderboard.html">Integrity</a>') || html.includes('<a href="/leaderboard.html">Results</a>') || html.includes('<a href="/leaderboard.html">Board</a>')) throw new Error("primary navigation must label the governance page as Integrity");
+if (!html.includes('<a href="/integrity.html">Integrity</a>')) throw new Error("primary navigation must label the governance page as Integrity");
+if (!html.includes('<a href="/leaderboard.html">Leaderboard</a>')) throw new Error("primary navigation must link the leaderboard");
 if (!html.includes("Choose the memory.") || !html.includes("This is not a model leaderboard")) throw new Error("memory-first runner purpose is not explicit");
 if (!html.includes("never posted automatically") || !html.includes("Participants may keep or share their own bundle through Hugging Face")) throw new Error("participant-owned result boundary is missing");
 if (!html.includes("connect their own public Hugging Face memory Space") || !html.includes("Memory Space starter")) throw new Error("bring-your-own memory Space path is missing");
@@ -67,7 +71,7 @@ const retiredProvider = ["Higgs", "field"].join("");
 if (html.includes(retiredProvider) || html.includes("ambient-hero-")) throw new Error("retired hero provenance remains in public copy");
 if (!html.includes('src="/assets/ambient-architecture.png"')) throw new Error("editorial architecture plate is missing");
 if (!html.includes('href="/privacy.html"') || !html.includes('href="/terms.html"')) throw new Error("legal footer links are missing");
-if (!html.includes('href="/leaderboard.html"') || !html.includes('href="/license.html"')) throw new Error("integrity or MIT license link is missing");
+if (!html.includes('href="/integrity.html"') || !html.includes('href="/license.html"')) throw new Error("integrity or MIT license link is missing");
 if (html.includes("github.com/H-XX-D/ambient-benchmark/blob/main/")) throw new Error("GitHub links must use the repository default branch");
 if (status.adapterSmoke?.publishableAsQualityResult !== false) throw new Error("mock adapter smoke must not be publishable as quality evidence");
 if (status.schema !== "ambient.site-status.v1") throw new Error(`unexpected site status schema ${status.schema}`);
@@ -75,7 +79,42 @@ if (!Number.isInteger(status.publicEvidence?.publishableComparisons)) throw new 
 const privacy = readFileSync(join(ROOT, "site/privacy.html"), "utf8");
 const terms = readFileSync(join(ROOT, "site/terms.html"), "utf8");
 const runHtml = readFileSync(join(ROOT, "site/run.html"), "utf8");
-const boardHtml = readFileSync(join(ROOT, "site/leaderboard.html"), "utf8");
+const leaderboardHtml = readFileSync(join(ROOT, "site/leaderboard.html"), "utf8");
+const leaderboardJs = readFileSync(join(ROOT, "site/leaderboard.js"), "utf8");
+const leaderboard = JSON.parse(readFileSync(join(ROOT, "site/data/leaderboard.json"), "utf8"));
+
+// The leaderboard must keep the three confidence tiers separate; collapsing
+// them is how an unreviewed hosted run gets mistaken for a verified claim.
+for (const board of ["hosted", "architecture", "native", "tripwire"]) {
+  if (!leaderboardHtml.includes(`data-board="${board}"`)) throw new Error(`leaderboard is missing the ${board} board`);
+}
+if (!leaderboardHtml.includes("Certified hosted runs") || !leaderboardHtml.includes("Architecture track") || !leaderboardHtml.includes("Native system track")) throw new Error("leaderboard track headings are incomplete");
+
+// The tripwire section is the part that distinguishes a memory system from a
+// search index, so every wire must stay documented with its decoy.
+for (const wire of ["Abstention", "Contradiction resolution", "Knowledge update", "Belief-revision audit", "Trust discrimination", "Poisoned-memory quarantine"]) {
+  if (!leaderboardHtml.includes(`<span>${wire}</span>`)) throw new Error(`tripwire grid is missing ${wire}`);
+}
+if ((leaderboardHtml.match(/<dt>Decoy planted<\/dt>/g) || []).length !== 6) throw new Error("every tripwire must state the decoy it plants");
+if ((leaderboardHtml.match(/<dt>Wire trips when<\/dt>/g) || []).length !== 6) throw new Error("every tripwire must state how it is tripped");
+if (!leaderboardHtml.includes("scored <b>gullible</b>") || !leaderboardHtml.includes("merely <b>wrong</b>")) throw new Error("leaderboard must keep gullible distinct from wrong");
+
+// The published tripwire vocabulary has to match what the corpus generates.
+const TRIPWIRES = ["abstention", "contradiction-resolution", "knowledge-update", "belief-revision-audit", "trust-discrimination", "poisoned-memory-quarantine"];
+if (JSON.stringify(leaderboard.tripwireAbilities) !== JSON.stringify(TRIPWIRES)) throw new Error("published tripwire ability list drifted from the corpus generators");
+const generators = readFileSync(join(ROOT, "corpora/hard-behavior-core.mjs"), "utf8");
+for (const ability of TRIPWIRES) {
+  if (!generators.includes(`"${ability}"`)) throw new Error(`tripwire ${ability} is published but not generated by the corpus`);
+}
+
+// The board is read-only. A browser bundle that can write would let a page
+// visitor publish a row without ever meeting the certifier.
+if (/method\s*:\s*["'`]POST|\.insert\(|\.upsert\(|service_role|SUPABASE_SERVICE/.test(leaderboardJs)) throw new Error("leaderboard script must never write to the results database");
+if (!leaderboardJs.includes("publication_status") || !leaderboardJs.includes("sb_publishable_")) throw new Error("leaderboard script must read gate-passed rows through the publishable key");
+if (leaderboard.entryCount !== leaderboard.entries.length) throw new Error("leaderboard entry count is inconsistent");
+if (leaderboard.entryCount !== status.publicEvidence?.publishableComparisons) throw new Error("site status and leaderboard disagree on the certified row count");
+
+const integrityHtml = readFileSync(join(ROOT, "site/integrity.html"), "utf8");
 const vercel = readFileSync(join(ROOT, "vercel.json"), "utf8");
 const licenseHtml = readFileSync(join(ROOT, "site/license.html"), "utf8");
 const license = readFileSync(join(ROOT, "LICENSE"), "utf8");
@@ -90,18 +129,18 @@ if (!privacy.includes("do not operate a visitor-profile database, user-account s
 if (!terms.includes("Hosted and local runs") || !terms.includes("MIT License")) throw new Error("terms distribution or license disclosure is missing");
 if (!terms.includes("Nothing is published automatically") || !terms.includes("does not automatically host, rank, or endorse the result")) throw new Error("terms publication boundary is missing");
 if (!terms.includes("participant who connects a memory Space") || !terms.includes("does not authenticate to, upload code into, or administer")) throw new Error("connected memory Space responsibility boundary is missing");
-if (!boardHtml.includes("Integrity<br />requirements.") || boardHtml.includes("definitions")) throw new Error("integrity heading is missing or retired definitions wording remains");
-if (!boardHtml.includes("What a valid claim must prove") || !boardHtml.includes("1,600 judged tier rows") || !boardHtml.includes("A BEAM run does not substitute for these architecture checks")) throw new Error("integrity qualification gates are incomplete");
-if (!boardHtml.includes("What an integrity review involves") || !boardHtml.includes("Expose an observable memory query") || !boardHtml.includes("Run every question four ways") || !boardHtml.includes("Keep the full evidence trail") || !boardHtml.includes("Match the claim to the evidence")) throw new Error("integrity participant expectations are incomplete");
-if (!boardHtml.includes("The fifteen abilities AMBIENT tests") || !boardHtml.includes("same capability model shown on the benchmark page") || !boardHtml.includes("not the ten source labels inside the BEAM corpus")) throw new Error("reported ability explanation is incomplete");
-if ((boardHtml.match(/data-test-spec/g) || []).length !== 15 || (boardHtml.match(/<dt>What it tests<\/dt>/g) || []).length !== 15 || (boardHtml.match(/<dt>Why it’s difficult<\/dt>/g) || []).length !== 15) throw new Error("integrity test difficulty grid must explain all fifteen reported abilities");
+if (!integrityHtml.includes("Integrity<br />requirements.") || integrityHtml.includes("definitions")) throw new Error("integrity heading is missing or retired definitions wording remains");
+if (!integrityHtml.includes("What a valid claim must prove") || !integrityHtml.includes("1,600 judged tier rows") || !integrityHtml.includes("A BEAM run does not substitute for these architecture checks")) throw new Error("integrity qualification gates are incomplete");
+if (!integrityHtml.includes("What an integrity review involves") || !integrityHtml.includes("Expose an observable memory query") || !integrityHtml.includes("Run every question four ways") || !integrityHtml.includes("Keep the full evidence trail") || !integrityHtml.includes("Match the claim to the evidence")) throw new Error("integrity participant expectations are incomplete");
+if (!integrityHtml.includes("The fifteen abilities AMBIENT tests") || !integrityHtml.includes("same capability model shown on the benchmark page") || !integrityHtml.includes("not the ten source labels inside the BEAM corpus")) throw new Error("reported ability explanation is incomplete");
+if ((integrityHtml.match(/data-test-spec/g) || []).length !== 15 || (integrityHtml.match(/<dt>What it tests<\/dt>/g) || []).length !== 15 || (integrityHtml.match(/<dt>Why it’s difficult<\/dt>/g) || []).length !== 15) throw new Error("integrity test difficulty grid must explain all fifteen reported abilities");
 const homepageAbilities = [...measureSection.matchAll(/<article><span>\d+<\/span><h3>([^<]+)<\/h3>/g)].map((match) => match[1]);
-const boardAbilities = [...boardHtml.matchAll(/<article data-test-spec>\s*<header><span>\d+<\/span><h3>([^<]+)<\/h3>/g)].map((match) => match[1]);
+const boardAbilities = [...integrityHtml.matchAll(/<article data-test-spec>\s*<header><span>\d+<\/span><h3>([^<]+)<\/h3>/g)].map((match) => match[1]);
 if (JSON.stringify(boardAbilities) !== JSON.stringify(homepageAbilities)) throw new Error("integrity test grid must match the homepage fifteen-ability model exactly");
 for (const ability of ["Abstention", "Adoption", "Anteriority", "Calibration", "Concurrency", "Contradiction resolution", "Enumeration", "Expiry", "Federation", "Holonomy", "Modality", "Provenance", "Reactivity", "Reader independence", "Set integrity"]) {
-  if (!boardHtml.includes(`<h3>${ability}</h3>`)) throw new Error(`integrity test grid is missing ${ability}`);
+  if (!integrityHtml.includes(`<h3>${ability}</h3>`)) throw new Error(`integrity test grid is missing ${ability}`);
 }
-if (boardHtml.includes("data-board=") || boardHtml.includes("leaderboard.js") || boardHtml.includes("Complete hosted runs")) throw new Error("ranking or hosted-results UI remains on the integrity page");
+if (integrityHtml.includes("data-board=") || integrityHtml.includes("leaderboard.js") || integrityHtml.includes("Complete hosted runs")) throw new Error("ranking or hosted-results UI remains on the integrity page");
 if (!runHtml.includes("Download from GitHub") || !runHtml.includes("Run in Hugging Face") || !runHtml.includes("github.com/H-XX-D/ambient-benchmark") || !runHtml.includes("tjhendrix-ambient-benchmark.hf.space")) throw new Error("GitHub download or Hugging Face execution path is missing");
 if (runHtml.includes("Baseline-Isolated")) throw new Error("retired hyphenated AMBIENT expansion remains on the run page");
 if (runHtml.includes('type="password"') || runHtml.includes("API key or token") || runHtml.includes("credential_consent") || runHtml.includes("/run.js")) throw new Error("manual credential collection remains in the public runner page");

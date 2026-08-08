@@ -1,0 +1,19 @@
+{
+  "schema": "ambient.leaderboard.v1",
+  "generatedAt": "2026-08-08T08:05:25.603Z",
+  "sourceCommit": "5900366b1bed5ce4a073fb4dd32fa67a096e788a",
+  "entryCount": 0,
+  "ranking": {
+    "architecture": "paired T4 − T1 attributed completion; descending within a common control key",
+    "nativeSystem": "T3 end-to-end attributed completion; descending and reported separately"
+  },
+  "tripwireAbilities": [
+    "abstention",
+    "contradiction-resolution",
+    "knowledge-update",
+    "belief-revision-audit",
+    "trust-discrimination",
+    "poisoned-memory-quarantine"
+  ],
+  "entries": []
+}

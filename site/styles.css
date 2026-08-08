@@ -375,3 +375,41 @@ footer p { margin: 0; }
   .instrument-media img { transform: none; }
   .instrument-note { color: var(--white); opacity: 1; transform: none; }
 }
+
+/* Tripwires: the six abilities where a decoy is planted in memory and a
+   retrieval-only system surfaces it. Presented as a spec grid, not a table,
+   because each wire needs three fields of explanation rather than a number. */
+.tripwire-section { max-width: var(--max); margin: 0 auto 6rem; }
+.tripwire-heading { display: grid; grid-template-columns: minmax(170px, .42fr) 1.58fr; column-gap: clamp(2rem, 7vw, 8rem); margin-bottom: 3rem; }
+.tripwire-heading .eyebrow { margin: .4rem 0 0; color: var(--signal); font-size: .76rem; font-weight: 650; letter-spacing: .04em; text-transform: uppercase; }
+.tripwire-heading h2 { grid-column: 2; margin: 0 0 1.6rem; font-size: clamp(2.6rem, 5.5vw, 5.4rem); font-weight: 600; letter-spacing: -.06em; line-height: .94; }
+.tripwire-heading p { grid-column: 2; max-width: 800px; margin: 0 0 1.1rem; color: #5a5b55; font-size: 1rem; line-height: 1.72; }
+.tripwire-heading b { color: var(--ink); font-weight: 650; }
+.tripwire-heading i { font-style: italic; }
+/* Exactly three columns so the six wires fill two complete rows. An auto-fit
+   track count leaves empty cells that read as grey holes in the grid. */
+.tripwire-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin-bottom: 4rem; background: var(--line); border: 1px solid var(--line); }
+.tripwire { padding: 2rem 1.8rem; background: var(--paper); }
+.tripwire header span { color: var(--signal); font-size: .74rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.tripwire header h3 { margin: .5rem 0 1.4rem; font-size: 1.35rem; font-weight: 600; letter-spacing: -.03em; line-height: 1.2; }
+.tripwire dl { margin: 0; }
+.tripwire dl > div { padding: .85rem 0; border-top: 1px solid var(--line); }
+.tripwire dt { color: #85867f; font-size: .68rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.tripwire dd { margin: .35rem 0 0; color: #4f504b; font-size: .88rem; line-height: 1.6; }
+.tripwire code { font-family: "DM Mono", monospace; font-size: .82rem; color: var(--ink); }
+.tripwire-board { padding-top: 1rem; }
+.tripwire-board .board-heading h3 { margin: 0; font-size: clamp(1.6rem, 3vw, 2.6rem); font-weight: 600; letter-spacing: -.045em; }
+
+@media (max-width: 1180px) {
+  .tripwire-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 900px) {
+  .tripwire-heading { grid-template-columns: 1fr; }
+  .tripwire-heading .eyebrow { margin-bottom: 2rem; }
+  .tripwire-heading h2, .tripwire-heading p { grid-column: 1; }
+}
+
+@media (max-width: 700px) {
+  .tripwire-grid { grid-template-columns: 1fr; }
+}
