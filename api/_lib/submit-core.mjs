@@ -106,8 +106,15 @@ export async function placeSubmission({ entry, outcomes, zipBuffer, env, fetchIm
     headers: { ...auth, "Content-Type": "application/zip", "x-upsert": "false" },
     body: zipBuffer,
   });
-  if (stored.status === 409) throw new Error(`a bundle for submission id "${entry.id}" is already published`);
-  if (!stored.ok) throw new Error(`evidence storage refused the bundle: HTTP ${stored.status}`);
+  if (!stored.ok) {
+    const detail = await stored.text();
+    // Supabase Storage reports a duplicate object as HTTP 400 with a
+    // Duplicate/exists error body, not as 409. Verified against the live API.
+    if (stored.status === 409 || /duplicate|already exists/i.test(detail)) {
+      throw new Error(`a bundle for submission id "${entry.id}" is already published`);
+    }
+    throw new Error(`evidence storage refused the bundle: HTTP ${stored.status}: ${detail.slice(0, 200)}`);
+  }
 
   const evidenceUrl = `${supabaseUrl}/storage/v1/object/public/ambient-evidence/${objectPath}`;
 

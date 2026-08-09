@@ -37,7 +37,11 @@ function stubFetch(overrides = {}) {
     return {
       ok: status >= 200 && status < 300,
       status,
-      text: async () => "stub",
+      // The live storage API reports a duplicate object as HTTP 400 with a
+      // Duplicate error body; mirror that so the conflict mapping is honest.
+      text: async () => (status === 400 && kind === "storage"
+        ? '{"statusCode":"409","error":"Duplicate","message":"The resource already exists"}'
+        : "stub"),
     };
   };
   return { calls, impl };
@@ -142,7 +146,7 @@ test("placement writes storage, entry, and outcomes in order with the service ke
 
 test("a duplicate submission id surfaces as already-published, not as success", async () => {
   const processed = processSubmission(fixtureZip(), PROTOCOL_CORPUS_SHA256);
-  const { impl } = stubFetch({ storage: 409 });
+  const { impl } = stubFetch({ storage: 400 });
   await assert.rejects(
     () => placeSubmission({
       entry: processed.entry, outcomes: processed.outcomes, zipBuffer: Buffer.from("z"),
