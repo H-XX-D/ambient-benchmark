@@ -20,30 +20,30 @@
     <main class="legal-main" id="main">
       <p class="eyebrow">Legal · Last updated July 27, 2026</p>
       <h1>Privacy Policy</h1>
-      <p class="legal-lede">AMBIENT is an open-source benchmark. Its Vercel website has no accounts, advertising, first-party analytics, or API-key fields. The optional runner uses Hugging Face sign-in and Inference Providers.</p>
+      <p class="legal-lede">AMBIENT is an open-source benchmark. Its Vercel website has no accounts, advertising, first-party analytics, or API-key fields. The site accepts evidence-bundle uploads for automated certification and placement.</p>
 
       <section>
         <h2>Information we collect</h2>
-        <p>The AMBIENT maintainers do not set first-party cookies or create visitor profiles on the Vercel website. The Vercel deployment links to the hosted runner but does not receive, proxy, or store a Hugging Face OAuth token.</p>
+        <p>The AMBIENT maintainers do not set first-party cookies or create visitor profiles on the Vercel website. The site does not receive, proxy, or store any account credential or OAuth token; submission requires no sign-in.</p>
       </section>
 
       <section>
         <h2>Infrastructure and third parties</h2>
-        <p>The primary site is hosted by Vercel and the optional runner is hosted by Hugging Face Spaces. Like most hosting providers, they may process request information such as IP addresses, device or browser details, timestamps, and requested URLs for delivery, reliability, abuse prevention, and security. That processing is governed by <a href="https://vercel.com/legal/privacy-notice">Vercel’s Privacy Notice</a> and <a href="https://huggingface.co/privacy">Hugging Face’s Privacy Policy</a>.</p>
+        <p>The site is hosted by Vercel, and the results database and evidence storage are hosted by Supabase. Like most hosting providers, they may process request information such as IP addresses, device or browser details, timestamps, and requested URLs for delivery, reliability, abuse prevention, and security. That processing is governed by <a href="https://vercel.com/legal/privacy-notice">Vercel’s Privacy Notice</a> and <a href="https://supabase.com/privacy">Supabase’s Privacy Policy</a>.</p>
         <p>The site loads typefaces from Google Fonts, so a visitor’s browser may make a request to Google. Links to GitHub, Vercel, and other external services are governed by those services’ own privacy notices. AMBIENT does not control their data practices.</p>
       </section>
 
       <section>
         <h2>Running the benchmark</h2>
-        <p>You can run AMBIENT locally from GitHub or use the optional Hugging Face runner. A local run stays on infrastructure you choose except for requests sent to configured model providers.</p>
-        <p>The Space uses Hugging Face OAuth. Hugging Face always includes the standard <code>openid profile</code> sign-in scopes; the only additional scope requested is <code>inference-api</code>. Gradio injects a short-lived user token into the run callback; the application uses it only with <code>https://router.huggingface.co/v1</code>, holds it only in process memory for the active run, redacts it from captured errors, and excludes it from logs and evidence artifacts. The Space does not publish results automatically.</p>
-        <p>If you connect your own public Hugging Face memory Space, the runner sends that Space the benchmark's memory writes and queries. It sends a random run-isolation ID but does not forward your OAuth token. Your memory Space and Hugging Face process those requests under the configuration and policies you choose.</p>
-        <p>Run artifacts are held on the Space’s ephemeral storage for up to 30 minutes so you can download the bundle. Hugging Face and its configured Inference Providers process requests under their own policies. Inference usage is billed against the signed-in participant’s Hugging Face credits or account; review Hugging Face’s retention and billing terms before running the benchmark.</p>
+        <p>You run AMBIENT locally from GitHub. A run stays on infrastructure you choose except for requests sent to model providers you configure.</p>
+        <p>When you submit, the uploaded bundle is processed server-side for certification and is not retained if it fails: an uncertified bundle is discarded after the checks run and only the check report is returned to you. The submission endpoint does not publish anything a failed bundle contained.</p>
+        <p>A certified bundle becomes public evidence: the zip you uploaded is stored in the evidence bucket and linked from its leaderboard row, and the benchmark's memory writes and queries recorded inside it become publicly readable. Do not include credentials, private conversations, or personal data in a bundle.</p>
+        <p>Certified evidence bundles are retained publicly so results stay reviewable; to request removal of a bundle you submitted, open a repository issue and the row will be revoked together with its evidence.</p>
       </section>
 
       <section>
         <h2>Sharing a run</h2>
-        <p>The website does not accept or publish run bundles. A participant who shares a bundle through Hugging Face, GitHub, or another service is responsible for removing credentials, private conversations, personal information, and material they do not have permission to publish.</p>
+        <p>The website accepts run bundles solely for certification, and publishes only bundles that pass. The submitter is responsible for removing credentials, private conversations, personal information, and material they do not have permission to publish before uploading.</p>
       </section>
 
       <section>

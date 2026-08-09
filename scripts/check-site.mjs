@@ -37,12 +37,12 @@ if ((html.match(/class="acronym-line"/g) || []).length !== 7) throw new Error("A
 if (!html.includes("Agentic Memory: Baseline Isolated Evaluation, Normalized Tiers.")) throw new Error("AMBIENT expansion is missing");
 if (html.includes("Baseline-Isolated") || html.includes("Baseline-isolated")) throw new Error("retired hyphenated AMBIENT expansion remains");
 if (html.includes("One reader. Four conditions.") || html.includes("Current public evidence")) throw new Error("retired redundant design or evidence section remains");
-if (!html.includes("GitHub repository") || !html.includes("canonical protocol, full local runner")) throw new Error("GitHub repository distribution is missing");
+if (!html.includes("GitHub repository") || !html.includes("canonical protocol")) throw new Error("GitHub repository distribution is missing");
 if (!html.includes('<a href="/integrity.html">Integrity</a>')) throw new Error("primary navigation must label the governance page as Integrity");
 if (!html.includes('<a href="/leaderboard.html">Leaderboard</a>')) throw new Error("primary navigation must link the leaderboard");
 if (!html.includes("Choose the memory.") || !html.includes("This is not a model leaderboard")) throw new Error("memory-first runner purpose is not explicit");
-if (!html.includes("never posted automatically") || !html.includes("Participants may keep or share their own bundle through Hugging Face")) throw new Error("participant-owned result boundary is missing");
-if (!html.includes("connect their own public Hugging Face memory Space") || !html.includes("Memory Space starter")) throw new Error("bring-your-own memory Space path is missing");
+if (!html.includes("never posted automatically from a run") || !html.includes("clears the automated certifier")) throw new Error("certifier-gated publication boundary is missing");
+if (!html.includes("own infrastructure against their own memory system") || !html.includes("Submit a run")) throw new Error("self-run and website-submission path is missing");
 if (!html.includes("Read the ability guide") || !html.includes("docs/10_AMBIENT_SUITE.md")) throw new Error("ability documentation link is missing");
 if (html.includes("definitions")) throw new Error("retired definitions wording remains on the homepage");
 const measuresIndex = html.indexOf('id="measures"');
@@ -55,10 +55,10 @@ if (!measureSection.includes("Declines when the record cannot support an answer"
 if (!html.includes('href="#run"') || !html.includes('id="run"')) throw new Error("main-page run and download section is missing");
 const instrumentIndex = html.indexOf('class="instrument-scroll"');
 const runSection = html.slice(runIndex, instrumentIndex);
-if (!runSection.includes("Download it.<br />Or run it from<br />a HF Space.")) throw new Error("primary execution introduction or required line breaks are missing");
+if (!runSection.includes("Download it.<br />Run it.<br />Submit it here.")) throw new Error("primary execution introduction or required line breaks are missing");
 const distributionIndex = html.indexOf('id="distribution"');
 const distributionSection = html.slice(distributionIndex, html.indexOf("</main>"));
-if (!(distributionIndex > html.indexOf('id="reporting"')) || !distributionSection.includes("Choose the memory.") || !distributionSection.includes("complete 400-question scope") || !distributionSection.includes("canonical protocol, full local runner")) throw new Error("hosted-run explanation is not in the final distribution section");
+if (!(distributionIndex > html.indexOf('id="reporting"')) || !distributionSection.includes("Choose the memory.") || !distributionSection.includes("re-derives every published number")) throw new Error("distribution section must explain certifier-gated publication");
 if ((html.match(/Choose the memory\./g) || []).length !== 1) throw new Error("distribution explanation is duplicated");
 if (html.includes('aria-label="Result interpretation"') || html.includes("T3 reports the complete system and is not used for that attribution")) throw new Error("retired oversized result-interpretation block remains");
 if (html.includes("status-ledger")) throw new Error("retired release-status ledger remains");
@@ -85,10 +85,20 @@ const leaderboard = JSON.parse(readFileSync(join(ROOT, "site/data/leaderboard.js
 
 // The leaderboard must keep the three confidence tiers separate; collapsing
 // them is how an unreviewed hosted run gets mistaken for a verified claim.
-for (const board of ["hosted", "architecture", "native", "tripwire"]) {
+for (const board of ["architecture", "native", "tripwire"]) {
   if (!leaderboardHtml.includes(`data-board="${board}"`)) throw new Error(`leaderboard is missing the ${board} board`);
 }
-if (!leaderboardHtml.includes("Certified hosted runs") || !leaderboardHtml.includes("Architecture track") || !leaderboardHtml.includes("Native system track")) throw new Error("leaderboard track headings are incomplete");
+if (leaderboardHtml.includes('data-board="hosted"')) throw new Error("the retired hosted-runs board must not return");
+if (!leaderboardHtml.includes("Architecture track") || !leaderboardHtml.includes("Native system track")) throw new Error("leaderboard track headings are incomplete");
+// The website submission pipeline is the only placement path.
+if (!leaderboardHtml.includes("data-submit-form") || !leaderboardHtml.includes('name="corpus-hash"')) throw new Error("upload submission form is missing from the leaderboard");
+const submitJs = readFileSync(join(ROOT, "site/leaderboard.js"), "utf8");
+if (!submitJs.includes('fetch("/api/submit"') || !submitJs.includes("x-ambient-corpus-sha256")) throw new Error("submit form is not wired to the certification endpoint");
+const submitApi = readFileSync(join(ROOT, "api/submit.mjs"), "utf8");
+if (!submitApi.includes("processSubmission") || !submitApi.includes("placeSubmission") || !submitApi.includes("x-ambient-corpus-sha256")) throw new Error("the API endpoint must certify before placing");
+const submitCore = readFileSync(join(ROOT, "api/_lib/submit-core.mjs"), "utf8");
+if (!submitCore.includes("certifySubmission") || !submitCore.includes("deriveTripwireOutcomes")) throw new Error("the submission core must reuse the shared certifier and tripwire derivation");
+if (!submitCore.includes("escapes the extraction directory") || !submitCore.includes("link entry")) throw new Error("upload extraction must keep its traversal and symlink guards");
 
 // The tripwire section is the part that distinguishes a memory system from a
 // search index, so every wire must stay documented with its decoy.
@@ -118,7 +128,12 @@ if (JSON.stringify([...constrained].sort()) !== JSON.stringify([...TRIPWIRES].so
 
 // The board is read-only. A browser bundle that can write would let a page
 // visitor publish a row without ever meeting the certifier.
-if (/method\s*:\s*["'`]POST|\.insert\(|\.upsert\(|service_role|SUPABASE_SERVICE/.test(leaderboardJs)) throw new Error("leaderboard script must never write to the results database");
+// The browser bundle may POST only to the site's own certification endpoint.
+// It must never write to the database directly or hold anything but the
+// publishable key; placement happens server-side behind the certifier.
+if (/\.insert\(|\.upsert\(|service_role|SUPABASE_SERVICE/.test(leaderboardJs)) throw new Error("leaderboard script must never hold a privileged database path");
+const postCount = (leaderboardJs.match(/method:\s*"POST"/g) || []).length;
+if (postCount !== 1 || !/fetch\("\/api\/submit",\s*\{\s*method:\s*"POST"/.test(leaderboardJs)) throw new Error("the only browser POST allowed is the site's own /api/submit endpoint");
 if (!leaderboardJs.includes("publication_status") || !leaderboardJs.includes("sb_publishable_")) throw new Error("leaderboard script must read gate-passed rows through the publishable key");
 if (leaderboard.entryCount !== leaderboard.entries.length) throw new Error("leaderboard entry count is inconsistent");
 if (leaderboard.entryCount !== status.publicEvidence?.publishableComparisons) throw new Error("site status and leaderboard disagree on the certified row count");
@@ -132,12 +147,12 @@ const styles = readFileSync(join(ROOT, "site/styles.css"), "utf8");
 if (!styles.includes(".publication-title .kicker") || !styles.includes("font-size: clamp(3.3rem, 7.4vw, 8rem)")) throw new Error("Agentic Memory is not scaled with the AMBIENT title stack");
 if (!styles.includes(".acronym-letter { color: var(--signal); font-weight: 800; }") || !styles.includes("font-size: clamp(1.8rem, 9.4vw, 3.1rem)")) throw new Error("AMBIENT acronym emphasis or mobile fit guard is missing");
 if (!styles.includes(".attribution-grid .attribution-good > span { color: #277045; }")) throw new Error("memory-credit label must use the positive green color");
-if (!privacy.includes("does not receive, proxy, or store a Hugging Face OAuth token") || !privacy.includes("inference-api") || !privacy.includes("does not publish results automatically")) throw new Error("hosted runner OAuth or publication disclosure is missing");
-if (!privacy.includes("does not forward your OAuth token") || !privacy.includes("benchmark's memory writes and queries")) throw new Error("connected memory Space privacy boundary is missing");
+if (!privacy.includes("does not receive, proxy, or store any account credential") || !privacy.includes("not retained if it fails") || !privacy.includes("only the check report is returned")) throw new Error("upload processing disclosure is missing");
+if (!privacy.includes("certified bundle becomes public evidence") || !privacy.includes("Do not include credentials, private conversations, or personal data")) throw new Error("public-evidence disclosure is missing");
 if (!privacy.includes("do not operate a visitor-profile database, user-account system, or results database")) throw new Error("no-results-database disclosure is missing");
 if (!terms.includes("Hosted and local runs") || !terms.includes("MIT License")) throw new Error("terms distribution or license disclosure is missing");
-if (!terms.includes("Nothing is published automatically") || !terms.includes("does not automatically host, rank, or endorse the result")) throw new Error("terms publication boundary is missing");
-if (!terms.includes("participant who connects a memory Space") || !terms.includes("does not authenticate to, upload code into, or administer")) throw new Error("connected memory Space responsibility boundary is missing");
+if (!terms.includes("Nothing is published automatically") || !terms.includes("certification is a mechanical check, not an endorsement")) throw new Error("terms publication boundary is missing");
+if (!terms.includes("participant who submits a bundle") || !terms.includes("does not authenticate to, upload code into, or administer") || !terms.includes("executes nothing contained in a bundle")) throw new Error("submission responsibility boundary is missing");
 if (!integrityHtml.includes("Integrity<br />requirements.") || integrityHtml.includes("definitions")) throw new Error("integrity heading is missing or retired definitions wording remains");
 if (!integrityHtml.includes("What a valid claim must prove") || !integrityHtml.includes("1,600 judged tier rows") || !integrityHtml.includes("A BEAM run does not substitute for these architecture checks")) throw new Error("integrity qualification gates are incomplete");
 if (!integrityHtml.includes("What an integrity review involves") || !integrityHtml.includes("Expose an observable memory query") || !integrityHtml.includes("Run every question four ways") || !integrityHtml.includes("Keep the full evidence trail") || !integrityHtml.includes("Match the claim to the evidence")) throw new Error("integrity participant expectations are incomplete");
@@ -150,10 +165,12 @@ for (const ability of ["Abstention", "Adoption", "Anteriority", "Calibration", "
   if (!integrityHtml.includes(`<h3>${ability}</h3>`)) throw new Error(`integrity test grid is missing ${ability}`);
 }
 if (integrityHtml.includes("data-board=") || integrityHtml.includes("leaderboard.js") || integrityHtml.includes("Complete hosted runs")) throw new Error("ranking or hosted-results UI remains on the integrity page");
-if (!runHtml.includes("Download from GitHub") || !runHtml.includes("Run in Hugging Face") || !runHtml.includes("github.com/H-XX-D/ambient-benchmark") || !runHtml.includes("tjhendrix-ambient-benchmark.hf.space")) throw new Error("GitHub download or Hugging Face execution path is missing");
+if (!runHtml.includes("Download from GitHub") || !runHtml.includes("Submit on this site") || !runHtml.includes("github.com/H-XX-D/ambient-benchmark") || !runHtml.includes("/leaderboard.html#submit-title")) throw new Error("GitHub download or website submission path is missing");
 if (runHtml.includes("Baseline-Isolated")) throw new Error("retired hyphenated AMBIENT expansion remains on the run page");
 if (runHtml.includes('type="password"') || runHtml.includes("API key or token") || runHtml.includes("credential_consent") || runHtml.includes("/run.js")) throw new Error("manual credential collection remains in the public runner page");
-if (vercel.includes("supabase.co")) throw new Error("retired browser results database remains in the content security policy");
+// The boards read Supabase directly from the browser, so connect-src must
+// name that origin; without it the CSP silently blanks every board.
+if (!vercel.includes("connect-src 'self' https://nasxywilptctmfdbfpdw.supabase.co")) throw new Error("content security policy must allow the results database origin");
 if (!vercel.includes('"source": "/run"') || !vercel.includes('"destination": "/#run"')) throw new Error("retired standalone run page does not redirect to the main-page execution section");
 if (vercel.includes("wss://tjhendrix-ambient-benchmark.hf.space") || vercel.includes("connect-src 'self' https://huggingface.co")) throw new Error("obsolete Hugging Face browser-client origins remain in the content security policy");
 if (!license.startsWith("MIT License\n")) throw new Error("root license is not MIT");
