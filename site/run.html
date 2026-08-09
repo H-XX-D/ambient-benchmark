@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#f2f0ea" />
-    <meta name="description" content="Run the AMBIENT memory-architecture benchmark through Hugging Face Inference Providers." />
+    <meta name="description" content="Run the AMBIENT memory-architecture benchmark locally and submit the evidence bundle for automated certification." />
     <title>Run the benchmark — AMBIENT</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='16' fill='%23141414'/%3E%3Cpath d='M5 20 16 9l11 11' fill='none' stroke='%23f2f0ea' stroke-width='2'/%3E%3C/svg%3E" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -26,8 +26,8 @@
     <main class="runner-main" id="main">
       <header class="runner-intro">
         <p class="eyebrow">Run AMBIENT</p>
-        <h1>Download it.<br />Or run it in the Space.</h1>
-        <p class="runner-lede">The GitHub repository is the complete benchmark and canonical protocol. The Hugging Face Space is the self-service runner. It returns evidence to the participant and does not publish results automatically.</p>
+        <h1>Download it.<br />Run it. Submit it.</h1>
+        <p class="runner-lede">The GitHub repository is the complete benchmark and canonical protocol. You run it on infrastructure you control; every run ends in an evidence bundle. This website certifies uploaded bundles automatically and places the ones that pass.</p>
       </header>
 
       <div class="runner-layout">
@@ -41,12 +41,11 @@
           </ol>
           <div class="runner-boundary">
             <h3>Account boundary</h3>
-            <p>This website never receives a Hugging Face token. Beyond Hugging Face’s standard <code>openid profile</code> sign-in scopes, the Space requests only <code>inference-api</code>, and Gradio supplies the short-lived token directly to the run.</p>
+            <p>This website has no accounts and collects no API credentials. A submission is one .zip evidence bundle plus the frozen corpus SHA-256 attestation; nothing else is asked for.</p>
           </div>
           <div class="runner-boundary">
-            <h3>Cost and duration</h3>
-            <p>Inference usage is billed against the signed-in participant’s Hugging Face credits or account. Each unique question can produce four reader answers and four judge calls, plus ingestion and checking work; start with the 10-question smoke.</p>
-            <a href="https://huggingface.co/docs/inference-providers/en/pricing">Read Hugging Face pricing ↗</a>
+            <h3>Placement boundary</h3>
+            <p>The certifier re-derives every published number from the raw artifacts in the bundle. A bundle that fails any check places nothing and returns the full list of failed checks. A certified bundle is stored as public evidence next to its row.</p>
           </div>
         </aside>
 
@@ -63,9 +62,9 @@
           <article>
             <span class="option-index">02</span>
             <div>
-              <h3>Run in Hugging Face</h3>
-              <p>Use the hosted runner. Sign in with Hugging Face, connect your public memory Space, choose the scope, and run with fixed reader and judge controls billed to your Hugging Face account.</p>
-              <a class="runner-submit runner-submit-dark" href="https://tjhendrix-ambient-benchmark.hf.space" target="_blank" rel="noopener noreferrer">Open Hugging Face Space ↗</a>
+              <h3>Submit on this site</h3>
+              <p>Upload the evidence bundle from your run with its frozen-corpus attestation. The automated certifier verifies it and a clean pass places the row and its tripwire outcomes immediately.</p>
+              <a class="runner-submit runner-submit-dark" href="/leaderboard.html#submit-title">Submit a run</a>
             </div>
           </article>
           <p class="field-note">No configuration or API credentials are collected by this website.</p>

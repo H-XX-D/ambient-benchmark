@@ -141,8 +141,8 @@
       <section class="run-choices" id="run" aria-labelledby="run-choices-title">
         <div class="run-choices-heading">
           <span>Run AMBIENT</span>
-          <h2 id="run-choices-title">Download it.<br />Or run it from<br />a HF Space.</h2>
-          <p>The repository is the complete benchmark and canonical protocol. The Hugging Face Space is the hosted runner.</p>
+          <h2 id="run-choices-title">Download it.<br />Run it.<br />Submit it here.</h2>
+          <p>The repository is the complete benchmark and canonical protocol. This website certifies and places finished runs.</p>
         </div>
         <div class="run-choice-grid">
           <article>
@@ -153,9 +153,9 @@
           </article>
           <article>
             <span>02</span>
-            <h3>Run in Hugging Face</h3>
-            <p>Use the hosted Space. Sign in with Hugging Face, select the memory and models there, and run inference under your account.</p>
-            <a href="https://tjhendrix-ambient-benchmark.hf.space" target="_blank" rel="noopener noreferrer">Open Hugging Face Space ↗</a>
+            <h3>Submit on this site</h3>
+            <p>Upload your evidence bundle with its frozen-corpus attestation. The automated certifier re-derives every number from your raw artifacts, and a clean pass places the row immediately.</p>
+            <a href="/leaderboard.html#submit-title">Submit a run</a>
           </article>
         </div>
         <p class="run-boundary">No configuration or API credentials are collected by this website.</p>
@@ -213,14 +213,13 @@
         <div class="section-index"><span>04</span><p>Distribution</p></div>
         <div class="section-body">
           <h2>Choose the memory.</h2>
-          <p>Participants connect their own public Hugging Face memory Space to the AMBIENT adapter contract. The runner fixes one reader and a separate judge through Hugging Face Inference Providers; the participant authorizes inference on their own account, and the harness changes only the memory condition.</p>
+          <p>Participants run the benchmark on their own infrastructure against their own memory system through the AMBIENT adapter contract. The reader is fixed, answers are checked by exact mechanical oracles, and the harness changes only the memory condition.</p>
           <p>Run scopes contain 10, 100, 200, or 400 unique questions sampled evenly across all ten BEAM abilities. Ten is explicitly a smoke test; the complete 400-question scope is the first hosted option near a ±5-point worst-case single-tier margin. Repeats never count as new questions.</p>
           <p>The primary result is attributed memory lift: T4 memory-on completion minus T1 no-memory completion. The report also separates gullible answers, answers without traced support, and cases where the needed evidence was not served. This is not a model leaderboard.</p>
-          <p>Space runs produce an unreviewed evidence bundle and are never posted automatically. Participants may keep or share their own bundle through Hugging Face. The GitHub repository remains the canonical protocol, full local runner, and integrity-review path.</p>
+          <p>Every run produces an evidence bundle, and results are never posted automatically from a run. A row appears only when the participant uploads that bundle here and it clears the automated certifier, which re-derives every published number from the raw artifacts and verifies the frozen-corpus attestation.</p>
           <div class="publication-links dark-links">
-            <a href="https://tjhendrix-ambient-benchmark.hf.space">Run in Hugging Face</a>
+            <a href="/leaderboard.html#submit-title">Submit a run</a>
             <a href="https://github.com/H-XX-D/ambient-benchmark">GitHub repository</a>
-            <a href="https://huggingface.co/spaces/tjhendrix/ambient-benchmark/tree/main/examples/huggingface-memory-space">Memory Space starter</a>
             <a href="https://github.com/H-XX-D/ambient-benchmark/blob/master/RULES.md">Evaluation rules</a>
             <a href="https://github.com/H-XX-D/ambient-benchmark/blob/master/submissions/README.md">Submission format</a>
           </div>

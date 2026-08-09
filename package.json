@@ -112,6 +112,7 @@
     "test:publisher": "node --test tests/tripwire-publisher.test.mjs",
     "publish:tripwires": "node scripts/publish-tripwire-outcomes.mjs"
   },
-  "dependencies": {},
-  "devDependencies": {}
+  "dependencies": {
+    "adm-zip": "^0.5.18"
+  }
 }

@@ -21,24 +21,11 @@
       <section class="leaderboard-intro">
         <p class="eyebrow light">Result publication</p>
         <h1>Leaderboard.</h1>
-        <p class="legal-lede">Certified hosted runs, evidence-verified architecture submissions, and native end-to-end submissions are shown separately because they support different levels of confidence. Every row cleared the automated certifier before it appeared here.</p>
+        <p class="legal-lede">Evidence-verified architecture submissions and native end-to-end submissions are shown separately because they support different levels of confidence. Every row was uploaded here and cleared the automated certifier before placement; nothing is posted by hand.</p>
         <p class="board-source"><span>Verified result source</span><strong data-board-status>Connecting to the live database…</strong></p>
       </section>
 
-      <section class="board-section" aria-labelledby="hosted-board">
-        <div class="board-heading">
-          <h2 id="hosted-board">Certified hosted runs</h2>
-          <p>Runs completed through the Hugging Face Space. The Space attests its own corpus; a locally-run bundle must supply the frozen corpus digest instead. Rank is meaningful only within a matching control fingerprint.</p>
-        </div>
-        <div class="board-table-wrap" data-board="hosted">
-          <table class="board-table">
-            <thead><tr><th>Rank</th><th>Memory</th><th>Lift</th><th>T1</th><th>T4</th><th>Reader</th><th>Control</th><th>Date</th></tr></thead>
-            <tbody><tr class="empty-row"><td colspan="8">Loading certified hosted runs…</td></tr></tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="board-section" aria-labelledby="architecture-board">
+            <section class="board-section" aria-labelledby="architecture-board">
         <div class="board-heading">
           <h2 id="architecture-board">Architecture track</h2>
           <p>The score is attributed-completion lift: T4 bespoke agentic memory minus the T1 no-memory baseline. Compare rows only when the control fingerprint matches.</p>
@@ -140,6 +127,19 @@
             </table>
           </div>
         </div>
+      </section>
+
+      <section class="board-section" aria-labelledby="submit-title">
+        <div class="board-heading">
+          <h2 id="submit-title">Submit a run</h2>
+          <p>Upload your evidence bundle as a .zip. The certifier re-derives every published number from your raw artifacts; a locally-run bundle must attest the frozen corpus digest from the protocol lock. If all checks pass, the row and its tripwire outcomes are placed immediately.</p>
+        </div>
+        <form data-submit-form class="submit-form">
+          <label class="submit-field"><span>Evidence bundle (.zip)</span><input type="file" accept=".zip,application/zip" required /></label>
+          <label class="submit-field"><span>Frozen corpus SHA-256</span><input type="text" name="corpus-hash" placeholder="64-character lowercase digest from the protocol lock" required pattern="[0-9a-f]{64}" /></label>
+          <button type="submit" class="submit-button">Certify and place</button>
+        </form>
+        <div data-submit-result class="submit-result" aria-live="polite"></div>
       </section>
 
       <section class="submission-note">

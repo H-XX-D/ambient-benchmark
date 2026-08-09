@@ -413,3 +413,17 @@ footer p { margin: 0; }
 @media (max-width: 700px) {
   .tripwire-grid { grid-template-columns: 1fr; }
 }
+
+/* Website submission form: the upload-certify-place pipeline lives on the
+   leaderboard page itself now that the hosted Space is retired. */
+.submit-form { display: grid; grid-template-columns: 1fr 1fr auto; gap: 1.2rem; align-items: end; margin: 2rem 0 1rem; }
+.submit-field { display: grid; gap: .45rem; }
+.submit-field span { color: var(--signal); font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.submit-field input { min-height: 3rem; padding: 0 .9rem; color: var(--ink); background: #fff; border: 1px solid var(--line); font: inherit; font-size: .9rem; }
+.submit-field input[type="file"] { padding: .7rem .9rem; }
+.submit-button { min-height: 3.2rem; padding: 0 2.2rem; color: #fff; background: var(--signal); border: 1px solid var(--signal); font: inherit; font-weight: 700; cursor: pointer; }
+.submit-button:disabled { opacity: .55; cursor: wait; }
+.submit-result .submit-pass { padding: 1rem 1.2rem; color: #17603f; background: #e7f2ea; border-left: 3px solid #2f7d5a; font-size: .92rem; }
+.submit-result .submit-fail { padding: 1rem 1.2rem; color: #7c2416; background: #f7e8e4; border-left: 3px solid var(--signal); font-size: .92rem; }
+.submit-result .submit-check { margin: 0; padding: .55rem 1.2rem; color: #4f504b; border-bottom: 1px solid var(--line); font-size: .82rem; }
+@media (max-width: 900px) { .submit-form { grid-template-columns: 1fr; } }

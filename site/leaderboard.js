@@ -151,27 +151,6 @@ async function readTable(table, query) {
   return rows;
 }
 
-async function loadHostedRuns() {
-  const query = new URLSearchParams({
-    publication_status: "eq.hosted",
-    select: "id,memory_name,reader_model,item_count,score,baseline,treatment,control_key,completed_at",
-    order: "score.desc,completed_at.asc",
-    limit: "100",
-  });
-  const rows = await readTable("ambient_hosted_runs", query);
-  fill("hosted", rows, (row, rank) => [
-    cell(`#${String(rank).padStart(2, "0")}`),
-    cell(text(row.memory_name)),
-    cell(points(row.score), "score"),
-    cell(percent(row.baseline)),
-    cell(percent(row.treatment)),
-    codeCell(row.reader_model),
-    codeCell(row.control_key),
-    cell(text(String(row.completed_at ?? "").slice(0, 10))),
-  ], "No certified hosted run yet. The first run to clear the certifier appears here.", 8);
-  return rows.length;
-}
-
 // Tripwire outcomes are stored per system per ability, so the rate is computed
 // here rather than trusted from a precomputed column.
 async function loadTripwires() {
@@ -201,57 +180,116 @@ async function loadTripwires() {
   return ranked.length;
 }
 
+// Certified submissions now live in the database, placed there by the
+// website's own /api/submit pipeline. RLS exposes verified rows only.
 async function loadSubmissions() {
-  let payload;
+  let entries;
   try {
-    const response = await fetch("/data/leaderboard.json");
-    if (!response.ok) throw new Error(`leaderboard.json returned HTTP ${response.status}`);
-    payload = await response.json();
+    const query = new URLSearchParams({
+      publication_status: "eq.verified",
+      select: "id,track,system_name,system_version,corpus,item_count,score,lower95,upper95,control_key,submitted_at,evidence_url",
+      order: "score.desc,submitted_at.asc",
+      limit: "200",
+    });
+    entries = await readTable("ambient_leaderboard_entries", query);
   } catch (error) {
     message("architecture", "Validated submissions could not be read.", 9);
     message("native", "Validated submissions could not be read.", 8);
-    return 0;
+    return null;
   }
 
-  const entries = Array.isArray(payload?.entries) ? payload.entries : [];
   const architecture = entries.filter((entry) => entry.track === "architecture");
   const native = entries.filter((entry) => entry.track === "native-system");
 
   fill("architecture", architecture, (entry, rank) => [
     cell(`#${String(rank).padStart(2, "0")}`),
-    cell(text(entry.system?.name)),
-    cell(text(entry.system?.version)),
+    cell(text(entry.system_name)),
+    cell(text(entry.system_version)),
     cell(text(entry.corpus)),
-    cell(text(entry.result?.items)),
-    cell(points(entry.result?.score), "score"),
-    cell(interval(entry.result?.lower95, entry.result?.upper95)),
-    codeCell(entry.controlKey),
-    linkCell(entry.evidenceUrl, "Bundle"),
+    cell(text(entry.item_count)),
+    cell(points(entry.score), "score"),
+    cell(interval(entry.lower95, entry.upper95)),
+    codeCell(entry.control_key),
+    linkCell(entry.evidence_url, "Bundle"),
   ], "No architecture submission has passed the evidence gate yet.", 9);
 
   fill("native", native, (entry, rank) => [
     cell(`#${String(rank).padStart(2, "0")}`),
-    cell(text(entry.system?.name)),
-    cell(text(entry.system?.version)),
+    cell(text(entry.system_name)),
+    cell(text(entry.system_version)),
     cell(text(entry.corpus)),
-    cell(text(entry.result?.items)),
-    cell(percent(entry.result?.score), "score"),
-    cell(interval(entry.result?.lower95, entry.result?.upper95)),
-    linkCell(entry.evidenceUrl, "Bundle"),
+    cell(text(entry.item_count)),
+    cell(percent(entry.score), "score"),
+    cell(interval(entry.lower95, entry.upper95)),
+    linkCell(entry.evidence_url, "Bundle"),
   ], "No native-system submission has passed the evidence gate yet.", 8);
 
   return entries.length;
+}
+
+// Upload flow: POST the zip to the site's own certifier endpoint, then show
+// either the placement or the full list of failed checks.
+function wireSubmitForm() {
+  const form = document.querySelector("[data-submit-form]");
+  if (!form) return;
+  const fileInput = form.querySelector('input[type="file"]');
+  const hashInput = form.querySelector('input[name="corpus-hash"]');
+  const button = form.querySelector("button");
+  const out = document.querySelector("[data-submit-result]");
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    out.replaceChildren();
+    const file = fileInput.files?.[0];
+    const hash = (hashInput.value || "").trim().toLowerCase();
+    const fail = (copy) => {
+      const p = document.createElement("p");
+      p.className = "submit-fail";
+      p.textContent = copy;
+      out.append(p);
+    };
+    if (!file) return fail("Choose a .zip evidence bundle first.");
+    if (!/^[0-9a-f]{64}$/.test(hash)) return fail("The corpus attestation must be a 64-character lowercase SHA-256 digest.");
+
+    button.disabled = true;
+    button.textContent = "Certifying…";
+    try {
+      const response = await fetch("/api/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/zip", "x-ambient-corpus-sha256": hash },
+        body: file,
+      });
+      const payload = await response.json();
+      if (payload.ok) {
+        const p = document.createElement("p");
+        p.className = "submit-pass";
+        p.textContent = `Certified (${payload.certified.totalChecks} checks) and placed: ${payload.placed.system.name} on the ${payload.placed.track} track, control ${payload.certified.controlKey}.`;
+        out.append(p);
+        loadSubmissions();
+        loadTripwires();
+      } else {
+        fail(payload.error || "The bundle did not certify.");
+        for (const check of payload.checks ?? []) {
+          const li = document.createElement("p");
+          li.className = "submit-check";
+          li.textContent = `${check.name}: ${check.message}`;
+          out.append(li);
+        }
+      }
+    } catch (error) {
+      fail("The submission endpoint could not be reached.");
+    } finally {
+      button.disabled = false;
+      button.textContent = "Certify and place";
+    }
+  });
 }
 
 async function start() {
   const status = document.querySelector("[data-board-status]");
   const footer = document.querySelector("[data-board-footer]");
 
-  const [hosted, tripwire, submissions] = await Promise.all([
-    loadHostedRuns().catch(() => {
-      message("hosted", "Certified hosted runs could not be read.", 8);
-      return null;
-    }),
+  const [tripwire, submissions] = await Promise.all([
     loadTripwires().catch(() => {
       message("tripwire", "Certified tripwire outcomes could not be read.", 6);
       return null;
@@ -260,13 +298,12 @@ async function start() {
   ]);
 
   if (status) {
-    if (hosted === null && submissions === null) {
+    if (submissions === null) {
       status.textContent = "Live results unavailable";
     } else {
-      const total = (hosted ?? 0) + (submissions ?? 0);
-      status.textContent = total === 0
+      status.textContent = submissions === 0
         ? "Live database reachable · no certified rows yet"
-        : `Live database reachable · ${total} certified row${total === 1 ? "" : "s"}`;
+        : `Live database reachable · ${submissions} certified row${submissions === 1 ? "" : "s"}`;
     }
   }
   if (footer && tripwire !== null) {
@@ -277,4 +314,4 @@ async function start() {
 }
 
 // Only drive the DOM in a browser; tests import the pure aggregation above.
-if (typeof document !== "undefined") start();
+if (typeof document !== "undefined") { start(); wireSubmitForm(); }
