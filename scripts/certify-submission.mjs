@@ -181,6 +181,17 @@ export function certifySubmission(bundleDir, options = {}) {
         c.ok("verdicts.noJudgeErrors", !verdicts.some((row) => row.verdict === "judge-error" || row.error), "verdicts contain judge errors");
         c.ok("judge.notMock", !/mock/i.test(judgeManifest.judge?.model ?? ""), "a mock judge cannot be ranked");
         c.ok("reader.notMock", !transcript.some((row) => /mock/i.test(row.sourceTrace?.answer?.model ?? "")), "mock reader output cannot be ranked");
+        // The runner substitutes "[model error: ...]" for the answer when the
+        // reader backend fails, and the mechanical oracle then grades that
+        // string wrong or gullible. Without this check a run that lost its
+        // reader still certifies clean and publishes a score that measures
+        // downtime rather than memory.
+        const backendErrors = transcript.filter((row) => String(row.answer ?? "").startsWith("[model error"));
+        c.ok(
+          "reader.noBackendErrors",
+          backendErrors.length === 0,
+          `${backendErrors.length} of ${transcript.length} answers are reader backend errors; a run that lost its reader is not a result`,
+        );
         c.ok("transcript.runId", transcript.every((row) => row.runId === manifest.runId), "transcript rows reference a different runId than the manifest");
         c.ok("reader.fingerprint", transcript.every((row) => row.sourceTrace?.answer?.fingerprint === manifest.models?.reader?.fingerprint), "reader fingerprint drifts across the transcript");
       });

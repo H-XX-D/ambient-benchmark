@@ -390,6 +390,46 @@ test("rejects a run whose reader answers came from a mock model", () => {
   }
 });
 
+// A harness failure is not a benchmark result. When the reader backend dies
+// mid-run the runner records "[model error: ...]" as the answer and the
+// mechanical oracle grades it wrong or gullible, so the run still produces a
+// complete, internally consistent, fully hash-honest bundle carrying a score
+// that measures downtime rather than memory. Caught by actually running the
+// pipeline: a real run lost its reader partway and certified 47/47 with 20 of
+// 52 answers being fetch failures.
+test("rejects a transcript containing reader backend errors", () => {
+  const dir = freshBundle();
+  try {
+    const transcriptPath = join(dir, "transcript.jsonl");
+    const rows = readFileSync(transcriptPath, "utf8").trimEnd().split("\n").map((line) => JSON.parse(line));
+    rows[0].answer = "[model error: fetch failed]";
+    const transcriptText = `${rows.map((row) => JSON.stringify(row)).join("\n")}\n`;
+    writeFileSync(transcriptPath, transcriptText);
+    const transcriptDigest = createSha256(transcriptText);
+
+    // Keep every digest honest so the ONLY defect is the error answer.
+    const judgePath = join(dir, "judge-manifest.json");
+    const judge = JSON.parse(readFileSync(judgePath, "utf8"));
+    judge.transcriptSha256 = transcriptDigest;
+    const judgeText = `${JSON.stringify(judge, null, 2)}\n`;
+    writeFileSync(judgePath, judgeText);
+    mutateSubmission(dir, (v) => {
+      v.artifactSha256.transcript = transcriptDigest;
+      v.artifactSha256.judgeManifest = createSha256(judgeText);
+    });
+
+    const report = certifySubmission(dir, { corpusSha256: PROTOCOL_CORPUS_SHA256 });
+    assert.equal(report.ok, false, "certifier accepted a run whose reader failed mid-transcript");
+    const failed = report.checks.filter((check) => !check.passed).map((check) => check.name);
+    assert.ok(
+      failed.includes("reader.noBackendErrors"),
+      `expected reader.noBackendErrors to fail, instead failed: ${failed.join(", ") || "nothing"}`,
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test("rejects a run judged by a mock judge", () => {
   const dir = freshBundle();
   try {
